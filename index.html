@@ -1055,6 +1055,8 @@ var lastCode='';
 function connectQR(code){
   if(!code) return;
   lastCode=code;
+  // Se já está conectado, vai direto para sLive
+  if(wsConn && wsConn.readyState===1){ go('sLive'); return; }
   var statusEl=document.getElementById('qrStatus');
   if(statusEl){statusEl.textContent='Conectando...';statusEl.style.color='#ea860c';}
   try{
@@ -1068,10 +1070,17 @@ function connectQR(code){
       var data=JSON.parse(e.data);
       if(data.tipo==='conectado'){
         if(statusEl){statusEl.textContent='Conectado!';statusEl.style.color='#5db13d';}
-        // Navega imediatamente para sLive
-        go('sLive');
-        var p=document.getElementById('aulaGraficoPainel');
-        if(p) p.classList.add('visible');
+        // Para câmera se estiver ativa
+        pararCamera();
+        // Navega para sLive com pequeno delay para iOS processar
+        setTimeout(function(){
+          go('sLive');
+          var p=document.getElementById('aulaGraficoPainel');
+          if(p) p.classList.add('visible');
+          // Força scroll para o topo
+          var sl=document.getElementById('sLive');
+          if(sl) sl.scrollTop=0;
+        }, 300);
       }
       if(data.tipo==='update_aula'){
         if(data.grafico && data.grafico.length>0){
