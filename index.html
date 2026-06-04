@@ -228,16 +228,8 @@ img{display:block;max-width:100%}
 .prow{margin-top:8px}
 
 /*     PAINEL GRÁFICO PROFESSOR     */
-#aulaGraficoPainel{
-  flex-shrink:0;
-  padding:14px 16px 12px;
-  background:rgba(255,255,255,.03);
-  border-bottom:1px solid rgba(255,255,255,.07);
-  display:none;
-  width:100%;
-  box-sizing:border-box;
-}
-#aulaGraficoPainel.visible{ display:block; }
+/* aulaGraficoPainel now positioned absolutely inside graficoArea */
+#aulaGraficoPainel.visible{ display:block !important; }
 
 /*     P3: M-SICA     */
 .p3-wrap{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;min-height:0}
@@ -578,43 +570,68 @@ input[type=file]{display:none}
     <div class="lt-right"><div class="lt-lbl" style="text-align:right">Time Total</div><div class="lt-val lt-val-dim" id="ltTot">00:00</div></div>
   </div>
 
-  <div class="lg-wrap">
-    <div class="lg-legend">
-      <div class="lg-dot" style="background:#d62d2d"></div>
-      <div class="lg-dot" style="background:#ea860c"></div>
-      <div class="lg-dot" style="background:#5db13d"></div>
-      <div class="lg-dot" style="background:#295fe8"></div>
-      <div class="lg-dot" style="background:#888"></div>
-    </div>
-    <div class="lg-scroll"><div class="lg-timeline" id="lgT"></div></div>
-  </div>
-  <div class="lg-baseline"></div>
+  <!-- ÁREA DO GRÁFICO — altura fixa, alterna entre nativo e professor -->
+  <div id="graficoArea" style="flex-shrink:0;height:180px;position:relative;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.06);">
 
-  <div class="lnav">
-    <div style="display:flex;gap:6px" id="navDots">
-      <div class="nd active" id="nd0"></div>
-      <div class="nd" id="nd1"></div>
-      <div class="nd" id="nd2"></div>
+    <!-- Gráfico nativo (bolinhas) — padrão quando não conectado -->
+    <div id="graficoNativo" style="position:absolute;inset:0;display:flex;flex-direction:column;">
+      <div class="lg-wrap" style="flex:1;min-height:0;">
+        <div class="lg-legend">
+          <div class="lg-dot" style="background:#d62d2d"></div>
+          <div class="lg-dot" style="background:#ea860c"></div>
+          <div class="lg-dot" style="background:#5db13d"></div>
+          <div class="lg-dot" style="background:#295fe8"></div>
+          <div class="lg-dot" style="background:#888"></div>
+        </div>
+        <div class="lg-scroll"><div class="lg-timeline" id="lgT"></div></div>
+      </div>
+      <div class="lg-baseline"></div>
+      <div class="lnav">
+        <div style="display:flex;gap:6px" id="navDots">
+          <div class="nd active" id="nd0"></div>
+          <div class="nd" id="nd1"></div>
+          <div class="nd" id="nd2"></div>
+        </div>
+        <div class="lnav-pg" id="pgLbl">Page 1 of 3</div>
+      </div>
     </div>
-    <div class="lnav-pg" id="pgLbl">Page 1 of 3</div>
+
+    <!-- Gráfico do professor — aparece quando conectado, substitui o nativo -->
+    <div id="aulaGraficoPainel" style="position:absolute;inset:0;display:none;padding:12px 16px;box-sizing:border-box;background:#181818;z-index:2;overflow:hidden;"></div>
+
   </div>
 
-  <!-- PAINEL GRÁFICO DA AULA — visível quando conectado ao professor -->
-  <div id="aulaGraficoPainel"></div>
+  <!-- UP NEXT BAR — entre gráfico e gauge, altura fixa -->
+  <div id="upNextBar" style="flex-shrink:0;padding:10px 16px;background:rgba(255,255,255,.025);border-bottom:1px solid rgba(255,255,255,.07);">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.28);text-transform:uppercase;">Próximo bloco</span>
+      <div class="un-dot" id="unDot" style="width:6px;height:6px;border-radius:50%;background:#295fe8;flex-shrink:0;display:inline-block;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+      <div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,.03);border-radius:8px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Tempo</div>
+        <div id="unT" style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;line-height:1;">--</div>
+      </div>
+      <div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,.03);border-radius:8px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">%FTP</div>
+        <div id="unF" style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;line-height:1;">--</div>
+      </div>
+      <div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,.03);border-radius:8px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">RPM</div>
+        <div id="unR" style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;line-height:1;">--</div>
+      </div>
+      <div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,.03);border-radius:8px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Posição</div>
+        <div id="unP" style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;line-height:1;">--</div>
+      </div>
+    </div>
+  </div>
 
   <div class="lpages" id="lPages" ontouchstart="tS(event)" ontouchend="tE(event)">
 
     <!-- P1 -->
     <div class="lpage center" id="lp0">
-      <div class="p1-top">
-        <div class="p1-un-lbl"><span>UP NEXT</span><div class="un-dot" id="unDot"></div></div>
-        <div class="p1-un-grid">
-          <div class="ung"><div class="ung-l">Time</div><div class="ung-v" id="unT">--</div></div>
-          <div class="ung"><div class="ung-l">%FTP</div><div class="ung-v" id="unF">--</div></div>
-          <div class="ung"><div class="ung-l">RPM</div><div class="ung-v" id="unR">--</div></div>
-          <div class="ung"><div class="ung-l">Position</div><div class="ung-v" id="unP">--</div></div>
-        </div>
-      </div>
+      <!-- UP NEXT removido daqui — está acima do gauge agora -->
 
       <!-- GAUGE WRAP -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 10px 0;min-height:0;overflow:hidden;cursor:pointer;-webkit-user-select:none;user-select:none" onclick="cycleGaugeMode()">
@@ -1075,8 +1092,6 @@ function connectQR(code){
         // Navega para sLive com pequeno delay para iOS processar
         setTimeout(function(){
           go('sLive');
-          var p=document.getElementById('aulaGraficoPainel');
-          if(p) p.classList.add('visible');
           // Força scroll para o topo
           var sl=document.getElementById('sLive');
           if(sl) sl.scrollTop=0;
@@ -1087,8 +1102,30 @@ function connectQR(code){
           aulaGrafico=data.grafico; aulaBlocoIdx=data.blocoIdx||0;
           aulaGraficoNome=data.nomeAula||'ProRider';
           renderAulaGrafico();
+          // Mostra gráfico professor, oculta nativo
           var gp=document.getElementById('aulaGraficoPainel');
-          if(gp) gp.classList.add('visible');
+          if(gp){ gp.style.display='block'; }
+          var gn=document.getElementById('graficoNativo');
+          if(gn) gn.style.display='none';
+          // Popula UP NEXT com próximo bloco
+          var nb=data.grafico[data.blocoIdx+1]||null;
+          var zCUp={z1:'#a1a1a1',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
+          var elT=document.getElementById('unT'),elF=document.getElementById('unF');
+          var elR=document.getElementById('unR'),elP=document.getElementById('unP');
+          var elD=document.getElementById('unDot');
+          if(nb){
+            var corNb=zCUp[nb.z]||'#888';
+            if(elT) elT.textContent=nb.dur+'min';
+            if(elF){elF.textContent=nb.ftpMin+'–'+nb.ftpMax+'%';elF.style.color=corNb;}
+            if(elR) elR.textContent=nb.rpmMin+'–'+nb.rpmMax;
+            if(elP) elP.textContent=nb.pos||'–';
+            if(elD) elD.style.background=corNb;
+          } else {
+            if(elT) elT.textContent='–';
+            if(elF){elF.textContent='Fim';elF.style.color='rgba(255,255,255,.3)';}
+            if(elR) elR.textContent='–';
+            if(elP) elP.textContent='–';
+          }
         }
         if(data.bloco){
           var b=data.bloco;
@@ -1101,6 +1138,23 @@ function connectQR(code){
           e=document.getElementById('liveMetaRpm'); if(e) e.textContent=(b.rpmMin||'—')+'–'+(b.rpmMax||'—')+' rpm';
           e=document.getElementById('liveZonaProf'); if(e){e.textContent=zNomes[zona]||zona; e.style.color=cor;}
           e=document.getElementById('livePosProf'); if(e) e.textContent=b.pos||b.position||'';
+          // Atualiza UP NEXT com próximo bloco
+          if(data.upNext){
+            var nb=data.upNext;
+            var nz=nb.intensity||nb.z||'z1';
+            var nzNome=zNomes[nz]||nz;
+            var nCor=zCores[nz]||'#888';
+            e=document.getElementById('unT'); if(e) e.textContent=(nb.duration||'—')+'min';
+            e=document.getElementById('unF'); if(e){e.textContent=(nb.ftpMin||'—')+'–'+(nb.ftpMax||'—')+'%'; e.style.color=nCor;}
+            e=document.getElementById('unR'); if(e) e.textContent=(nb.rpmMin||'—')+'–'+(nb.rpmMax||'—');
+            e=document.getElementById('unP'); if(e) e.textContent=nb.pos||nb.position||'—';
+            e=document.getElementById('unDot'); if(e) e.style.background=nCor;
+          } else {
+            e=document.getElementById('unT'); if(e) e.textContent='—';
+            e=document.getElementById('unF'); if(e){e.textContent='Fim da aula'; e.style.color='rgba(255,255,255,.4)';}
+            e=document.getElementById('unR'); if(e) e.textContent='—';
+            e=document.getElementById('unP'); if(e) e.textContent='—';
+          }
         }
         if(data.segTime!==undefined){
           var tEl=document.getElementById('liveProfTimer');
@@ -2388,6 +2442,29 @@ function processarQRCode(raw){
   if(status){ status.textContent = 'QR lido: '+code; status.style.color='#5db13d'; }
   connectQR(code);
 }
+
+
+// ── Leitura automática do código na URL (?sala=PR-XXXX-XXXX) ──
+(function(){
+  try{
+    var params = new URLSearchParams(window.location.search);
+    var sala = params.get('sala');
+    if(sala && /^PR-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(sala.toUpperCase())){
+      sala = sala.toUpperCase();
+      // Preenche o campo e navega para a tela de QR
+      setTimeout(function(){
+        var input = document.getElementById('qrCodeInput');
+        if(input) input.value = sala;
+        // Vai direto para a tela de entrada
+        if(typeof go === 'function') go('sQRScan');
+        // Auto-conecta em 1 segundo
+        setTimeout(function(){
+          connectQR(sala);
+        }, 800);
+      }, 600);
+    }
+  }catch(e){}
+})();
 
 </script>
 </body>
