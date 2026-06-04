@@ -2249,7 +2249,103 @@ function btConnectHR(server, device){
 
 // \u2500\u2500 INIT \u2550\u2550
 buildHome();
-function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, "+new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2),dur:fmHMS(totS),z:cAula&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:"z2"};historico.unshift(entry);if(historico.length>10)historico.pop();buildHome();goTab("sHome","navActivity");}</script>
+function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, "+new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2),dur:fmHMS(totS),z:cAula&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:"z2"};historico.unshift(entry);if(historico.length>10)historico.pop();buildHome();goTab("sHome","navActivity");}
+// ── Scanner de câmera real ─────────────────────────────────
+var qrStream = null;
+var qrScanInterval = null;
+
+function iniciarCamera(){
+  var prompt = document.getElementById('qrScanPrompt');
+  var video  = document.getElementById('qrVideo');
+  var line   = document.getElementById('qrScanLine');
+  var status = document.getElementById('qrStatus');
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    if(status) status.textContent = 'Câmera não suportada. Digite o código abaixo.';
+    return;
+  }
+
+  if(status) status.textContent = 'Aguardando permissão...';
+
+  navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } })
+    .then(function(stream){
+      qrStream = stream;
+      video.srcObject = stream;
+      video.style.display = 'block';
+      if(prompt) prompt.style.display = 'none';
+      if(line)   line.style.display = 'block';
+      if(status) status.textContent = 'Aponte para o QR Code';
+      video.play();
+      // Tenta BarcodeDetector (Chrome/Android) ou fallback jsQR
+      if('BarcodeDetector' in window){
+        var bd = new BarcodeDetector({ formats:['qr_code'] });
+        qrScanInterval = setInterval(function(){
+          bd.detect(video).then(function(codes){
+            if(codes.length > 0){
+              var raw = codes[0].rawValue;
+              pararCamera();
+              processarQRCode(raw);
+            }
+          }).catch(function(){});
+        }, 300);
+      } else {
+        // Fallback: usa canvas + jsQR
+        carregarJsQR();
+      }
+    })
+    .catch(function(err){
+      if(status) status.textContent = 'Sem acesso à câmera. Digite o código abaixo.';
+      console.warn('Camera error:', err);
+    });
+}
+
+function carregarJsQR(){
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+  s.onload = function(){ iniciarScanCanvas(); };
+  document.head.appendChild(s);
+}
+
+function iniciarScanCanvas(){
+  var video  = document.getElementById('qrVideo');
+  var canvas = document.getElementById('qrCanvas');
+  var ctx    = canvas.getContext('2d');
+  qrScanInterval = setInterval(function(){
+    if(video.readyState === video.HAVE_ENOUGH_DATA){
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+      var img = ctx.getImageData(0,0,canvas.width,canvas.height);
+      if(window.jsQR){
+        var code = jsQR(img.data,img.width,img.height);
+        if(code){
+          pararCamera();
+          processarQRCode(code.data);
+        }
+      }
+    }
+  }, 400);
+}
+
+function pararCamera(){
+  if(qrScanInterval){ clearInterval(qrScanInterval); qrScanInterval=null; }
+  if(qrStream){ qrStream.getTracks().forEach(function(t){t.stop();}); qrStream=null; }
+  var video = document.getElementById('qrVideo');
+  if(video){ video.style.display='none'; video.srcObject=null; }
+}
+
+function processarQRCode(raw){
+  // Aceita formato PR-XXXX-XXXX ou URL com código
+  var match = raw.match(/PR-[A-Z0-9]{4}-[A-Z0-9]{4}/);
+  var code  = match ? match[0] : raw.trim().toUpperCase();
+  var input = document.getElementById('qrCodeInput');
+  if(input) input.value = code;
+  var status = document.getElementById('qrStatus');
+  if(status){ status.textContent = 'QR lido: '+code; status.style.color='#5db13d'; }
+  connectQR(code);
+}
+
+</script>
 </body>
 </html><!-- QR Scan screen -->
 <div class="screen" id="sQRScan" style="background:linear-gradient(160deg,#0a0812 0%,#110808 60%,#080a14 100%);">
@@ -2266,16 +2362,21 @@ function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, 
   <!-- Area do scanner -->
   <div style="padding:0 24px;display:flex;flex-direction:column;align-items:center;gap:20px;">
 
-    <!-- Viewfinder simulado -->
-    <div style="width:240px;height:240px;border-radius:24px;background:rgba(0,0,0,.5);border:2px solid rgba(41,95,232,.4);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-      <!-- Cantos estilizados -->
-      <div style="position:absolute;top:12px;left:12px;width:28px;height:28px;border-top:3px solid #295fe8;border-left:3px solid #295fe8;border-radius:4px 0 0 0;"></div>
-      <div style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-top:3px solid #295fe8;border-right:3px solid #295fe8;border-radius:0 4px 0 0;"></div>
-      <div style="position:absolute;bottom:12px;left:12px;width:28px;height:28px;border-bottom:3px solid #295fe8;border-left:3px solid #295fe8;border-radius:0 0 0 4px;"></div>
-      <div style="position:absolute;bottom:12px;right:12px;width:28px;height:28px;border-bottom:3px solid #295fe8;border-right:3px solid #295fe8;border-radius:0 0 4px 0;"></div>
-      <!-- Linha de scan animada -->
-      <div style="position:absolute;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,#295fe8,transparent);animation:scanLine 2s ease-in-out infinite;"></div>
-      <div style="text-align:center;color:rgba(255,255,255,.3);font-size:12px;padding:20px;">Aponte para o<br/>QR Code do professor</div>
+    <!-- Scanner de câmera real -->
+    <div id="qrScanBox" style="width:260px;height:260px;border-radius:20px;background:#000;border:2px solid rgba(41,95,232,.4);position:relative;overflow:hidden;">
+      <video id="qrVideo" style="width:100%;height:100%;object-fit:cover;display:none;" playsinline autoplay muted></video>
+      <canvas id="qrCanvas" style="display:none;"></canvas>
+      <!-- Cantos -->
+      <div style="position:absolute;top:12px;left:12px;width:28px;height:28px;border-top:3px solid #295fe8;border-left:3px solid #295fe8;border-radius:4px 0 0 0;z-index:2;"></div>
+      <div style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-top:3px solid #295fe8;border-right:3px solid #295fe8;border-radius:0 4px 0 0;z-index:2;"></div>
+      <div style="position:absolute;bottom:12px;left:12px;width:28px;height:28px;border-bottom:3px solid #295fe8;border-left:3px solid #295fe8;border-radius:0 0 0 4px;z-index:2;"></div>
+      <div style="position:absolute;bottom:12px;right:12px;width:28px;height:28px;border-bottom:3px solid #295fe8;border-right:3px solid #295fe8;border-radius:0 0 4px 0;z-index:2;"></div>
+      <div id="qrScanLine" style="display:none;position:absolute;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,#295fe8,transparent);animation:scanLine 2s ease-in-out infinite;z-index:2;"></div>
+      <div id="qrScanPrompt" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+        <div style="font-size:36px;">📷</div>
+        <button onclick="iniciarCamera()" style="padding:12px 24px;background:linear-gradient(135deg,#295fe8,#1a3fa0);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">Ativar câmera</button>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;">Toque para escanear<br/>o QR Code</div>
+      </div>
     </div>
 
     <!-- Status -->
