@@ -230,9 +230,9 @@ img{display:block;max-width:100%}
 /*     PAINEL GRÁFICO PROFESSOR     */
 #aulaGraficoPainel{
   flex-shrink:0;
-  padding:10px 16px 8px;
+  padding:14px 16px 12px;
   background:rgba(255,255,255,.03);
-  border-bottom:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.07);
   display:none;
 }
 #aulaGraficoPainel.visible{ display:block; }
@@ -990,33 +990,53 @@ function renderAulaGrafico(){
   var wrap=document.getElementById('aulaGraficoPainel');
   if(!wrap||!aulaGrafico||!aulaGrafico.length) return;
   var zCores={z1:'#a1a1a1',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
-  var zAlts={z1:14,z2:28,z3:42,z4:56,z5:70,z6:84,z7:100};
-  // Header
-  var html='<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:8px;">'+aulaGraficoNome+'</div>';
-  // Gráfico de barras
-  html+='<div style="display:flex;align-items:flex-end;gap:3px;height:60px;width:100%;margin-bottom:8px;">';
-  aulaGrafico.forEach(function(b,i){
-    var cor=zCores[b.z]||'#888';
-    var h=zAlts[b.z]||20;
-    var isAtual=(i===aulaBlocoIdx);
-    var w=Math.max(6, Math.round((b.dur/(aulaGrafico.reduce(function(a,x){return a+x.dur;},0)||1))*100));
-    html+='<div style="flex:'+w+';height:'+h+'%;border-radius:3px 3px 0 0;background:'+(isAtual?cor:'rgba('+hexToRgb(cor)+',.4)')+';position:relative;transition:all .3s;">'
-      +(isAtual?'<div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:'+cor+';"></div>':'')
-      +'</div>';
-  });
-  html+='</div>';
-  // Bloco atual — metas
+  var zAlts ={z1:15,z2:28,z3:42,z4:57,z5:71,z6:85,z7:100};
+  var zNomes={z1:'Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuromuscular'};
+  var totalDur=aulaGrafico.reduce(function(a,x){return a+x.dur;},0)||1;
   var bAt=aulaGrafico[aulaBlocoIdx];
+  var corAt=bAt?zCores[bAt.z]||'#888':'#888';
+  var html='';
+
+  // Bloco atual — destaque no topo
   if(bAt){
-    var cor=zCores[bAt.z]||'#888';
-    var zNomes={z1:'Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuromuscular'};
-    html+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
-    html+='<div style="font-size:13px;font-weight:700;color:'+cor+';">'+( zNomes[bAt.z]||bAt.z)+'</div>';
-    html+='<div style="font-size:11px;color:rgba(255,255,255,.4);">FTP '+bAt.ftpMin+'–'+bAt.ftpMax+'%</div>';
-    html+='<div style="font-size:11px;color:rgba(255,255,255,.4);">'+bAt.rpmMin+'–'+bAt.rpmMax+' rpm</div>';
-    html+='<div style="font-size:11px;color:rgba(255,255,255,.3);">'+bAt.pos+'</div>';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
+    html+='<div>';
+    html+='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:2px;">Bloco atual</div>';
+    html+='<div style="font-size:18px;font-weight:700;color:'+corAt+';">'+(zNomes[bAt.z]||bAt.z)+'</div>';
+    html+='</div>';
+    html+='<div style="text-align:right;">';
+    html+='<div style="font-size:22px;font-weight:700;color:'+corAt+';">'+bAt.ftpMin+'–'+bAt.ftpMax+'<span style="font-size:12px;color:rgba(255,255,255,.4);margin-left:2px;">%</span></div>';
+    html+='<div style="font-size:12px;color:rgba(255,255,255,.4);">'+bAt.rpmMin+'–'+bAt.rpmMax+' rpm</div>';
+    html+='</div>';
     html+='</div>';
   }
+
+  // Gráfico de barras
+  html+='<div style="display:flex;align-items:flex-end;gap:2px;height:72px;width:100%;margin-bottom:4px;">';
+  aulaGrafico.forEach(function(b,i){
+    var cor=zCores[b.z]||'#888';
+    var h=zAlts[b.z]||15;
+    var isAtual=(i===aulaBlocoIdx);
+    var isPast=(i<aulaBlocoIdx);
+    var flex=Math.max(4,Math.round((b.dur/totalDur)*200));
+    var opacity=isPast?'.2':isAtual?'1':'.4';
+    html+='<div style="flex:'+flex+';height:'+h+'%;border-radius:3px 3px 0 0;background:'+cor+';opacity:'+opacity+';position:relative;transition:all .4s;">';
+    if(isAtual){
+      html+='<div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:'+cor+';"></div>';
+    }
+    html+='</div>';
+  });
+  html+='</div>';
+
+  // Base line
+  html+='<div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:5px;"></div>';
+
+  // Nome aula + progresso
+  html+='<div style="display:flex;justify-content:space-between;">';
+  html+='<div style="font-size:10px;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:1px;">'+(aulaGraficoNome||'ProRider')+'</div>';
+  html+='<div style="font-size:10px;color:rgba(255,255,255,.22);">'+( aulaBlocoIdx+1)+' / '+aulaGrafico.length+'</div>';
+  html+='</div>';
+
   wrap.innerHTML=html;
 }
 
@@ -2513,5 +2533,3 @@ function processarQRCode(raw){
   </div>
 
 </div>
-
-
