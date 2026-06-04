@@ -234,6 +234,8 @@ img{display:block;max-width:100%}
   background:rgba(255,255,255,.03);
   border-bottom:1px solid rgba(255,255,255,.07);
   display:none;
+  width:100%;
+  box-sizing:border-box;
 }
 #aulaGraficoPainel.visible{ display:block; }
 
@@ -1065,18 +1067,19 @@ function connectQR(code){
     wsConn.onmessage=function(e){
       var data=JSON.parse(e.data);
       if(data.tipo==='conectado'){
-        if(statusEl){statusEl.textContent='Conectado! Aguardando professor...';statusEl.style.color='#5db13d';}
-        setTimeout(function(){
-          go('sLive');
-          var p=document.getElementById('aulaGraficoPainel');
-          if(p) p.classList.add('visible');
-        },1500);
+        if(statusEl){statusEl.textContent='Conectado!';statusEl.style.color='#5db13d';}
+        // Navega imediatamente para sLive
+        go('sLive');
+        var p=document.getElementById('aulaGraficoPainel');
+        if(p) p.classList.add('visible');
       }
       if(data.tipo==='update_aula'){
         if(data.grafico && data.grafico.length>0){
           aulaGrafico=data.grafico; aulaBlocoIdx=data.blocoIdx||0;
           aulaGraficoNome=data.nomeAula||'ProRider';
           renderAulaGrafico();
+          var gp=document.getElementById('aulaGraficoPainel');
+          if(gp) gp.classList.add('visible');
         }
         if(data.bloco){
           var b=data.bloco;
@@ -1103,8 +1106,9 @@ function connectQR(code){
       wsConn=null;
       // Tenta reconectar automaticamente em 4s se na tela de live
       var cur=document.querySelector('.screen.active');
-      if(cur&&cur.id==='sLive'){
-        setTimeout(function(){ connectQR(lastCode); },4000);
+      // Reconecta automaticamente sempre que cair
+      if(lastCode){
+        setTimeout(function(){ connectQR(lastCode); }, 3000);
         var ind=document.getElementById('liveConnIndicator');
         if(ind){ind.textContent='Reconectando...';ind.style.color='#ea860c';}
       }
@@ -1112,11 +1116,22 @@ function connectQR(code){
     wsConn.onerror=function(){
       if(statusEl){statusEl.textContent='Sem conexao. Verifique se esta na mesma rede.';statusEl.style.color='#d62d2d';}
     };
-    // Keepalive ping a cada 4 minutos
+    // Keepalive ping a cada 25 segundos (iOS Safari para JS quando tela apaga)
     var wsAlunoPing=setInterval(function(){
-      if(wsConn&&wsConn.readyState===1) wsConn.send(JSON.stringify({tipo:'ping'}));
-      else clearInterval(wsAlunoPing);
-    },4*60*1000);
+      if(wsConn&&wsConn.readyState===1){
+        wsConn.send(JSON.stringify({tipo:'ping'}));
+      } else {
+        clearInterval(wsAlunoPing);
+        // Tenta reconectar
+        if(lastCode) setTimeout(function(){ connectQR(lastCode); }, 2000);
+      }
+    }, 25000); // 25 segundos
+    // Reconecta quando voltar do background (iOS)
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden && (!wsConn || wsConn.readyState !== 1)){
+        if(lastCode) setTimeout(function(){ connectQR(lastCode); }, 500);
+      }
+    });
   }catch(e){
     if(statusEl){statusEl.textContent='Sem conexao com o servidor.';statusEl.style.color='#d62d2d';}
   }
