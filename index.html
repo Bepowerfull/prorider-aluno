@@ -3022,6 +3022,21 @@ function btConnectHR(server, device){
 
 
 // \u2500\u2500 INIT \u2550\u2550
+// Carregar treinos customizados salvos no dispositivo
+(function(){
+  try{
+    var saved=localStorage.getItem('pr_customs');
+    if(saved){
+      var customs=JSON.parse(saved);
+      if(Array.isArray(customs)&&customs.length>0){
+        // Remove qualquer custom j\u00e1 existente para evitar duplicatas
+        aulas=aulas.filter(function(a){return a.badge!=='Custom';});
+        // Adicionar no topo
+        for(var i=customs.length-1;i>=0;i--) aulas.unshift(customs[i]);
+      }
+    }
+  }catch(e){ console.warn('pr_customs load error',e); }
+})();
 buildHome();
 function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, "+new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2),dur:fmHMS(totS),z:cAula&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:"z2"};historico.unshift(entry);if(historico.length>10)historico.pop();buildHome();goTab("sHome","navActivity");}
 // ── Scanner de câmera real ─────────────────────────────────
