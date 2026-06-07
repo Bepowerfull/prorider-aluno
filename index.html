@@ -1816,6 +1816,7 @@ function startCountdown(){
 function startLive(){
   // cAula=null → aula normal (setado em openDetail); free ride e FTP test já definem cAula antes
   if(!cAula) cAula=aulas[curAulaIdx];
+  if(!cAula||!cAula.blocos){ console.error('startLive: cAula invalido',cAula); return; }
   cBloco=0; segS=0; totS=0;
   zoneTime={z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
   sumFtp=0; cntFtp=0; sumRpm=0; cntRpm=0; maxRpm=0;
@@ -1824,12 +1825,17 @@ function startLive(){
   rpmAlertCool=0;
   isPaused=false; gaugeMode=0;
   _fillBar(0);
-  setPage(0); buildGraph(); updUpNext();
-  var now=new Date();
-  var h=now.getHours()%12||12;
-  var m=now.getMinutes();
-  document.getElementById('p2St').textContent=h+':'+(m<10?'0':'')+m+(now.getHours()>=12?' PM':' AM');
+  // Navega PRIMEIRO para não travar na tela GO! se algo falhar depois
   go('sLive');
+  try{ setPage(0); }catch(e){ console.error('setPage',e); }
+  try{ buildGraph(); }catch(e){ console.error('buildGraph',e); }
+  try{ updUpNext(); }catch(e){ console.error('updUpNext',e); }
+  try{
+    var now=new Date();
+    var h=now.getHours()%12||12;
+    var m=now.getMinutes();
+    document.getElementById('p2St').textContent=h+':'+(m<10?'0':'')+m+(now.getHours()>=12?' PM':' AM');
+  }catch(e){}
   clearInterval(lInt);
   lInt=setInterval(tick,1000);
 }
@@ -1993,8 +1999,9 @@ function scrollGraph(){
   if(e&&g) g.scrollLeft=Math.max(0,e.offsetLeft-g.parentElement.offsetWidth/2);
 }
 function updUpNext(){
+  if(!cAula||!cAula.blocos) return;
   var n=cAula.blocos[cBloco+1];
-  var isFree=(cAula&&cAula.tipo==='free');
+  var isFree=(cAula.tipo==='free');
   if(n){
     document.getElementById('unT').textContent=n.dur+'m';
     document.getElementById('unF').textContent=Array.isArray(n.ftp)?n.ftp[0]+'-'+n.ftp[1]+'%':n.ftp;
