@@ -2006,9 +2006,59 @@ var bldFtpMap={z1:'0-55',z2:'56-75',z3:'76-90',z4:'91-105',z5:'106-120',z6:'121-
 var bldFtpLabel={z1:'0\u201355%',z2:'56\u201375%',z3:'76\u201390%',z4:'91\u2013105%',z5:'106\u2013120%',z6:'121\u2013150%',z7:'MAX'};
 var bldRpmDef={z1:{lo:70,hi:80},z2:{lo:80,hi:90},z3:{lo:85,hi:92},z4:{lo:85,hi:90},z5:{lo:90,hi:95},z6:{lo:85,hi:95},z7:{lo:100,hi:120}};
 
+// ── Verificação de acesso professor ──
+var _profUnlocked = false;
+var _profCode = '1234'; // código demo — substituir por validação real
+
 function openConstructor(){
+  if(_profUnlocked){
+    _doOpenConstructor();
+    return;
+  }
+  // Mostrar modal de código
+  var overlay = document.createElement('div');
+  overlay.id = 'profModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML =
+    '<div style="background:#131020;border:1px solid rgba(155,48,255,.3);border-radius:24px;padding:28px 24px;width:100%;max-width:340px;text-align:center;">'
+    +'<div style="font-size:32px;margin-bottom:8px;">🔒</div>'
+    +'<div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;letter-spacing:2px;color:#fff;margin-bottom:4px;">Acesso Professor</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:20px;">Digite o código de ativação</div>'
+    +'<input id="profCodeInput" type="password" maxlength="20" placeholder="••••" style="width:100%;box-sizing:border-box;padding:14px;background:rgba(255,255,255,.07);border:1px solid rgba(155,48,255,.3);border-radius:12px;color:#fff;font-size:22px;font-weight:700;text-align:center;letter-spacing:6px;outline:none;margin-bottom:12px;"/>'
+    +'<div id="profCodeErr" style="font-size:12px;color:#d62d2d;min-height:16px;margin-bottom:10px;"></div>'
+    +'<div style="display:flex;gap:8px;">'
+      +'<button onclick="document.getElementById(\'profModal\').remove()" style="flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>'
+      +'<button onclick="_checkProfCode()" style="flex:1;padding:12px;border-radius:12px;background:linear-gradient(135deg,rgba(155,48,255,.5),rgba(234,134,12,.3));border:1px solid rgba(155,48,255,.4);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Ativar</button>'
+    +'</div>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  setTimeout(function(){ var el=document.getElementById('profCodeInput'); if(el) el.focus(); }, 100);
+  // Enter confirma
+  overlay.addEventListener('keydown', function(e){ if(e.key==='Enter') _checkProfCode(); });
+}
+
+function _checkProfCode(){
+  var input = document.getElementById('profCodeInput');
+  var err   = document.getElementById('profCodeErr');
+  if(!input) return;
+  if(input.value === _profCode){
+    _profUnlocked = true;
+    document.getElementById('profModal').remove();
+    _doOpenConstructor();
+    // Toast de boas vindas
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:rgba(155,48,255,.9);color:#fff;padding:10px 24px;border-radius:30px;font-weight:700;font-size:13px;z-index:9999;white-space:nowrap;';
+    t.textContent='✓ Modo Professor ativado!';
+    document.body.appendChild(t);
+    setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(function(){ if(t.parentNode)t.parentNode.removeChild(t); },450); },2500);
+  } else {
+    if(err) err.textContent='Código incorreto. Tente novamente.';
+    if(input){ input.value=''; input.focus(); }
+  }
+}
+
+function _doOpenConstructor(){
   go('sConstructor');
-  // Init only if no blocks yet (preserve state across visits)
   if(bldBlocks.length===0){ bldSetZone('z2'); bldSetPos('Seated'); }
   bldRefreshDisp();
   bldRenderAll();
