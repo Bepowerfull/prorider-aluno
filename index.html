@@ -653,13 +653,15 @@ input[type=file]{display:none}
           -->
           <defs>
             <linearGradient id="zoneGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%"    stop-color="#888888"/>
-              <stop offset="14.3%" stop-color="#295fe8"/>
-              <stop offset="28.6%" stop-color="#5db13d"/>
-              <stop offset="42.9%" stop-color="#d7c414"/>
-              <stop offset="57.1%" stop-color="#ea860c"/>
-              <stop offset="71.4%" stop-color="#d62d2d"/>
-              <stop offset="100%"  stop-color="#b030ff"/>
+              <!-- Cinza e roxo comprimidos nas pontas; azul→vermelho dominam -->
+              <stop offset="0%"   stop-color="#888888" stop-opacity="0.6"/>
+              <stop offset="6%"   stop-color="#295fe8"/>
+              <stop offset="22%"  stop-color="#5db13d"/>
+              <stop offset="40%"  stop-color="#d7c414"/>
+              <stop offset="58%"  stop-color="#ea860c"/>
+              <stop offset="76%"  stop-color="#d62d2d"/>
+              <stop offset="94%"  stop-color="#9b30ff"/>
+              <stop offset="100%" stop-color="#9b30ff" stop-opacity="0.5"/>
             </linearGradient>
             <filter id="fillGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           </defs>
@@ -1893,20 +1895,20 @@ function tick(){
   // gauge mode
   var ptr=document.getElementById('gPtr');
   var gVal=document.getElementById('gValue');
-  var mono=document.getElementById('monoArc');
+  // Nome da zona sempre na cor da zona \u2014 independente do modo
+  var zNMap={z1:'ACTIVE RECOVERY',z2:'ENDURANCE',z3:'TEMPO',z4:'THRESHOLD',z5:'VO2 MAX',z6:'ANAEROBIC',z7:'NEUROMUSCULAR'};
+  var znEl=document.getElementById('gZoneName');
+  if(znEl){znEl.textContent=zNMap[b.z]||'';znEl.setAttribute('fill',zC[b.z]||'rgba(255,255,255,.55)');}
+  var gpEl=document.getElementById('gPosition');
+  if(gpEl) gpEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
+  var posEl=document.getElementById('gPosText');
+  if(posEl) posEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
   if(gaugeMode===0){
     // FTP% \u2014 barra cont\u00EDnua cresce com o ponteiro
     var ang=-90+(Math.min(ftpPct,150)/150)*180;
     if(ptr) ptr.style.transform='rotate('+ang+'deg)';
     if(gVal) gVal.textContent=ftpPct;
     _fillBar(ftpPct);
-    var zNMap={z1:'ACTIVE RECOVERY',z2:'ENDURANCE',z3:'TEMPO',z4:'THRESHOLD',z5:'VO2 MAX',z6:'ANAEROBIC',z7:'NEUROMUSCULAR'};
-    var znEl=document.getElementById('gZoneName');
-    if(znEl){znEl.textContent=zNMap[b.z]||'';znEl.setAttribute('fill',zC[b.z]||'rgba(255,255,255,.55)');}
-    var gpEl=document.getElementById('gPosition');
-    if(gpEl) gpEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
-    var posEl=document.getElementById('gPosText');
-    if(posEl) posEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
   } else if(gaugeMode===1){
     // RPM \u2014 barra por rpm/140
     var rpmPx=(rpm/140)*534;
