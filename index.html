@@ -1797,7 +1797,9 @@ function startLive(){
   zoneTime={z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
   sumFtp=0; cntFtp=0; sumRpm=0; cntRpm=0; maxRpm=0;
   maxRpm=0; sumRpm=0; cntRpm=0; dRpm=83; cPg=0;
+  isFtpTest=false; rpmAlertCool=0;
   isPaused=false; gaugeMode=0;
+  _lastActiveArc=null; _dimAllArcs();
   setPage(0); buildGraph(); updUpNext();
   var now=new Date();
   var h=now.getHours()%12||12;
@@ -1809,9 +1811,11 @@ function startLive(){
 }
 
 function tick(){
+  try{
   if(isPaused) return;
   segS++; totS++;
-  var b=cAula.blocos[cBloco];
+  var b=cAula&&cAula.blocos?cAula.blocos[cBloco]:null;
+  if(!b){ clearInterval(lInt); return; }
   dRpm=Math.max(70,Math.min(140,dRpm+(Math.random()-.46)*3));
   var rpm=Math.round(dRpm);
   var ftpPct=Math.round(20+(cBloco/cAula.blocos.length)*80);
@@ -1822,7 +1826,6 @@ function tick(){
 
   document.getElementById('ltSeg').textContent=fmMS(segS);
   document.getElementById('ltTot').textContent=fmMS(totS);
-  var b=cAula.blocos[cBloco];
   if(zoneTime[b.z]!==undefined) zoneTime[b.z]++;
   var curRpm=dRpm||0;
   if(curRpm>0){sumRpm+=curRpm;cntRpm++;if(curRpm>maxRpm)maxRpm=curRpm;}
@@ -1908,10 +1911,11 @@ function tick(){
   if(segS>=b.dur*60){
     cBloco++;
     if(cBloco>=cAula.blocos.length){ clearInterval(lInt); go('sHome'); return; }
-    segS=0; updUpNext(); updGraph(); scrollGraph();
+    segS=0; _lastActiveArc=null; updUpNext(); updGraph(); scrollGraph();
     var zPbar2=document.getElementById('zoneProgressBar');
     if(zPbar2){zPbar2.style.width='0%';}
   }
+  }catch(err){ console.error('tick error:',err); }
 }
 
 // \u2500\u2500 gauge modes \u2500\u2500
