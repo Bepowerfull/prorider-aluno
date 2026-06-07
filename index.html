@@ -1488,7 +1488,205 @@ var aulas = [
   {nome:"FTP Test 5 min",icon:"\uD83C\uDFC1",dur:30,desc:"5-minute all-out effort test to measure your current FTP. Warm up properly and give everything in the test segment.",badge:"Test",badgeColor:"#ea860c",
    blocos:[{z:"z1",ftp:"0-55",rpm:"80-85",dur:5,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"85-90",dur:3,pos:"Seated"},{z:"z3",ftp:"76-90",rpm:"88-93",dur:2,pos:"Seated"},{z:"z4",ftp:"91-105",rpm:"90-95",dur:2,pos:"Seated"},{z:"z3",ftp:"76-90",rpm:"85-90",dur:3,pos:"Seated"},{z:"z6",ftp:"Max 5min",rpm:"92-100",dur:5,pos:"Standing"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:10,pos:"Seated"}]},
   {nome:"FTP Test 20 min",icon:"\uD83C\uDFC1",dur:45,desc:"FTP stands for FUNCTIONAL THRESHOLD POWER \u2014 the highest average power a rider can maintain for 45-60 minutes. This 20-minute test estimates your FTP to set your Power Training Zones.",badge:"Test",badgeColor:"#ea860c",
-   blocos:[{z:"z1",ftp:"0-55",rpm:"80-85",dur:5,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"85-90",dur:3,pos:"Seated"},{z:"z3",ftp:"76-90",rpm:"88-93",dur:3,pos:"Seated"},{z:"z4",ftp:"91-105",rpm:"90-95",dur:3,pos:"Standing"},{z:"z3",ftp:"76-90",rpm:"85-90",dur:3,pos:"Seated"},{z:"z5",ftp:"Max 20min",rpm:"92-100",dur:20,pos:"Seated"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:8,pos:"Seated"}]}
+   blocos:[{z:"z1",ftp:"0-55",rpm:"80-85",dur:5,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"85-90",dur:3,pos:"Seated"},{z:"z3",ftp:"76-90",rpm:"88-93",dur:3,pos:"Seated"},{z:"z4",ftp:"91-105",rpm:"90-95",dur:3,pos:"Standing"},{z:"z3",ftp:"76-90",rpm:"85-90",dur:3,pos:"Seated"},{z:"z5",ftp:"Max 20min",rpm:"92-100",dur:20,pos:"Seated"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:8,pos:"Seated"}]},
+
+  // ── 8 novas aulas — Coggan & Allen | 50 min | warmup variável | cooldown z1 5 min ──
+
+  // ── ENDURANCE BUILDER ──
+  {nome:"Endurance Builder #2",icon:"🚴",dur:50,desc:"Sweetspot training combining Tempo and Threshold zones. Alternating sustained blocks near your lactate threshold to maximize aerobic gains.",badge:"Easy",badgeColor:"#295fe8",
+   blocos:[
+    // Aquecimento EASY — 4+3+2+1 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-80",dur:4,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:3,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-90",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:1,pos:"Seated"},
+    // Main — Sweetspot Surge 35 min
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:10,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:5,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:5,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:5,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"70-78",dur:5,pos:"Standing"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:5,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
+   ]},
+
+  {nome:"Endurance Builder #3",icon:"🚴",dur:50,desc:"Aerobic climbing session developing leg strength and endurance across varying cadences. Seated and standing tempo blocks for a balanced aerobic stimulus.",badge:"Easy",badgeColor:"#295fe8",
+   blocos:[
+    // Aquecimento EASY — 4+3+2+1 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-80",dur:4,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:3,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-90",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:1,pos:"Seated"},
+    // Main — Aerobic Climber 35 min
+    {z:"z2",ftp:"56-75",rpm:"82-88",dur:8,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"70-78",dur:5,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"82-88",dur:5,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"88-92",dur:8,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"70-78",dur:5,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:4,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
+   ]},
+
+  // ── HIIT THRESHOLD ──
+  {nome:"HIIT Threshold #4",icon:"🔥",dur:50,desc:"Classic over-under threshold training. Alternating just below and above your lactate threshold in two hard sets with full recovery between.",badge:"Medium",badgeColor:"#d7c414",
+   blocos:[
+    // Aquecimento MEDIUM — 3+3+2+1+1 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-80",dur:3,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:3,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-90",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:1,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:1,pos:"Seated"},
+    // Main — Over-Under 35 min | Set 1
+    {z:"z3",ftp:"76-90",rpm:"87-92",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:2,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"87-92",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:2,pos:"Seated"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:4,pos:"Seated"},
+    // Set 2
+    {z:"z3",ftp:"76-90",rpm:"87-92",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:2,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"87-92",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:2,pos:"Seated"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:4,pos:"Seated"},
+    // Finisher
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:3,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:2,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
+   ]},
+
+  {nome:"HIIT Threshold #5",icon:"🔥",dur:50,desc:"Threshold pyramid intervals building from 4 to 8 minutes at lactate threshold then descending. Tests and develops your maximum sustained power.",badge:"Medium",badgeColor:"#d7c414",
+   blocos:[
+    // Aquecimento MEDIUM — 3+3+2+1+1 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-80",dur:3,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:3,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-90",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:1,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:1,pos:"Seated"},
+    // Main — Pyramid 4-6-8-6 = 35 min
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:4,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"82-88",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:6,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:8,pos:"Seated"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:6,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:2,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
+   ]},
+
+  // ── VO2 MAX INTERVALS ──
+  {nome:"VO2 Max Intervals #2",icon:"💪",dur:50,desc:"VO2 Max intervals combining high-cadence seated efforts with standing climbing power. Eight reps targeting maximum oxygen consumption from two different angles.",badge:"Hard",badgeColor:"#d62d2d",
+   blocos:[
+    // Aquecimento HARD — 2+2+2+2+2 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-80",dur:2,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:2,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:2,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:2,pos:"Seated"},
+    // Main — VO2 Blaster 35 min (4 on / 4 off x8, last 3 min)
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:4,pos:"Seated"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:4,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:4,pos:"Seated"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:4,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"68-74",dur:4,pos:"Standing"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:4,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:4,pos:"Seated"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:4,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:3,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
+   ]},
+
+  {nome:"VO2 Max Intervals #3",icon:"💪",dur:50,desc:"VO2 Max pyramid with 30-second high-cadence standing primers between reps. Each interval slightly longer — keeps your body adapting and prevents pacing.",badge:"Hard",badgeColor:"#d62d2d",
+   blocos:[
+    // Aquecimento HARD — 2+2+2+2+2 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-80",dur:2,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:2,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:2,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:2,pos:"Seated"},
+    // Main — VO2 Pyramid 35 min | reps com primer de 30s (dur:0.5)
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:3,pos:"Seated"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:2.5,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"85-90",dur:0.5,pos:"Standing"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:4,pos:"Seated"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:3.5,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"85-90",dur:0.5,pos:"Standing"},
+    {z:"z5",ftp:"106-120",rpm:"68-74",dur:5,pos:"Standing"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:4.5,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"85-90",dur:0.5,pos:"Standing"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:4,pos:"Seated"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:2.5,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"85-90",dur:0.5,pos:"Standing"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:4,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
+   ]},
+
+  // ── SPRINT NEUROMUSCULAR ──
+  {nome:"Sprint Neuromuscular #2",icon:"⚡",dur:50,desc:"Four 30-second maximum sprints with full PCr recovery plus two anaerobic climbing surges. Peak power from seated sprints and standing power climb.",badge:"Advanced",badgeColor:"#9b30ff",
+   blocos:[
+    // Aquecimento ADVANCED — 2+2+2+2+1+1 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:2,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:2,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:2,pos:"Standing"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:1,pos:"Standing"},
+    {z:"z6",ftp:"121-150",rpm:"85-95",dur:1,pos:"Standing"},
+    // Main — Power Accelerations 35 min | sprints 30s (dur:0.5)
+    {z:"z2",ftp:"56-75",rpm:"82-88",dur:4,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:5.5,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:5.5,pos:"Seated"},
+    {z:"z6",ftp:"121-150",rpm:"68-74",dur:0.5,pos:"Standing"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:4,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:5,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:3,pos:"Seated"},
+    {z:"z6",ftp:"121-150",rpm:"85-95",dur:0.5,pos:"Standing"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:5,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
+   ]},
+
+  {nome:"Sprint Neuromuscular #3",icon:"⚡",dur:50,desc:"Escalating sprint sets — 1, then 2, then 3 x 30-second max sprints with full PCr recovery. Volume builds each set. Physiologically brutal by the end.",badge:"Advanced",badgeColor:"#9b30ff",
+   blocos:[
+    // Aquecimento ADVANCED — 2+2+2+2+1+1 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:2,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:2,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:2,pos:"Standing"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:1,pos:"Standing"},
+    {z:"z6",ftp:"121-150",rpm:"85-95",dur:1,pos:"Standing"},
+    // Main — Escalating Sprints 35 min
+    // Set 1: 1 sprint — 4 + 0.5 + 6 = 10.5 min
+    {z:"z2",ftp:"56-75",rpm:"82-88",dur:4,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:6,pos:"Seated"},
+    // Set 2: 2 sprints — 2 + 0.5 + 2 + 0.5 + 5 = 10 min
+    {z:"z2",ftp:"56-75",rpm:"82-88",dur:2,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:2,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:5,pos:"Seated"},
+    // Set 3: 3 sprints — 1 + 0.5 + 1 + 0.5 + 1 + 0.5 + 10 = 14.5 min
+    {z:"z2",ftp:"56-75",rpm:"82-88",dur:1,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:1,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:1,pos:"Seated"},
+    {z:"z7",ftp:"Max",rpm:"100-120",dur:0.5,pos:"Standing"},
+    {z:"z1",ftp:"0-55",rpm:"70-78",dur:10,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
+   ]}
 ];
 
 // hist\u00F3rico fake
@@ -2090,14 +2288,14 @@ function updUpNext(){
   var n=cAula.blocos[cBloco+1];
   var isFree=(cAula.tipo==='free');
   if(n){
-    document.getElementById('unT').textContent=n.dur+'m';
+    document.getElementById('unT').textContent=fmDurBlock(n.dur);
     document.getElementById('unF').textContent=Array.isArray(n.ftp)?n.ftp[0]+'-'+n.ftp[1]+'%':n.ftp;
     document.getElementById('unR').textContent=Array.isArray(n.rpm)?n.rpm[0]+'-'+n.rpm[1]:n.rpm;
     document.getElementById('unP').textContent=n.pos.toUpperCase().substring(0,5);
     document.getElementById('unDot').style.background=zC[n.z];
     document.getElementById('dNextZone').textContent=zNames[n.z];
     document.getElementById('dNextZone').style.color=zC[n.z];
-    document.getElementById('dNextInfo').textContent=n.dur+' min \u00B7 '+n.ftp+'% FTP \u00B7 '+n.rpm+' RPM \u00B7 '+n.pos;
+    document.getElementById('dNextInfo').textContent=fmDurBlock(n.dur)+' \u00B7 '+n.ftp+'% FTP \u00B7 '+n.rpm+' RPM \u00B7 '+n.pos;
   } else if(isFree){
     document.getElementById('unT').textContent='\u221E';
     document.getElementById('unF').textContent='0-150%';
@@ -2313,6 +2511,7 @@ function connectSpotify(){
 // \u2500\u2500 utilit\u00E1rios \u2500\u2500
 function go2(id){ go(id); }
 function fmMS(s){ s=Math.max(0,Math.floor(s)); return (Math.floor(s/60)<10?'0':'')+Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60; }
+function fmDurBlock(d){ if(d<1) return Math.round(d*60)+'s'; return Math.round(d)+'m'; }
 function fmHMS(s){ s=Math.max(0,Math.floor(s)); var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss; }
 
 // \u2500\u2500 BLUETOOTH WEB API \u2014 Chrome Android, requer HTTPS \u2500\u2500
