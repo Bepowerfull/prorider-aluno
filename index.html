@@ -652,13 +652,13 @@ input[type=file]{display:none}
                Z7 roxo:     22% = 120px  (bem visivel)
                Total = 534px
           -->
-          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#888888" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-0"/>
-          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#295fe8" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-78"/>
-          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#5db13d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-156"/>
-          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d7c414" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-234"/>
-          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#ea860c" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-312"/>
-          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d62d2d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-390"/>
-          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#b030ff" stroke-width="26" stroke-linecap="butt" stroke-dasharray="50 484" stroke-dashoffset="-468" opacity="1"/>
+          <path id="zArc1" data-color="#888888" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#888888" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-0"   opacity="0.05"/>
+          <path id="zArc2" data-color="#295fe8" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#295fe8" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-78"  opacity="0.05"/>
+          <path id="zArc3" data-color="#5db13d" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#5db13d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-156" opacity="0.05"/>
+          <path id="zArc4" data-color="#d7c414" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d7c414" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-234" opacity="0.05"/>
+          <path id="zArc5" data-color="#ea860c" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#ea860c" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-312" opacity="0.05"/>
+          <path id="zArc6" data-color="#d62d2d" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d62d2d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-390" opacity="0.05"/>
+          <path id="zArc7" data-color="#b030ff" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#b030ff" stroke-width="26" stroke-linecap="butt" stroke-dasharray="50 484" stroke-dashoffset="-468" opacity="0.05"/>
 
           <!-- ARCO MONO RPM -->
           <path d="M 10 200 A 170 170 0 0 1 350 200" id="monoArc" fill="none" stroke="#aaa" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 534" style="display:none;transition:stroke-dasharray .4s,stroke .4s"/>
@@ -791,10 +791,9 @@ input[type=file]{display:none}
     </div>
   </div>
 
-  <div class="lbot" ontouchstart="botTS(event)" ontouchend="botTE(event)">
-    <div class="lbot-hint">▲ controles</div>
-    <div class="lbot-timer" id="botT">00:00:00</div>
-    <div class="lbot-hint-r">interval ▲</div>
+  <div class="lbot" ontouchstart="botTS(event)" ontouchend="botTE(event)" style="justify-content:center;">
+    <div class="lbot-hint" style="flex:none;text-align:center;">▲ &nbsp;CONTROLES&nbsp; ▲</div>
+    <span id="botT" style="display:none;"></span>
   </div>
 
   <!-- drawer -->
@@ -1157,8 +1156,9 @@ function connectQR(code){
           }
         }
         if(data.segTime!==undefined){
-          var tEl=document.getElementById('liveProfTimer');
-          if(tEl){var s=Math.ceil(data.segTime);tEl.textContent=Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}
+          segS=Math.ceil(data.segTime);
+          var tEl=document.getElementById('ltSeg');
+          if(tEl) tEl.textContent=fmMS(segS);
         }
       }
       if(data.tipo==='erro'){
@@ -1494,6 +1494,40 @@ var audio=null, aPlay=false;
 var scanT={}, connected={bike:false,hr:false};
 var gaugeMode=0; // 0=FTP%, 1=RPM, 2=W/kg
 var botTY=0, drawerOpen=false;
+
+// ── Gauge arcos ──
+var _lastActiveArc=null;
+function _dimAllArcs(){
+  for(var i=1;i<=7;i++){
+    var a=document.getElementById('zArc'+i);
+    if(a){a.style.opacity='0.05';a.style.filter='none';a.style.transition='opacity .5s,filter .5s';}
+  }
+}
+// Converte ângulo do ponteiro (-90→+90°) para número do arco (1-7)
+function _zoneFromAngle(ang){
+  var t=(ang+90)/180;
+  var b=[78,156,234,312,390,468,534];
+  for(var i=0;i<b.length;i++){ if(t<=b[i]/534) return i+1; }
+  return 7;
+}
+function _arcLight(num){
+  if(_lastActiveArc===num) return;
+  _lastActiveArc=num;
+  for(var i=1;i<=7;i++){
+    var a=document.getElementById('zArc'+i);
+    if(!a) continue;
+    if(i===num){
+      a.style.opacity='1';
+      a.style.filter='drop-shadow(0 0 8px '+a.getAttribute('data-color')+')';
+      a.style.transition='opacity .25s,filter .25s';
+    } else {
+      a.style.opacity='0.05';
+      a.style.filter='none';
+      a.style.transition='opacity .5s,filter .5s';
+    }
+  }
+}
+window.addEventListener('DOMContentLoaded',function(){ _dimAllArcs(); });
 var tX=0;
 var cdTimer=null;
 
@@ -1831,21 +1865,21 @@ function tick(){
     var ang=-90+(Math.min(ftpPct,150)/150)*180;
     if(ptr) ptr.style.transform='rotate('+ang+'deg)';
     if(gVal) gVal.textContent=ftpPct;
-    // Nome da zona e posicao - SVG text elements
-  var zNMap={z1:'ACTIVE RECOVERY',z2:'ENDURANCE',z3:'TEMPO',z4:'THRESHOLD',z5:'VO2 MAX',z6:'ANAEROBIC',z7:'NEUROMUSCULAR'};
-  var znEl=document.getElementById('gZoneName');
-  if(znEl){znEl.textContent=zNMap[b.z]||'';znEl.setAttribute('fill',zC[b.z]||'rgba(255,255,255,.55)');}
-  var gpEl=document.getElementById('gPosition');
-  if(gpEl) gpEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
-  var posEl=document.getElementById('gPosText');
-  if(posEl) posEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
+    _arcLight(_zoneFromAngle(ang));
+    var zNMap={z1:'ACTIVE RECOVERY',z2:'ENDURANCE',z3:'TEMPO',z4:'THRESHOLD',z5:'VO2 MAX',z6:'ANAEROBIC',z7:'NEUROMUSCULAR'};
+    var znEl=document.getElementById('gZoneName');
+    if(znEl){znEl.textContent=zNMap[b.z]||'';znEl.setAttribute('fill',zC[b.z]||'rgba(255,255,255,.55)');}
+    var gpEl=document.getElementById('gPosition');
+    if(gpEl) gpEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
+    var posEl=document.getElementById('gPosText');
+    if(posEl) posEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
   } else if(gaugeMode===1){
     // RPM monocrom\u00E1tico
     var rpmPct=rpm/140;
     var ang2=-90+rpmPct*180;
     if(ptr) ptr.style.transform='rotate('+ang2+'deg)';
     if(gVal) gVal.textContent=rpm;
-    // cor muda com velocidade
+    _arcLight(_zoneFromAngle(ang2));
     var rColor=rpm<80?'#888':rpm<95?'#295fe8':rpm<105?'#5db13d':rpm<115?'#d7c414':rpm<125?'#ea860c':'#d62d2d';
     if(mono){mono.setAttribute('stroke-dasharray',(rpmPct*534)+' '+(431-rpmPct*534));mono.setAttribute('stroke',rColor);}
   } else {
@@ -1855,6 +1889,7 @@ function tick(){
     var ang3=-90+wkgPct*180;
     if(ptr) ptr.style.transform='rotate('+ang3+'deg)';
     if(gVal) gVal.textContent=wkg;
+    _arcLight(_zoneFromAngle(ang3));
   }
 
   // p2
