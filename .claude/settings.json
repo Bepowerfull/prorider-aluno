@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(C:\\Users\\mario\\**)",
+      "Write(C:\\Users\\mario\\**)",
+      "Edit(C:\\Users\\mario\\**)",
+      "Bash(C:\\Users\\mario\\**)",
+      "Glob(C:\\Users\\mario\\**)",
+      "Grep(C:\\Users\\mario\\**)",
+      "Bash(git *)",
+      "Bash(node *)",
+      "Bash(npm *)",
+      "Bash(Copy-Item *)"
+    ]
+  }
+}
