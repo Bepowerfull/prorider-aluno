@@ -2001,15 +2001,25 @@ function scrollGraph(){
 }
 function updUpNext(){
   var n=cAula.blocos[cBloco+1];
+  var isFree=(cAula&&cAula.tipo==='free');
   if(n){
     document.getElementById('unT').textContent=n.dur+'m';
-    document.getElementById('unF').textContent=n.ftp;
-    document.getElementById('unR').textContent=n.rpm;
+    document.getElementById('unF').textContent=Array.isArray(n.ftp)?n.ftp[0]+'-'+n.ftp[1]+'%':n.ftp;
+    document.getElementById('unR').textContent=Array.isArray(n.rpm)?n.rpm[0]+'-'+n.rpm[1]:n.rpm;
     document.getElementById('unP').textContent=n.pos.toUpperCase().substring(0,5);
     document.getElementById('unDot').style.background=zC[n.z];
     document.getElementById('dNextZone').textContent=zNames[n.z];
     document.getElementById('dNextZone').style.color=zC[n.z];
     document.getElementById('dNextInfo').textContent=n.dur+' min \u00B7 '+n.ftp+'% FTP \u00B7 '+n.rpm+' RPM \u00B7 '+n.pos;
+  } else if(isFree){
+    document.getElementById('unT').textContent='\u221E';
+    document.getElementById('unF').textContent='0-150%';
+    document.getElementById('unR').textContent='Livre';
+    document.getElementById('unP').textContent='SIT';
+    document.getElementById('unDot').style.background='#888888';
+    document.getElementById('dNextZone').textContent='FREE RIDE';
+    document.getElementById('dNextZone').style.color='#888888';
+    document.getElementById('dNextInfo').textContent='Pedal livre \u2014 sem zona definida';
   } else {
     document.getElementById('unT').textContent='End';
     document.getElementById('unF').textContent='\u2013';
