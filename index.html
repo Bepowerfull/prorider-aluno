@@ -1626,7 +1626,7 @@ function buildMiniBlocks(a){
 function openDetail(idx){
   // Aceita tanto índice (número) quanto objeto (para FTP tests)
   var a;
-  if(typeof idx==='object'){a=idx;}else{curAulaIdx=idx;a=aulas[idx];}
+  if(typeof idx==='object'){a=idx;}else{curAulaIdx=idx;a=aulas[idx];cAula=null;}
   if(!a) return;
   go('sDetail');
   var elName=document.getElementById('detName');
@@ -1814,8 +1814,8 @@ function startCountdown(){
 
 // \u2550\u2550 LIVE \u2550\u2550
 function startLive(){
-  // Só troca cAula se não for aula livre (free ride já define cAula antes)
-  if(!cAula||(cAula.tipo!=='free'&&!isFtpTest)) cAula=aulas[curAulaIdx];
+  // cAula=null → aula normal (setado em openDetail); free ride e FTP test já definem cAula antes
+  if(!cAula) cAula=aulas[curAulaIdx];
   cBloco=0; segS=0; totS=0;
   zoneTime={z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
   sumFtp=0; cntFtp=0; sumRpm=0; cntRpm=0; maxRpm=0;
