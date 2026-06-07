@@ -109,11 +109,6 @@ img{display:block;max-width:100%}
 .det-donut-wrap{flex-shrink:0}
 .det-zdist-list{flex:1;display:flex;flex-direction:column;gap:6px}
 .zdist-row{display:flex;align-items:center;gap:8px}
-.res-zone-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.res-zone-lbl{font-size:12px;font-weight:700;color:rgba(255,255,255,.45);width:24px;flex-shrink:0}
-.res-zone-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
-.res-zone-bar{height:100%;border-radius:4px;transition:width .4s}
-.res-zone-time{font-size:12px;font-weight:700;color:rgba(255,255,255,.5);width:40px;text-align:right;flex-shrink:0}
 .zdist-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .zdist-name{font-size:13px;color:rgba(255,255,255,.65);flex:1}
 .zdist-time{font-size:13px;font-weight:700;color:rgba(255,255,255,.5)}
@@ -233,14 +228,8 @@ img{display:block;max-width:100%}
 .prow{margin-top:8px}
 
 /*     PAINEL GRÁFICO PROFESSOR     */
-#aulaGraficoPainel{
-  flex-shrink:0;
-  padding:10px 16px 8px;
-  background:rgba(255,255,255,.03);
-  border-bottom:1px solid rgba(255,255,255,.06);
-  display:none;
-}
-#aulaGraficoPainel.visible{ display:block; }
+/* aulaGraficoPainel now positioned absolutely inside graficoArea */
+#aulaGraficoPainel.visible{ display:block !important; }
 
 /*     P3: M-SICA     */
 .p3-wrap{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;min-height:0}
@@ -581,32 +570,68 @@ input[type=file]{display:none}
     <div class="lt-right"><div class="lt-lbl" style="text-align:right">Time Total</div><div class="lt-val lt-val-dim" id="ltTot">00:00</div></div>
   </div>
 
+  <!-- ÁREA DO GRÁFICO — altura fixa, alterna entre nativo e professor -->
+  <div id="graficoArea" style="flex-shrink:0;height:180px;position:relative;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.06);">
 
-  <div class="lnav">
-    <div style="display:flex;gap:6px" id="navDots">
-      <div class="nd active" id="nd0"></div>
-      <div class="nd" id="nd1"></div>
-      <div class="nd" id="nd2"></div>
+    <!-- Gráfico nativo (bolinhas) — padrão quando não conectado -->
+    <div id="graficoNativo" style="position:absolute;inset:0;display:flex;flex-direction:column;">
+      <div class="lg-wrap" style="flex:1;min-height:0;">
+        <div class="lg-legend">
+          <div class="lg-dot" style="background:#d62d2d"></div>
+          <div class="lg-dot" style="background:#ea860c"></div>
+          <div class="lg-dot" style="background:#5db13d"></div>
+          <div class="lg-dot" style="background:#295fe8"></div>
+          <div class="lg-dot" style="background:#888"></div>
+        </div>
+        <div class="lg-scroll"><div class="lg-timeline" id="lgT"></div></div>
+      </div>
+      <div class="lg-baseline"></div>
+      <div class="lnav">
+        <div style="display:flex;gap:6px" id="navDots">
+          <div class="nd active" id="nd0"></div>
+          <div class="nd" id="nd1"></div>
+          <div class="nd" id="nd2"></div>
+        </div>
+        <div class="lnav-pg" id="pgLbl">Page 1 of 3</div>
+      </div>
     </div>
-    <div class="lnav-pg" id="pgLbl">Page 1 of 3</div>
+
+    <!-- Gráfico do professor — aparece quando conectado, substitui o nativo -->
+    <div id="aulaGraficoPainel" style="position:absolute;inset:0;display:none;padding:12px 16px;box-sizing:border-box;background:#181818;z-index:2;overflow:hidden;"></div>
+
   </div>
 
-  <!-- PAINEL GRÁFICO DA AULA — visível quando conectado ao professor -->
-  <div id="aulaGraficoPainel"></div>
+  <!-- UP NEXT BAR — entre gráfico e gauge, altura fixa -->
+  <div id="upNextBar" style="flex-shrink:0;padding:10px 16px;background:rgba(255,255,255,.025);border-bottom:1px solid rgba(255,255,255,.07);">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.28);text-transform:uppercase;">Próximo bloco</span>
+      <div class="un-dot" id="unDot" style="width:6px;height:6px;border-radius:50%;background:#295fe8;flex-shrink:0;display:inline-block;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+      <div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,.03);border-radius:8px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Tempo</div>
+        <div id="unT" style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;line-height:1;">--</div>
+      </div>
+      <div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,.03);border-radius:8px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">%FTP</div>
+        <div id="unF" style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;line-height:1;">--</div>
+      </div>
+      <div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,.03);border-radius:8px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">RPM</div>
+        <div id="unR" style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;line-height:1;">--</div>
+      </div>
+      <div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,.03);border-radius:8px;">
+        <div style="font-size:9px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Posição</div>
+        <div id="unP" style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:#fff;line-height:1;">--</div>
+      </div>
+    </div>
+  </div>
 
   <div class="lpages" id="lPages" ontouchstart="tS(event)" ontouchend="tE(event)">
 
     <!-- P1 -->
     <div class="lpage center" id="lp0">
-      <div class="p1-top">
-        <div class="p1-un-lbl"><span>UP NEXT</span><div class="un-dot" id="unDot"></div></div>
-        <div class="p1-un-grid">
-          <div class="ung"><div class="ung-l">Time</div><div class="ung-v" id="unT">--</div></div>
-          <div class="ung"><div class="ung-l">%FTP</div><div class="ung-v" id="unF">--</div></div>
-          <div class="ung"><div class="ung-l">RPM</div><div class="ung-v" id="unR">--</div></div>
-          <div class="ung"><div class="ung-l">Position</div><div class="ung-v" id="unP">--</div></div>
-        </div>
-      </div>
+      <!-- UP NEXT removido daqui — está acima do gauge agora -->
 
       <!-- GAUGE WRAP -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 10px 0;min-height:0;overflow:hidden;cursor:pointer;-webkit-user-select:none;user-select:none" onclick="cycleGaugeMode()">
@@ -627,13 +652,13 @@ input[type=file]{display:none}
                Z7 roxo:     22% = 120px  (bem visivel)
                Total = 534px
           -->
-          <path id="zArc1" data-color="#888888" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#888888" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-0" opacity="0.05"/>
-          <path id="zArc2" data-color="#295fe8" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#295fe8" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-78" opacity="0.05"/>
-          <path id="zArc3" data-color="#5db13d" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#5db13d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-156" opacity="0.05"/>
-          <path id="zArc4" data-color="#d7c414" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d7c414" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-234" opacity="0.05"/>
-          <path id="zArc5" data-color="#ea860c" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#ea860c" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-312" opacity="0.05"/>
-          <path id="zArc6" data-color="#d62d2d" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d62d2d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-390" opacity="0.05"/>
-          <path id="zArc7" data-color="#b030ff" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#b030ff" stroke-width="26" stroke-linecap="butt" stroke-dasharray="50 484" stroke-dashoffset="-468" opacity="0.05"/>
+          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#888888" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-0"/>
+          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#295fe8" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-78"/>
+          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#5db13d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-156"/>
+          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d7c414" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-234"/>
+          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#ea860c" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-312"/>
+          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d62d2d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-390"/>
+          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#b030ff" stroke-width="26" stroke-linecap="butt" stroke-dasharray="50 484" stroke-dashoffset="-468" opacity="1"/>
 
           <!-- ARCO MONO RPM -->
           <path d="M 10 200 A 170 170 0 0 1 350 200" id="monoArc" fill="none" stroke="#aaa" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 534" style="display:none;transition:stroke-dasharray .4s,stroke .4s"/>
@@ -766,69 +791,10 @@ input[type=file]{display:none}
     </div>
   </div>
 
-  <!-- OVERLAY DESAFIO -->
-  <div id="desafioOverlay" style="display:none;position:absolute;bottom:80px;left:10px;right:10px;z-index:190;background:rgba(0,0,0,.85);border:1px solid rgba(215,196,20,.3);border-radius:16px;padding:12px 16px;backdrop-filter:blur(4px);">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-      <span style="font-size:20px;" id="desafioAlunoIcon">🏆</span>
-      <div style="flex:1;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase;" id="desafioAlunoTipo">DESAFIO</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:#d7c414;line-height:1;" id="desafioAlunoEquipe"></div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:10px;color:rgba(255,255,255,.3);">SUA POSIÇÃO</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;line-height:1;" id="desafioAlunoPosicao">--</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;">
-      <div style="flex:1;background:rgba(255,255,255,.05);border-radius:10px;padding:8px;text-align:center;">
-        <div style="font-size:10px;color:rgba(255,255,255,.3);" id="desafioAlunoMetricaLabel">KCAL</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#fff;" id="desafioAlunoMetricaVal">0</div>
-      </div>
-      <div style="flex:1;background:rgba(255,255,255,.05);border-radius:10px;padding:8px;text-align:center;">
-        <div style="font-size:10px;color:rgba(255,255,255,.3);">TEMPO</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#d7c414;" id="desafioAlunoTimer">00:00</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- OVERLAY TESTE FTP -->
-  <div id="ftpTestOverlay" style="display:none;position:absolute;inset:0;z-index:200;background:rgba(0,0,0,.88);flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;gap:16px;">
-    <div style="font-size:10px;font-weight:700;letter-spacing:4px;color:rgba(255,255,255,.35);text-transform:uppercase;" id="ftpTestLabel">TESTE FTP — 20 MIN</div>
-    <div id="ftpTestTimer" style="font-family:'Barlow Condensed',sans-serif;font-size:88px;font-weight:900;color:#fff;line-height:1;letter-spacing:2px;">20:00</div>
-    <div style="display:flex;gap:10px;width:100%;max-width:340px;">
-      <div style="flex:1;text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 10px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:4px;">WATTS</div>
-        <div id="ftpTestWattsEl" style="font-family:'Barlow Condensed',sans-serif;font-size:44px;font-weight:900;color:#fff;line-height:1;">0</div>
-      </div>
-      <div style="flex:1;text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 10px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:4px;">FTP ANT.</div>
-        <div id="ftpTestOldEl" style="font-family:'Barlow Condensed',sans-serif;font-size:44px;font-weight:900;color:rgba(255,255,255,.35);line-height:1;">130</div>
-      </div>
-      <div style="flex:1;text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 10px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:4px;">NOVO FTP</div>
-        <div id="ftpTestNewEl" style="font-family:'Barlow Condensed',sans-serif;font-size:44px;font-weight:900;color:#fff;line-height:1;">--</div>
-      </div>
-    </div>
-    <div id="ftpTestStatusEl" style="font-size:13px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.4);text-transform:uppercase;"></div>
-  </div>
-
-  <!-- MODAL SALVAR FTP -->
-  <div id="ftpSaveModal" style="display:none;position:absolute;inset:0;z-index:300;background:rgba(0,0,0,.8);align-items:center;justify-content:center;">
-    <div style="background:#1a1520;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:28px 24px;width:88%;max-width:320px;text-align:center;">
-      <div style="font-size:28px;margin-bottom:12px;">⚡</div>
-      <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:6px;">NOVO FTP ESTIMADO</div>
-      <div id="ftpSaveValEl" style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:#fff;line-height:1;">0</div>
-      <div id="ftpSaveWkgEl" style="font-size:14px;color:#ea860c;margin-bottom:16px;">0.0 W/kg</div>
-      <div id="ftpSaveDiffEl" style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;"></div>
-      <div style="display:flex;gap:10px;">
-        <button onclick="ftpSaveNao()" style="flex:1;padding:13px;border-radius:12px;background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.5);font-size:14px;font-weight:700;cursor:pointer;">Não guardar</button>
-        <button onclick="ftpSaveSim()" style="flex:1;padding:13px;border-radius:12px;background:linear-gradient(135deg,#ea860c,#d62d2d);border:none;color:#fff;font-size:14px;font-weight:900;cursor:pointer;">Guardar FTP</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="lbot" ontouchstart="botTS(event)" ontouchend="botTE(event)" style="justify-content:center;">
-    <div class="lbot-hint" style="flex:none;text-align:center;">▲ &nbsp; CONTROLES &nbsp; ▲</div>
+  <div class="lbot" ontouchstart="botTS(event)" ontouchend="botTE(event)">
+    <div class="lbot-hint">▲ controles</div>
+    <div class="lbot-timer" id="botT">00:00:00</div>
+    <div class="lbot-hint-r">interval ▲</div>
   </div>
 
   <!-- drawer -->
@@ -1043,31 +1009,53 @@ function renderAulaGrafico(){
   var wrap=document.getElementById('aulaGraficoPainel');
   if(!wrap||!aulaGrafico||!aulaGrafico.length) return;
   var zCores={z1:'#a1a1a1',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
-  var zAlts={z1:14,z2:28,z3:42,z4:56,z5:70,z6:84,z7:100};
-  // Header
-  var html='<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:8px;">'+aulaGraficoNome+'</div>';
-  // Gráfico de barras
-  html+='<div style="display:flex;align-items:flex-end;gap:3px;height:60px;width:100%;margin-bottom:8px;">';
-  aulaGrafico.forEach(function(b,i){
-    var cor=zCores[b.z]||'#888';
-    var h=zAlts[b.z]||20;
-    var isAtual=(i===aulaBlocoIdx);
-    var w=Math.max(6, Math.round((b.dur/(aulaGrafico.reduce(function(a,x){return a+x.dur;},0)||1))*100));
-    html+='<div style="flex:'+w+';height:'+h+'%;border-radius:3px 3px 0 0;background:'+(isAtual?cor:'rgba('+hexToRgb(cor)+',.4)')+(isAtual?';box-shadow:0 0 8px '+cor+';outline:2px solid '+cor+';outline-offset:-2px;':'')+';position:relative;transition:all .3s;"></div>';
-  });
-  html+='</div>';
-  // Bloco atual — metas
+  var zAlts ={z1:15,z2:28,z3:42,z4:57,z5:71,z6:85,z7:100};
+  var zNomes={z1:'Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuromuscular'};
+  var totalDur=aulaGrafico.reduce(function(a,x){return a+x.dur;},0)||1;
   var bAt=aulaGrafico[aulaBlocoIdx];
+  var corAt=bAt?zCores[bAt.z]||'#888':'#888';
+  var html='';
+
+  // Bloco atual — destaque no topo
   if(bAt){
-    var cor=zCores[bAt.z]||'#888';
-    var zNomes={z1:'Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuromuscular'};
-    html+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
-    html+='<div style="font-size:13px;font-weight:700;color:'+cor+';">'+( zNomes[bAt.z]||bAt.z)+'</div>';
-    html+='<div style="font-size:11px;color:rgba(255,255,255,.4);">FTP '+bAt.ftpMin+'–'+bAt.ftpMax+'%</div>';
-    html+='<div style="font-size:11px;color:rgba(255,255,255,.4);">'+bAt.rpmMin+'–'+bAt.rpmMax+' rpm</div>';
-    html+='<div style="font-size:11px;color:rgba(255,255,255,.3);">'+bAt.pos+'</div>';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
+    html+='<div>';
+    html+='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:2px;">Bloco atual</div>';
+    html+='<div style="font-size:18px;font-weight:700;color:'+corAt+';">'+(zNomes[bAt.z]||bAt.z)+'</div>';
+    html+='</div>';
+    html+='<div style="text-align:right;">';
+    html+='<div style="font-size:22px;font-weight:700;color:'+corAt+';">'+bAt.ftpMin+'–'+bAt.ftpMax+'<span style="font-size:12px;color:rgba(255,255,255,.4);margin-left:2px;">%</span></div>';
+    html+='<div style="font-size:12px;color:rgba(255,255,255,.4);">'+bAt.rpmMin+'–'+bAt.rpmMax+' rpm</div>';
+    html+='</div>';
     html+='</div>';
   }
+
+  // Gráfico de barras
+  html+='<div style="display:flex;align-items:flex-end;gap:2px;height:72px;width:100%;margin-bottom:4px;">';
+  aulaGrafico.forEach(function(b,i){
+    var cor=zCores[b.z]||'#888';
+    var h=zAlts[b.z]||15;
+    var isAtual=(i===aulaBlocoIdx);
+    var isPast=(i<aulaBlocoIdx);
+    var flex=Math.max(4,Math.round((b.dur/totalDur)*200));
+    var opacity=isPast?'.2':isAtual?'1':'.4';
+    html+='<div style="flex:'+flex+';height:'+h+'%;border-radius:3px 3px 0 0;background:'+cor+';opacity:'+opacity+';position:relative;transition:all .4s;">';
+    if(isAtual){
+      html+='<div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:'+cor+';"></div>';
+    }
+    html+='</div>';
+  });
+  html+='</div>';
+
+  // Base line
+  html+='<div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:5px;"></div>';
+
+  // Nome aula + progresso
+  html+='<div style="display:flex;justify-content:space-between;">';
+  html+='<div style="font-size:10px;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:1px;">'+(aulaGraficoNome||'ProRider')+'</div>';
+  html+='<div style="font-size:10px;color:rgba(255,255,255,.22);">'+( aulaBlocoIdx+1)+' / '+aulaGrafico.length+'</div>';
+  html+='</div>';
+
   wrap.innerHTML=html;
 }
 
@@ -1081,89 +1069,63 @@ function openQRScan(){
 }
 
 var lastCode='';
-var _wsConTimeout=null;
-var _wsRespTimeout=null;
-var SERVER_HTTP_ALUNO='https://prorider-server-production.up.railway.app';
-
-// Mantém servidor acordado via HTTP mesmo sem WS (aluno pode abrir o app antes do professor)
-(function _alunoHttpPing(){
-  fetch(SERVER_HTTP_ALUNO+'/ping',{method:'GET',cache:'no-store'}).catch(function(){});
-  setInterval(function(){
-    fetch(SERVER_HTTP_ALUNO+'/ping',{method:'GET',cache:'no-store'}).catch(function(){});
-  }, 30*1000); // 30s — mantém Railway ativo
-})();
-
-function _qrRetry(){
-  var btn=document.getElementById('qrRetryBtn');
-  if(btn) btn.style.display='none';
-  connectQR(lastCode);
-}
-
-function _qrMostrarRetry(msg,cor){
-  var statusEl=document.getElementById('qrStatus');
-  var btn=document.getElementById('qrRetryBtn');
-  if(statusEl){statusEl.textContent=msg;statusEl.style.color=cor||'#d62d2d';}
-  if(btn) btn.style.display='inline-block';
-}
-
 function connectQR(code){
   if(!code) return;
   lastCode=code;
+  // Se já está conectado, vai direto para sLive
+  if(wsConn && wsConn.readyState===1){ go('sLive'); return; }
   var statusEl=document.getElementById('qrStatus');
-  var btn=document.getElementById('qrRetryBtn');
   if(statusEl){statusEl.textContent='Conectando...';statusEl.style.color='#ea860c';}
-  if(btn) btn.style.display='none';
-
-  // Fecha conexão anterior se existir
-  if(wsConn){try{wsConn.onclose=null;wsConn.close();}catch(ex){}wsConn=null;}
-  clearTimeout(_wsConTimeout);
-  clearTimeout(_wsRespTimeout);
-
-  // Timeout para a conexão TCP abrir (8s)
-  _wsConTimeout=setTimeout(function(){
-    if(wsConn&&wsConn.readyState!==1){
-      try{wsConn.onclose=null;wsConn.close();}catch(ex){}wsConn=null;
-      _qrMostrarRetry('Servidor indisponível. Tente novamente.','#d62d2d');
-    }
-  },8000);
-
   try{
     wsConn=new WebSocket(SERVER_URL);
     wsConn.onopen=function(){
-      clearTimeout(_wsConTimeout);
       var nome=document.getElementById('profNome');
       var nomeVal=(nome&&nome.textContent.trim()&&nome.textContent.trim()!=='—')?nome.textContent.trim():(localStorage.getItem('pr_nome')||'Aluno');
       wsConn.send(JSON.stringify({tipo:'entrar_sala',codigo:code,nome:nomeVal,bike:null}));
-      if(statusEl){statusEl.textContent='Aguardando sala...';statusEl.style.color='#ea860c';}
-      // Timeout para o servidor responder com "conectado" (12s)
-      _wsRespTimeout=setTimeout(function(){
-        if(wsConn){try{wsConn.onclose=null;wsConn.close();}catch(ex){}wsConn=null;}
-        _qrMostrarRetry('Sala não encontrada. Verifique o código com o professor.','#d62d2d');
-      },12000);
     };
     wsConn.onmessage=function(e){
-      clearTimeout(_wsRespTimeout);
       var data=JSON.parse(e.data);
       if(data.tipo==='conectado'){
-        if(statusEl){statusEl.textContent='Conectado! Aguardando professor...';statusEl.style.color='#5db13d';}
+        if(statusEl){statusEl.textContent='Conectado!';statusEl.style.color='#5db13d';}
+        // Para câmera se estiver ativa
+        pararCamera();
+        // Navega para sLive com pequeno delay para iOS processar
         setTimeout(function(){
           go('sLive');
-          var p=document.getElementById('aulaGraficoPainel');
-          if(p) p.classList.add('visible');
-          startProfMode();
-        },1500);
+          // Força scroll para o topo
+          var sl=document.getElementById('sLive');
+          if(sl) sl.scrollTop=0;
+        }, 300);
       }
       if(data.tipo==='update_aula'){
-        var blocoAnterior=aulaBlocoIdx;
         if(data.grafico && data.grafico.length>0){
-          aulaGrafico=data.grafico;
-          aulaGraficoNome=data.nomeAula||aulaGraficoNome||'ProRider';
-        }
-        if(data.blocoIdx!==undefined) aulaBlocoIdx=data.blocoIdx;
-        if(aulaBlocoIdx!==blocoAnterior) segS=0;
-        if(aulaGrafico && aulaGrafico.length>0){
+          aulaGrafico=data.grafico; aulaBlocoIdx=data.blocoIdx||0;
+          aulaGraficoNome=data.nomeAula||'ProRider';
           renderAulaGrafico();
-          updUpNext();
+          // Mostra gráfico professor, oculta nativo
+          var gp=document.getElementById('aulaGraficoPainel');
+          if(gp){ gp.style.display='block'; }
+          var gn=document.getElementById('graficoNativo');
+          if(gn) gn.style.display='none';
+          // Popula UP NEXT com próximo bloco
+          var nb=data.grafico[data.blocoIdx+1]||null;
+          var zCUp={z1:'#a1a1a1',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
+          var elT=document.getElementById('unT'),elF=document.getElementById('unF');
+          var elR=document.getElementById('unR'),elP=document.getElementById('unP');
+          var elD=document.getElementById('unDot');
+          if(nb){
+            var corNb=zCUp[nb.z]||'#888';
+            if(elT) elT.textContent=nb.dur+'min';
+            if(elF){elF.textContent=nb.ftpMin+'–'+nb.ftpMax+'%';elF.style.color=corNb;}
+            if(elR) elR.textContent=nb.rpmMin+'–'+nb.rpmMax;
+            if(elP) elP.textContent=nb.pos||'–';
+            if(elD) elD.style.background=corNb;
+          } else {
+            if(elT) elT.textContent='–';
+            if(elF){elF.textContent='Fim';elF.style.color='rgba(255,255,255,.3)';}
+            if(elR) elR.textContent='–';
+            if(elP) elP.textContent='–';
+          }
         }
         if(data.bloco){
           var b=data.bloco;
@@ -1176,77 +1138,63 @@ function connectQR(code){
           e=document.getElementById('liveMetaRpm'); if(e) e.textContent=(b.rpmMin||'—')+'–'+(b.rpmMax||'—')+' rpm';
           e=document.getElementById('liveZonaProf'); if(e){e.textContent=zNomes[zona]||zona; e.style.color=cor;}
           e=document.getElementById('livePosProf'); if(e) e.textContent=b.pos||b.position||'';
-          setActiveZoneArc(zona);
+          // Atualiza UP NEXT com próximo bloco
+          if(data.upNext){
+            var nb=data.upNext;
+            var nz=nb.intensity||nb.z||'z1';
+            var nzNome=zNomes[nz]||nz;
+            var nCor=zCores[nz]||'#888';
+            e=document.getElementById('unT'); if(e) e.textContent=(nb.duration||'—')+'min';
+            e=document.getElementById('unF'); if(e){e.textContent=(nb.ftpMin||'—')+'–'+(nb.ftpMax||'—')+'%'; e.style.color=nCor;}
+            e=document.getElementById('unR'); if(e) e.textContent=(nb.rpmMin||'—')+'–'+(nb.rpmMax||'—');
+            e=document.getElementById('unP'); if(e) e.textContent=nb.pos||nb.position||'—';
+            e=document.getElementById('unDot'); if(e) e.style.background=nCor;
+          } else {
+            e=document.getElementById('unT'); if(e) e.textContent='—';
+            e=document.getElementById('unF'); if(e){e.textContent='Fim da aula'; e.style.color='rgba(255,255,255,.4)';}
+            e=document.getElementById('unR'); if(e) e.textContent='—';
+            e=document.getElementById('unP'); if(e) e.textContent='—';
+          }
         }
         if(data.segTime!==undefined){
-          // Sincroniza o contador local com o servidor para evitar deriva
-          segS=Math.ceil(data.segTime);
-          var sSeg=document.getElementById('ltSeg');
-          if(sSeg) sSeg.textContent=fmMS(segS);
+          var tEl=document.getElementById('liveProfTimer');
+          if(tEl){var s=Math.ceil(data.segTime);tEl.textContent=Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}
         }
       }
-      if(data.tipo==='aula_iniciada'){
-        aulaGrafico=data.grafico; aulaBlocoIdx=data.blocoIdx||0;
-        aulaGraficoNome=data.nomeAula||'ProRider';
-        var p=document.getElementById('aulaGraficoPainel');
-        if(p) p.classList.add('visible');
-        renderAulaGrafico();
-        updUpNext();
-        go('sLive');
-        startProfMode();
-      }
-      if(data.tipo==='iniciar_desafio'){
-        _desafioAlunoIniciar(data);
-      }
-      if(data.tipo==='desafio_update'){
-        _desafioAlunoUpdate(data);
-      }
-      if(data.tipo==='fim_desafio'){
-        _desafioAlunoFim(data);
-      }
-      if(data.tipo==='iniciar_ftp'){
-        iniciarFtpTestAluno(data.protocolo||20);
-      }
-      if(data.tipo==='fim_ftp'){
-        clearInterval(_ftpTestTicker);
-        var avgW=_ftpCntW>0?_ftpSumW/_ftpCntW:0;
-        var novoFtp=Math.round(avgW*(_ftpFactor[_ftpProtocolo]||0.95));
-        var ov=document.getElementById('ftpTestOverlay');
-        if(ov) ov.style.display='none';
-        if(novoFtp>0) _ftpTestFinalizar(novoFtp);
-      }
-      if(data.tipo==='fim_aula'||data.tipo==='sala_encerrada'){
-        clearInterval(lInt);
-        showResults();
-      }
       if(data.tipo==='erro'){
-        _qrMostrarRetry('Código inválido. Verifique com o professor.','#d62d2d');
+        if(statusEl){statusEl.textContent='QR invalido. Tente novamente.';statusEl.style.color='#d62d2d';}
       }
     };
     wsConn.onclose=function(){
-      clearTimeout(_wsConTimeout);
-      clearTimeout(_wsRespTimeout);
       wsConn=null;
+      // Tenta reconectar automaticamente em 4s se na tela de live
       var cur=document.querySelector('.screen.active');
-      if(cur&&cur.id==='sLive'){
-        // Reconecta automaticamente se estava na aula
-        setTimeout(function(){ connectQR(lastCode); },4000);
+      // Reconecta automaticamente sempre que cair
+      if(lastCode){
+        setTimeout(function(){ connectQR(lastCode); }, 3000);
         var ind=document.getElementById('liveConnIndicator');
         if(ind){ind.textContent='Reconectando...';ind.style.color='#ea860c';}
-      } else if(cur&&cur.id==='sQRScan'){
-        _qrMostrarRetry('Conexão encerrada. Tente novamente.','#d62d2d');
       }
     };
     wsConn.onerror=function(){
-      clearTimeout(_wsConTimeout);
-      clearTimeout(_wsRespTimeout);
-      _qrMostrarRetry('Falha na conexão. Verifique sua internet.','#d62d2d');
+      if(statusEl){statusEl.textContent='Sem conexao. Verifique se esta na mesma rede.';statusEl.style.color='#d62d2d';}
     };
-    // Keepalive ping a cada 4 minutos
+    // Keepalive ping a cada 25 segundos (iOS Safari para JS quando tela apaga)
     var wsAlunoPing=setInterval(function(){
-      if(wsConn&&wsConn.readyState===1) wsConn.send(JSON.stringify({tipo:'ping'}));
-      else clearInterval(wsAlunoPing);
-    },4*60*1000);
+      if(wsConn&&wsConn.readyState===1){
+        wsConn.send(JSON.stringify({tipo:'ping'}));
+      } else {
+        clearInterval(wsAlunoPing);
+        // Tenta reconectar
+        if(lastCode) setTimeout(function(){ connectQR(lastCode); }, 2000);
+      }
+    }, 25000); // 25 segundos
+    // Reconecta quando voltar do background (iOS)
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden && (!wsConn || wsConn.readyState !== 1)){
+        if(lastCode) setTimeout(function(){ connectQR(lastCode); }, 500);
+      }
+    });
   }catch(e){
     if(statusEl){statusEl.textContent='Sem conexao com o servidor.';statusEl.style.color='#d62d2d';}
   }
@@ -1540,16 +1488,12 @@ var historico = [
 
 // \u2550\u2550 ESTADO \u2550\u2550
 var curAulaIdx=0, cAula=null, cBloco=0, segS=0, totS=0;
-var zoneTime={z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
-var sumFtp=0, cntFtp=0;
 var lInt=null, cPg=0, isPaused=false;
 var maxRpm=0, sumRpm=0, cntRpm=0, dRpm=83;
 var audio=null, aPlay=false;
 var scanT={}, connected={bike:false,hr:false};
 var gaugeMode=0; // 0=FTP%, 1=RPM, 2=W/kg
 var botTY=0, drawerOpen=false;
-var isFtpTest=false, ftpTestWatts=[], ftpTestCalc=0.95, ftpTestDur=20, ftpTestPhase=false;
-var rpmAlertCool=0;
 var tX=0;
 var cdTimer=null;
 
@@ -1570,10 +1514,7 @@ function go(id){
   var showNav=(id!=='sLive' && id!=='sCountdown' && id!=='sSplash' && id!=='sOnboard');
   var bNav=document.getElementById('bNav');
   if(bNav) bNav.style.display=showNav?'flex':'none';
-  if(id!=='sLive'){
-    var p=document.getElementById('aulaGraficoPainel');
-    if(p) p.classList.remove('visible');
-  }
+
 }
 function goTab(id,tabId){
   go(id);
@@ -1817,95 +1758,13 @@ function startCountdown(){
 }
 
 // \u2550\u2550 LIVE \u2550\u2550
-function startProfMode(){
-  totS=0; segS=0;
-  zoneTime={z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
-  sumFtp=0; cntFtp=0; sumRpm=0; cntRpm=0; maxRpm=0;
-  isPaused=false;
-  _lastActiveArc=null; _dimAllArcs();
-  var now=new Date();
-  var h=now.getHours()%12||12, m=now.getMinutes();
-  var p2St=document.getElementById('p2St');
-  if(p2St) p2St.textContent=h+':'+(m<10?'0':'')+m+(now.getHours()>=12?' PM':' AM');
-  clearInterval(lInt);
-  lInt=setInterval(profTick,1000);
-}
-
-var _lastActiveArc=null;
-function _dimAllArcs(){
-  for(var i=1;i<=7;i++){
-    var arc=document.getElementById('zArc'+i);
-    if(arc){arc.style.opacity='0.05';arc.style.filter='none';arc.style.transition='opacity .5s,filter .5s';}
-  }
-}
-
-// Converte o ângulo do ponteiro (-90 a +90°) para o número do arco (1-7)
-// Arcos no SVG: z1-z6 cada 78px, z7 50px, total 534px = semicírculo de 180°
-function _zoneFromAngle(ang){
-  var t=(ang+90)/180; // 0=esquerda(z1) → 1=direita(z7)
-  var breaks=[78,156,234,312,390,468,534].map(function(px){return px/534;});
-  for(var i=0;i<breaks.length;i++){ if(t<=breaks[i]) return i+1; }
-  return 7;
-}
-
-function setActiveZoneArc(zoneOrNum){
-  var num;
-  if(typeof zoneOrNum==='number'){
-    num=zoneOrNum;
-  } else {
-    var zMap={z1:1,z2:2,z3:3,z4:4,z5:5,z6:6,z7:7};
-    num=zMap[zoneOrNum]||1;
-  }
-  if(_lastActiveArc===num) return;
-  _lastActiveArc=num;
-  for(var i=1;i<=7;i++){
-    var arc=document.getElementById('zArc'+i);
-    if(!arc) continue;
-    if(i===num){
-      arc.style.opacity='1';
-      arc.style.filter='drop-shadow(0 0 8px '+arc.getAttribute('data-color')+') drop-shadow(0 0 3px '+arc.getAttribute('data-color')+')';
-      arc.style.transition='opacity .3s,filter .3s';
-    } else {
-      arc.style.opacity='0.05';
-      arc.style.filter='none';
-      arc.style.transition='opacity .5s,filter .5s';
-    }
-  }
-}
-
-function profTick(){
-  if(isPaused) return;
-  totS++; segS++;
-  var bAt=aulaGrafico&&aulaGrafico[aulaBlocoIdx];
-  var curZone=bAt?bAt.z:'z1';
-  setActiveZoneArc(curZone);
-  if(zoneTime[curZone]!==undefined) zoneTime[curZone]++;
-  var rpm=parseInt(document.getElementById('bigRpm').textContent)||0;
-  if(rpm>0){sumRpm+=rpm;cntRpm++;if(rpm>maxRpm)maxRpm=rpm;}
-  var zPbar=document.getElementById('zoneProgressBar');
-  if(zPbar&&bAt){
-    var pct=Math.min(100,(segS/(bAt.dur*60))*100);
-    zPbar.style.width=pct+'%';
-    zPbar.style.background=zC[bAt.z]||'#888';
-  }
-  sendDadosAluno();
-  document.getElementById('ltSeg').textContent=fmMS(segS);
-  document.getElementById('ltTot').textContent=fmMS(totS);
-  document.getElementById('p2Dur').textContent=fmMS(totS);
-  document.getElementById('p2Dist').textContent=(totS*.003).toFixed(1);
-  document.getElementById('p2Kc').textContent=Math.round(totS*.06);
-  document.getElementById('p2AR').textContent=cntRpm>0?Math.round(sumRpm/cntRpm):0;
-  document.getElementById('p2MR').textContent=maxRpm;
-}
-
 function startLive(){
   cAula=aulas[curAulaIdx]; cBloco=0; segS=0; totS=0;
   zoneTime={z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
   sumFtp=0; cntFtp=0; sumRpm=0; cntRpm=0; maxRpm=0;
   maxRpm=0; sumRpm=0; cntRpm=0; dRpm=83; cPg=0;
   isPaused=false; gaugeMode=0;
-  _lastActiveArc=null; _dimAllArcs();
-  setPage(0); initSoloGrafico(); updUpNext();
+  setPage(0); buildGraph(); updUpNext();
   var now=new Date();
   var h=now.getHours()%12||12;
   var m=now.getMinutes();
@@ -1927,11 +1786,9 @@ function tick(){
   sumRpm+=rpm; cntRpm++;
   if(rpm>maxRpm) maxRpm=rpm;
 
-  sendDadosAluno();
   document.getElementById('ltSeg').textContent=fmMS(segS);
   document.getElementById('ltTot').textContent=fmMS(totS);
   var b=cAula.blocos[cBloco];
-  setActiveZoneArc(b.z);
   if(zoneTime[b.z]!==undefined) zoneTime[b.z]++;
   var curRpm=dRpm||0;
   if(curRpm>0){sumRpm+=curRpm;cntRpm++;if(curRpm>maxRpm)maxRpm=curRpm;}
@@ -1961,6 +1818,7 @@ function tick(){
     zPbar.style.background=zC[b.z]||'#888';
     zPbar.style.boxShadow='0 0 8px '+( zC[b.z]||'#888' );
   }
+  document.getElementById('botT').textContent=fmHMS(totS);
   document.getElementById('bigRpm').textContent=rpm;
   document.getElementById('bigWatts').textContent=watts;
 
@@ -1969,25 +1827,25 @@ function tick(){
   var gVal=document.getElementById('gValue');
   var mono=document.getElementById('monoArc');
   if(gaugeMode===0){
-    // FTP% \u2014 ponteiro e arco pelo \u00E2ngulo
+    // FTP%
     var ang=-90+(Math.min(ftpPct,150)/150)*180;
     if(ptr) ptr.style.transform='rotate('+ang+'deg)';
     if(gVal) gVal.textContent=ftpPct;
-    setActiveZoneArc(_zoneFromAngle(ang)); // acende o arco onde o raio aponta
-    var zNMap={z1:'ACTIVE RECOVERY',z2:'ENDURANCE',z3:'TEMPO',z4:'THRESHOLD',z5:'VO2 MAX',z6:'ANAEROBIC',z7:'NEUROMUSCULAR'};
-    var znEl=document.getElementById('gZoneName');
-    if(znEl){znEl.textContent=zNMap[b.z]||'';znEl.setAttribute('fill',zC[b.z]||'rgba(255,255,255,.55)');}
-    var gpEl=document.getElementById('gPosition');
-    if(gpEl) gpEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
-    var posEl=document.getElementById('gPosText');
-    if(posEl) posEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
+    // Nome da zona e posicao - SVG text elements
+  var zNMap={z1:'ACTIVE RECOVERY',z2:'ENDURANCE',z3:'TEMPO',z4:'THRESHOLD',z5:'VO2 MAX',z6:'ANAEROBIC',z7:'NEUROMUSCULAR'};
+  var znEl=document.getElementById('gZoneName');
+  if(znEl){znEl.textContent=zNMap[b.z]||'';znEl.setAttribute('fill',zC[b.z]||'rgba(255,255,255,.55)');}
+  var gpEl=document.getElementById('gPosition');
+  if(gpEl) gpEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
+  var posEl=document.getElementById('gPosText');
+  if(posEl) posEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
   } else if(gaugeMode===1){
     // RPM monocrom\u00E1tico
     var rpmPct=rpm/140;
     var ang2=-90+rpmPct*180;
     if(ptr) ptr.style.transform='rotate('+ang2+'deg)';
     if(gVal) gVal.textContent=rpm;
-    setActiveZoneArc(_zoneFromAngle(ang2)); // acende o arco onde o raio aponta
+    // cor muda com velocidade
     var rColor=rpm<80?'#888':rpm<95?'#295fe8':rpm<105?'#5db13d':rpm<115?'#d7c414':rpm<125?'#ea860c':'#d62d2d';
     if(mono){mono.setAttribute('stroke-dasharray',(rpmPct*534)+' '+(431-rpmPct*534));mono.setAttribute('stroke',rColor);}
   } else {
@@ -1997,7 +1855,6 @@ function tick(){
     var ang3=-90+wkgPct*180;
     if(ptr) ptr.style.transform='rotate('+ang3+'deg)';
     if(gVal) gVal.textContent=wkg;
-    setActiveZoneArc(_zoneFromAngle(ang3)); // acende o arco onde o raio aponta
   }
 
   // p2
@@ -2015,7 +1872,7 @@ function tick(){
 
   if(segS>=b.dur*60){
     cBloco++;
-    if(cBloco>=cAula.blocos.length){ clearInterval(lInt); showResults(); return; }
+    if(cBloco>=cAula.blocos.length){ clearInterval(lInt); go('sHome'); return; }
     segS=0; updUpNext(); updGraph(); scrollGraph();
     var zPbar2=document.getElementById('zoneProgressBar');
     if(zPbar2){zPbar2.style.width='0%';}
@@ -2053,242 +1910,43 @@ function cycleGaugeMode(){
 }
 
 // \u2500\u2500 gr\u00E1fico timeline \u2500\u2500
-// ── DESAFIO ALUNO ────────────────────────────────────────
-var _desafioAlunoTimer=0, _desafioAlunoInt=null;
-var _desafioAlunoNomes={kcal:'🔥 KCAL',dist:'📏 KM',potMedia:'⚡ WATTS MED',potMax:'💥 WATTS MAX'};
-var _desafioAlunoUnits={kcal:'kcal',dist:'km',potMedia:'W',potMax:'W'};
-var _desafioAlunoTipoAtual='kcal';
-
-function _desafioAlunoIniciar(data){
-  _desafioAlunoTipoAtual=data.desafioTipo||'kcal';
-  _desafioAlunoTimer=0;
-  var ov=document.getElementById('desafioOverlay');
-  if(ov) ov.style.display='block';
-  var iconEl=document.getElementById('desafioAlunoIcon');
-  var icons={kcal:'🔥',dist:'📏',potMedia:'⚡',potMax:'💥'};
-  if(iconEl) iconEl.textContent=icons[_desafioAlunoTipoAtual]||'🏆';
-  var tipoEl=document.getElementById('desafioAlunoTipo');
-  if(tipoEl) tipoEl.textContent=_desafioAlunoNomes[_desafioAlunoTipoAtual]||'DESAFIO';
-  var metEl=document.getElementById('desafioAlunoMetricaLabel');
-  if(metEl) metEl.textContent=_desafioAlunoUnits[_desafioAlunoTipoAtual]||'';
-  // Equipe
-  var nomeEl=document.getElementById('profNome');
-  var meuNome=nomeEl?nomeEl.textContent.trim():'';
-  var eqEl=document.getElementById('desafioAlunoEquipe');
-  if(data.desafioModo==='equipes'&&data.equipes&&eqEl){
-    var minhaEq=data.equipes.laranja.indexOf(meuNome)>=0?'laranja':data.equipes.azul.indexOf(meuNome)>=0?'azul':'';
-    eqEl.textContent=minhaEq==='laranja'?'🟠 EQUIPE LARANJA':minhaEq==='azul'?'🔵 EQUIPE AZUL':'';
-    eqEl.style.color=minhaEq==='laranja'?'#ea860c':'#295fe8';
-  } else if(eqEl){ eqEl.textContent=''; }
-  // Timer local
-  clearInterval(_desafioAlunoInt);
-  _desafioAlunoInt=setInterval(function(){
-    _desafioAlunoTimer++;
-    var tEl=document.getElementById('desafioAlunoTimer');
-    if(tEl) tEl.textContent=fmMS(_desafioAlunoTimer);
-  },1000);
-}
-
-function _desafioAlunoUpdate(data){
-  if(!data.ranking) return;
-  var nomeEl=document.getElementById('profNome');
-  var meuNome=nomeEl?nomeEl.textContent.trim():'';
-  var meu=data.ranking.find(function(r){return r.nome===meuNome;});
-  if(meu){
-    var posEl=document.getElementById('desafioAlunoPosicao');
-    if(posEl) posEl.textContent='#'+meu.pos;
-    var valEl=document.getElementById('desafioAlunoMetricaVal');
-    var fmt=_desafioAlunoTipoAtual==='dist'?meu.val.toFixed(2):Math.round(meu.val||0);
-    if(valEl) valEl.textContent=fmt;
+function buildGraph(){
+  var g=document.getElementById('lgT'); g.innerHTML='';
+  for(var i=0;i<cAula.blocos.length;i++){
+    var b=cAula.blocos[i];
+    var d=document.createElement('div');
+    d.className='lg-blk'+(i===cBloco?' cur':i<cBloco?' past':'');
+    d.id='lgb'+i;
+    d.style.cssText='--c:'+zC[b.z]+';width:'+Math.max(14,b.dur*4)+'px;height:'+zH[b.z]+'px;background:'+zC[b.z]+';opacity:'+(i<cBloco?.2:.85)+';';
+    if(b.pos==='Standing') d.style.borderTop='3px solid rgba(255,255,255,.5)';
+    g.appendChild(d);
   }
-}
-
-function _desafioAlunoFim(data){
-  clearInterval(_desafioAlunoInt);
-  var ov=document.getElementById('desafioOverlay');
-  if(ov) ov.style.display='none';
-  // Mostrar posição final brevemente
-  if(data.ranking){
-    var nomeEl=document.getElementById('profNome');
-    var meuNome=nomeEl?nomeEl.textContent.trim():'';
-    var meu=data.ranking.find(function(r){return r.nome===meuNome;});
-    if(meu){
-      var modal=document.createElement('div');
-      modal.style.cssText='position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;';
-      modal.innerHTML='<div style="font-size:48px;">'+(meu.pos===1?'🥇':meu.pos===2?'🥈':meu.pos===3?'🥉':'🏁')+'</div>'
-        +'<div style="font-family:Bebas Neue,sans-serif;font-size:28px;color:#fff;letter-spacing:3px;">DESAFIO ENCERRADO</div>'
-        +'<div style="font-size:16px;color:rgba(255,255,255,.5);">Posição final</div>'
-        +'<div style="font-family:Barlow Condensed,sans-serif;font-size:80px;font-weight:900;color:#d7c414;line-height:1;">#'+meu.pos+'</div>'
-        +'<div style="font-size:13px;color:rgba(255,255,255,.4);">de '+data.ranking.length+' alunos</div>';
-      document.body.appendChild(modal);
-      setTimeout(function(){if(modal.parentNode)modal.parentNode.removeChild(modal);},8000);
-    }
-  }
-}
-// ── FIM DESAFIO ALUNO ─────────────────────────────────────
-
-// ── TESTE FTP ALUNO ──────────────────────────────────────
-var _ftpTestTicker=null, _ftpSecsLeft=0, _ftpSumW=0, _ftpCntW=0;
-var _ftpOldVal=130, _ftpProtocolo=20;
-var _ftpFactor={3:0.85, 5:0.87, 10:0.90, 20:0.95};
-
-function iniciarFtpTestAluno(protocolo){
-  _ftpProtocolo=protocolo;
-  _ftpSecsLeft=protocolo*60;
-  _ftpSumW=0; _ftpCntW=0;
-  var ftpEl=document.getElementById('ftpDisplay');
-  _ftpOldVal=ftpEl?parseInt(ftpEl.textContent)||130:130;
-  // Mostrar overlay
-  var ov=document.getElementById('ftpTestOverlay');
-  if(ov){ov.style.display='flex';}
-  var lb=document.getElementById('ftpTestLabel');
-  if(lb) lb.textContent='TESTE FTP — '+protocolo+' MIN';
-  var oldEl=document.getElementById('ftpTestOldEl');
-  if(oldEl) oldEl.textContent=_ftpOldVal;
-  document.getElementById('ftpTestNewEl').textContent='--';
-  document.getElementById('ftpTestStatusEl').textContent='';
-  // Ir para página do gauge
-  setPage(0);
-  clearInterval(_ftpTestTicker);
-  _ftpTestTicker=setInterval(_ftpTestTick,1000);
-}
-
-function _ftpTestTick(){
-  _ftpSecsLeft--;
-  var timerEl=document.getElementById('ftpTestTimer');
-  if(timerEl) timerEl.textContent=fmMS(_ftpSecsLeft);
-  var watts=parseInt(document.getElementById('bigWatts').textContent)||0;
-  // Se sem BT, simula curva de esforço baseada no FTP guardado
-  if(watts===0){
-    var durTotal=_ftpProtocolo*60;
-    var elapsed=durTotal-_ftpSecsLeft;
-    var fase=Math.min(1,elapsed/30); // sobe nos primeiros 30s
-    var ftpBase=_ftpOldVal*0.95; // esforço no teste = ~95% do FTP
-    watts=Math.round(ftpBase*fase*(0.92+Math.random()*0.1));
-    var wEl=document.getElementById('bigWatts');
-    if(wEl) wEl.textContent=watts;
-  }
-  var wEl=document.getElementById('ftpTestWattsEl');
-  if(wEl) wEl.textContent=watts;
-  _ftpSumW+=watts; _ftpCntW++;
-  var avgW=_ftpCntW>0?_ftpSumW/_ftpCntW:0;
-  var novoFtp=Math.round(avgW*(_ftpFactor[_ftpProtocolo]||0.95));
-  var newEl=document.getElementById('ftpTestNewEl');
-  var stEl=document.getElementById('ftpTestStatusEl');
-  if(newEl&&novoFtp>0){
-    newEl.textContent=novoFtp;
-    if(novoFtp>_ftpOldVal){
-      newEl.style.color='#5db13d';
-      if(stEl){stEl.textContent='▲ MELHORANDO';stEl.style.color='#5db13d';}
-    } else {
-      newEl.style.color='#d7c414';
-      if(stEl){stEl.textContent='MANTENHA O ESFORÇO';stEl.style.color='#d7c414';}
-    }
-  }
-  if(_ftpSecsLeft<=0){
-    clearInterval(_ftpTestTicker);
-    _ftpTestFinalizar(novoFtp);
-  }
-}
-
-function _ftpTestFinalizar(novoFtp){
-  var ov=document.getElementById('ftpTestOverlay');
-  if(ov) ov.style.display='none';
-  var pesoEl=document.getElementById('profPeso');
-  var peso=pesoEl?parseFloat(pesoEl.textContent)||70:70;
-  var wkg=(novoFtp/peso).toFixed(1);
-  var diff=novoFtp-_ftpOldVal;
-  var diffStr=diff>0?'(+'+diff+'W vs FTP anterior)':diff<0?'('+diff+'W vs FTP anterior)':'(igual ao FTP anterior)';
-  document.getElementById('ftpSaveValEl').textContent=novoFtp;
-  document.getElementById('ftpSaveWkgEl').textContent=wkg+' W/kg';
-  document.getElementById('ftpSaveDiffEl').textContent=diffStr;
-  document.getElementById('ftpSaveDiffEl').style.color=diff>=0?'#5db13d':'#d62d2d';
-  var modal=document.getElementById('ftpSaveModal');
-  if(modal) modal.style.display='flex';
-  window._ftpNovoVal=novoFtp;
-}
-
-function ftpSaveSim(){
-  var val=window._ftpNovoVal||0;
-  if(val>0){
-    var el=document.getElementById('ftpDisplay');
-    if(el) el.textContent=val+' W';
-  }
-  document.getElementById('ftpSaveModal').style.display='none';
-}
-function ftpSaveNao(){
-  document.getElementById('ftpSaveModal').style.display='none';
-}
-// ── FIM TESTE FTP ALUNO ───────────────────────────────────
-
-function sendDadosAluno(){
-  if(!wsConn||wsConn.readyState!==1) return;
-  var rpm=parseInt(document.getElementById('bigRpm').textContent)||0;
-  var watts=parseInt(document.getElementById('bigWatts').textContent)||0;
-  var fc=parseInt(document.getElementById('bigHR').textContent)||0;
-  var zona='z1';
-  if(cAula&&cAula.blocos&&cAula.blocos[cBloco]) zona=cAula.blocos[cBloco].z||'z1';
-  else if(aulaGrafico&&aulaGrafico[aulaBlocoIdx]) zona=aulaGrafico[aulaBlocoIdx].z||'z1';
-  var nomeEl=document.getElementById('profNome');
-  var nome=nomeEl&&nomeEl.textContent.trim()&&nomeEl.textContent.trim()!=='–'?nomeEl.textContent.trim():'Aluno';
-  wsConn.send(JSON.stringify({
-    tipo:'dados_aluno',
-    nome:nome,
-    rpm:rpm,
-    watts:watts,
-    fc:fc>0?fc:null,
-    zona:zona,
-    ftp:parseInt(document.getElementById('p2Ftp').textContent)||0,
-    horario:new Date().toLocaleTimeString('pt-BR')
-  }));
-}
-
-function initSoloGrafico(){
-  aulaGrafico=cAula.blocos.map(function(b){
-    var fp=(b.ftp||'').split('-');
-    var rp=(b.rpm||'').split('-');
-    return {z:b.z,dur:b.dur,ftpMin:fp[0]||'',ftpMax:fp[1]||fp[0]||'',rpmMin:rp[0]||'',rpmMax:rp[1]||rp[0]||'',pos:b.pos||''};
-  });
-  aulaBlocoIdx=0;
-  aulaGraficoNome=cAula.nome;
-  var p=document.getElementById('aulaGraficoPainel');
-  if(p) p.classList.add('visible');
-  renderAulaGrafico();
 }
 function updGraph(){
-  aulaBlocoIdx=cBloco;
-  renderAulaGrafico();
-}
-function scrollGraph(){}
-function updUpNext(){
-  var n=null;
-  var isSolo=!!(cAula&&cAula.blocos);
-  if(isSolo){
-    n=cAula.blocos[cBloco+1];
-    if(n){
-      document.getElementById('unT').textContent=n.dur+'m';
-      document.getElementById('unF').textContent=n.ftp;
-      document.getElementById('unR').textContent=n.rpm;
-      document.getElementById('unP').textContent=n.pos.toUpperCase().substring(0,5);
-      document.getElementById('unDot').style.background=zC[n.z];
-      document.getElementById('dNextZone').textContent=zNames[n.z];
-      document.getElementById('dNextZone').style.color=zC[n.z];
-      document.getElementById('dNextInfo').textContent=n.dur+' min \u00B7 '+n.ftp+'% FTP \u00B7 '+n.rpm+' RPM \u00B7 '+n.pos;
-    }
-  } else if(aulaGrafico&&aulaGrafico.length){
-    n=aulaGrafico[aulaBlocoIdx+1];
-    if(n){
-      document.getElementById('unT').textContent=n.dur+'m';
-      document.getElementById('unF').textContent=n.ftpMin+'\u2013'+n.ftpMax;
-      document.getElementById('unR').textContent=n.rpmMin+'\u2013'+n.rpmMax;
-      document.getElementById('unP').textContent=(n.pos||'').toUpperCase().substring(0,5);
-      document.getElementById('unDot').style.background=zC[n.z]||'#888';
-      document.getElementById('dNextZone').textContent=zNames[n.z]||n.z;
-      document.getElementById('dNextZone').style.color=zC[n.z]||'#888';
-      document.getElementById('dNextInfo').textContent=n.dur+' min \u00B7 '+n.ftpMin+'\u2013'+n.ftpMax+'% FTP \u00B7 '+n.rpmMin+'\u2013'+n.rpmMax+' RPM \u00B7 '+n.pos;
-    }
+  for(var i=0;i<cAula.blocos.length;i++){
+    var e=document.getElementById('lgb'+i);
+    if(!e) continue;
+    e.className='lg-blk'+(i===cBloco?' cur':i<cBloco?' past':'');
+    e.style.opacity=i<cBloco?.2:.85;
   }
-  if(!n){
+}
+function scrollGraph(){
+  var e=document.getElementById('lgb'+cBloco);
+  var g=document.getElementById('lgT');
+  if(e&&g) g.scrollLeft=Math.max(0,e.offsetLeft-g.parentElement.offsetWidth/2);
+}
+function updUpNext(){
+  var n=cAula.blocos[cBloco+1];
+  if(n){
+    document.getElementById('unT').textContent=n.dur+'m';
+    document.getElementById('unF').textContent=n.ftp;
+    document.getElementById('unR').textContent=n.rpm;
+    document.getElementById('unP').textContent=n.pos.toUpperCase().substring(0,5);
+    document.getElementById('unDot').style.background=zC[n.z];
+    document.getElementById('dNextZone').textContent=zNames[n.z];
+    document.getElementById('dNextZone').style.color=zC[n.z];
+    document.getElementById('dNextInfo').textContent=n.dur+' min \u00B7 '+n.ftp+'% FTP \u00B7 '+n.rpm+' RPM \u00B7 '+n.pos;
+  } else {
     document.getElementById('unT').textContent='End';
     document.getElementById('unF').textContent='\u2013';
     document.getElementById('unR').textContent='\u2013';
@@ -2316,7 +1974,7 @@ function showResultsReal(){
   closeDrawer();
   if(audio){audio.pause();}
   var nameEl=document.getElementById('resAulaName');
-  if(nameEl) nameEl.textContent=cAula?cAula.nome:(aulaGraficoNome||'Aula');
+  if(nameEl&&cAula) nameEl.textContent=cAula.nome;
   var totEl=document.getElementById('resTot'); if(totEl) totEl.textContent=fmHMS(totS);
   var kcalEl=document.getElementById('resKcal'); if(kcalEl) kcalEl.textContent=Math.round(totS*.06);
   var distEl=document.getElementById('resDist'); if(distEl) distEl.textContent=(totS*.003).toFixed(1);
@@ -2324,8 +1982,7 @@ function showResultsReal(){
   var avgREl=document.getElementById('resAvgRpm'); if(avgREl) avgREl.textContent=cntRpm>0?Math.round(sumRpm/cntRpm):0;
   var maxREl=document.getElementById('resMaxRpm'); if(maxREl) maxREl.textContent=maxRpm;
   var wEl=document.getElementById('resWatts'); if(wEl) wEl.textContent=cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):0;
-  try{ buildResChart(); }catch(e){ console.warn('buildResChart:',e); }
-  go('sResults');
+  buildResChart(); go('sResults');
 }
 function buildResChart(){
   var chart=document.getElementById('resZoneChart');
@@ -2690,8 +2347,126 @@ function btConnectHR(server, device){
 
 // \u2500\u2500 INIT \u2550\u2550
 buildHome();
-window.addEventListener('DOMContentLoaded',function(){ _dimAllArcs(); });
-function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, "+new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2),dur:fmHMS(totS),z:cAula&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:"z2"};historico.unshift(entry);if(historico.length>10)historico.pop();buildHome();goTab("sHome","navActivity");}</script>
+function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, "+new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2),dur:fmHMS(totS),z:cAula&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:"z2"};historico.unshift(entry);if(historico.length>10)historico.pop();buildHome();goTab("sHome","navActivity");}
+// ── Scanner de câmera real ─────────────────────────────────
+var qrStream = null;
+var qrScanInterval = null;
+
+function iniciarCamera(){
+  var prompt = document.getElementById('qrScanPrompt');
+  var video  = document.getElementById('qrVideo');
+  var line   = document.getElementById('qrScanLine');
+  var status = document.getElementById('qrStatus');
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    if(status) status.textContent = 'Câmera não suportada. Digite o código abaixo.';
+    return;
+  }
+
+  if(status) status.textContent = 'Aguardando permissão...';
+
+  navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } })
+    .then(function(stream){
+      qrStream = stream;
+      video.srcObject = stream;
+      video.style.display = 'block';
+      if(prompt) prompt.style.display = 'none';
+      if(line)   line.style.display = 'block';
+      if(status) status.textContent = 'Aponte para o QR Code';
+      video.play();
+      // Tenta BarcodeDetector (Chrome/Android) ou fallback jsQR
+      if('BarcodeDetector' in window){
+        var bd = new BarcodeDetector({ formats:['qr_code'] });
+        qrScanInterval = setInterval(function(){
+          bd.detect(video).then(function(codes){
+            if(codes.length > 0){
+              var raw = codes[0].rawValue;
+              pararCamera();
+              processarQRCode(raw);
+            }
+          }).catch(function(){});
+        }, 300);
+      } else {
+        // Fallback: usa canvas + jsQR
+        carregarJsQR();
+      }
+    })
+    .catch(function(err){
+      if(status) status.textContent = 'Sem acesso à câmera. Digite o código abaixo.';
+      console.warn('Camera error:', err);
+    });
+}
+
+function carregarJsQR(){
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+  s.onload = function(){ iniciarScanCanvas(); };
+  document.head.appendChild(s);
+}
+
+function iniciarScanCanvas(){
+  var video  = document.getElementById('qrVideo');
+  var canvas = document.getElementById('qrCanvas');
+  var ctx    = canvas.getContext('2d');
+  qrScanInterval = setInterval(function(){
+    if(video.readyState === video.HAVE_ENOUGH_DATA){
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+      var img = ctx.getImageData(0,0,canvas.width,canvas.height);
+      if(window.jsQR){
+        var code = jsQR(img.data,img.width,img.height);
+        if(code){
+          pararCamera();
+          processarQRCode(code.data);
+        }
+      }
+    }
+  }, 400);
+}
+
+function pararCamera(){
+  if(qrScanInterval){ clearInterval(qrScanInterval); qrScanInterval=null; }
+  if(qrStream){ qrStream.getTracks().forEach(function(t){t.stop();}); qrStream=null; }
+  var video = document.getElementById('qrVideo');
+  if(video){ video.style.display='none'; video.srcObject=null; }
+}
+
+function processarQRCode(raw){
+  // Aceita formato PR-XXXX-XXXX ou URL com código
+  var match = raw.match(/PR-[A-Z0-9]{4}-[A-Z0-9]{4}/);
+  var code  = match ? match[0] : raw.trim().toUpperCase();
+  var input = document.getElementById('qrCodeInput');
+  if(input) input.value = code;
+  var status = document.getElementById('qrStatus');
+  if(status){ status.textContent = 'QR lido: '+code; status.style.color='#5db13d'; }
+  connectQR(code);
+}
+
+
+// ── Leitura automática do código na URL (?sala=PR-XXXX-XXXX) ──
+(function(){
+  try{
+    var params = new URLSearchParams(window.location.search);
+    var sala = params.get('sala');
+    if(sala && /^PR-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(sala.toUpperCase())){
+      sala = sala.toUpperCase();
+      // Preenche o campo e navega para a tela de QR
+      setTimeout(function(){
+        var input = document.getElementById('qrCodeInput');
+        if(input) input.value = sala;
+        // Vai direto para a tela de entrada
+        if(typeof go === 'function') go('sQRScan');
+        // Auto-conecta em 1 segundo
+        setTimeout(function(){
+          connectQR(sala);
+        }, 800);
+      }, 600);
+    }
+  }catch(e){}
+})();
+
+</script>
 </body>
 </html><!-- QR Scan screen -->
 <div class="screen" id="sQRScan" style="background:linear-gradient(160deg,#0a0812 0%,#110808 60%,#080a14 100%);">
@@ -2708,21 +2483,25 @@ function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, 
   <!-- Area do scanner -->
   <div style="padding:0 24px;display:flex;flex-direction:column;align-items:center;gap:20px;">
 
-    <!-- Viewfinder simulado -->
-    <div style="width:240px;height:240px;border-radius:24px;background:rgba(0,0,0,.5);border:2px solid rgba(41,95,232,.4);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-      <!-- Cantos estilizados -->
-      <div style="position:absolute;top:12px;left:12px;width:28px;height:28px;border-top:3px solid #295fe8;border-left:3px solid #295fe8;border-radius:4px 0 0 0;"></div>
-      <div style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-top:3px solid #295fe8;border-right:3px solid #295fe8;border-radius:0 4px 0 0;"></div>
-      <div style="position:absolute;bottom:12px;left:12px;width:28px;height:28px;border-bottom:3px solid #295fe8;border-left:3px solid #295fe8;border-radius:0 0 0 4px;"></div>
-      <div style="position:absolute;bottom:12px;right:12px;width:28px;height:28px;border-bottom:3px solid #295fe8;border-right:3px solid #295fe8;border-radius:0 0 4px 0;"></div>
-      <!-- Linha de scan animada -->
-      <div style="position:absolute;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,#295fe8,transparent);animation:scanLine 2s ease-in-out infinite;"></div>
-      <div style="text-align:center;color:rgba(255,255,255,.3);font-size:12px;padding:20px;">Aponte para o<br/>QR Code do professor</div>
+    <!-- Scanner de câmera real -->
+    <div id="qrScanBox" style="width:260px;height:260px;border-radius:20px;background:#000;border:2px solid rgba(41,95,232,.4);position:relative;overflow:hidden;">
+      <video id="qrVideo" style="width:100%;height:100%;object-fit:cover;display:none;" playsinline autoplay muted></video>
+      <canvas id="qrCanvas" style="display:none;"></canvas>
+      <!-- Cantos -->
+      <div style="position:absolute;top:12px;left:12px;width:28px;height:28px;border-top:3px solid #295fe8;border-left:3px solid #295fe8;border-radius:4px 0 0 0;z-index:2;"></div>
+      <div style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-top:3px solid #295fe8;border-right:3px solid #295fe8;border-radius:0 4px 0 0;z-index:2;"></div>
+      <div style="position:absolute;bottom:12px;left:12px;width:28px;height:28px;border-bottom:3px solid #295fe8;border-left:3px solid #295fe8;border-radius:0 0 0 4px;z-index:2;"></div>
+      <div style="position:absolute;bottom:12px;right:12px;width:28px;height:28px;border-bottom:3px solid #295fe8;border-right:3px solid #295fe8;border-radius:0 0 4px 0;z-index:2;"></div>
+      <div id="qrScanLine" style="display:none;position:absolute;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,#295fe8,transparent);animation:scanLine 2s ease-in-out infinite;z-index:2;"></div>
+      <div id="qrScanPrompt" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+        <div style="font-size:36px;">📷</div>
+        <button onclick="iniciarCamera()" style="padding:12px 24px;background:linear-gradient(135deg,#295fe8,#1a3fa0);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">Ativar câmera</button>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;">Toque para escanear<br/>o QR Code</div>
+      </div>
     </div>
 
     <!-- Status -->
     <div id="qrStatus" style="font-size:14px;color:rgba(255,255,255,.4);text-align:center;min-height:20px;"></div>
-    <button id="qrRetryBtn" onclick="_qrRetry()" style="display:none;padding:12px 28px;background:linear-gradient(135deg,#ea860c,#c06a00);border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1px;">Tentar Novamente</button>
 
     <!-- Input manual do codigo -->
     <div style="width:100%;">
@@ -2855,5 +2634,3 @@ function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, 
   </div>
 
 </div>
-
-
