@@ -641,30 +641,47 @@ input[type=file]{display:none}
 
           <!-- fundo removido -->
 
-          <!-- 7 ZONAS — centro 180,200, raio 170
-               Arco semicirculo = pi*170 = 534px
-               Z1 cinza:    13% =  69px
-               Z2 azul:     13% =  69px
-               Z3 verde:    13% =  69px
-               Z4 amarelo:  13% =  69px
-               Z5 laranja:  13% =  69px
-               Z6 vermelho: 13% =  69px
-               Z7 roxo:     22% = 120px  (bem visivel)
+          <!-- BARRA CONTÍNUA — zona z4/z5/z6 maior, z7 menor
+               Z1 cinza:    55px (10%)
+               Z2 azul:     70px (13%)
+               Z3 verde:    75px (14%)
+               Z4 amarelo:  90px (17%) ← destaque
+               Z5 laranja:  95px (18%) ← destaque
+               Z6 vermelho: 95px (18%) ← destaque
+               Z7 roxo:     54px (10%) ← pequeno
                Total = 534px
           -->
-          <path id="zArc1" data-color="#888888" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#888888" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-0"   opacity="0.05"/>
-          <path id="zArc2" data-color="#295fe8" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#295fe8" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-78"  opacity="0.05"/>
-          <path id="zArc3" data-color="#5db13d" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#5db13d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-156" opacity="0.05"/>
-          <path id="zArc4" data-color="#d7c414" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d7c414" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-234" opacity="0.05"/>
-          <path id="zArc5" data-color="#ea860c" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#ea860c" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-312" opacity="0.05"/>
-          <path id="zArc6" data-color="#d62d2d" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d62d2d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456" stroke-dashoffset="-390" opacity="0.05"/>
-          <path id="zArc7" data-color="#b030ff" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#b030ff" stroke-width="26" stroke-linecap="butt" stroke-dasharray="50 484" stroke-dashoffset="-468" opacity="0.05"/>
+          <defs>
+            <linearGradient id="zoneGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"    stop-color="#888888"/>
+              <stop offset="10.3%" stop-color="#888888"/>
+              <stop offset="10.3%" stop-color="#295fe8"/>
+              <stop offset="23.4%" stop-color="#295fe8"/>
+              <stop offset="23.4%" stop-color="#5db13d"/>
+              <stop offset="37.5%" stop-color="#5db13d"/>
+              <stop offset="37.5%" stop-color="#d7c414"/>
+              <stop offset="54.3%" stop-color="#d7c414"/>
+              <stop offset="54.3%" stop-color="#ea860c"/>
+              <stop offset="72.1%" stop-color="#ea860c"/>
+              <stop offset="72.1%" stop-color="#d62d2d"/>
+              <stop offset="89.9%" stop-color="#d62d2d"/>
+              <stop offset="89.9%" stop-color="#b030ff"/>
+              <stop offset="100%"  stop-color="#b030ff"/>
+            </linearGradient>
+            <filter id="fillGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
 
-          <!-- ARCO MONO RPM -->
-          <path d="M 10 200 A 170 170 0 0 1 350 200" id="monoArc" fill="none" stroke="#aaa" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 534" style="display:none;transition:stroke-dasharray .4s,stroke .4s"/>
+          <!-- Trilha escura de fundo -->
+          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="26" stroke-linecap="butt"/>
 
-          <!-- LABEL 150+ entre vermelho e roxo — posicao angular ~78% do arco -->
-          <text x="296" y="148" text-anchor="middle" font-family="Barlow Condensed" font-size="10" font-weight="700" letter-spacing="1" fill="rgba(255,255,255,.35)" transform="rotate(48,296,148)">150+</text>
+          <!-- Barra de progresso com gradiente de zonas -->
+          <path id="zFill" d="M 10 200 A 170 170 0 0 1 350 200" fill="none"
+                stroke="url(#zoneGrad)" stroke-width="26" stroke-linecap="butt"
+                stroke-dasharray="2 532" filter="url(#fillGlow)"
+                style="transition:stroke-dasharray .35s ease"/>
+
+          <!-- Label 150+ no final do arco (canto inferior direito) -->
+          <text x="352" y="212" text-anchor="start" font-family="Barlow Condensed" font-size="11" font-weight="700" fill="rgba(255,255,255,.3)">150+</text>
 
           <!-- PONTEIRO = RAIO PRORIDER -->
           <!-- O raio aponta para cima por padrao, rotaciona em torno de 180,200 -->
@@ -1495,39 +1512,23 @@ var scanT={}, connected={bike:false,hr:false};
 var gaugeMode=0; // 0=FTP%, 1=RPM, 2=W/kg
 var botTY=0, drawerOpen=false;
 
-// ── Gauge arcos ──
-var _lastActiveArc=null;
-function _dimAllArcs(){
-  for(var i=1;i<=7;i++){
-    var a=document.getElementById('zArc'+i);
-    if(a){a.style.opacity='0.05';a.style.filter='none';a.style.transition='opacity .5s,filter .5s';}
-  }
+// ── Gauge barra contínua ──
+// Total arco = 534px. Zonas: z1=55 z2=70 z3=75 z4=90 z5=95 z6=95 z7=54
+var _zBreaks=[55,125,200,290,385,480,534]; // px acumulados por zona
+function _fillBar(ftpPct){
+  var filled=Math.max(2,Math.min(534,(ftpPct/150)*534));
+  var el=document.getElementById('zFill');
+  if(el) el.setAttribute('stroke-dasharray',filled+' '+(534-filled));
 }
-// Converte ângulo do ponteiro (-90→+90°) para número do arco (1-7)
-function _zoneFromAngle(ang){
-  var t=(ang+90)/180;
-  var b=[78,156,234,312,390,468,534];
-  for(var i=0;i<b.length;i++){ if(t<=b[i]/534) return i+1; }
+function _fillBarPx(px){
+  var filled=Math.max(2,Math.min(534,px));
+  var el=document.getElementById('zFill');
+  if(el) el.setAttribute('stroke-dasharray',filled+' '+(534-filled));
+}
+function _zoneFromPx(px){
+  for(var i=0;i<_zBreaks.length;i++) if(px<=_zBreaks[i]) return i+1;
   return 7;
 }
-function _arcLight(num){
-  if(_lastActiveArc===num) return;
-  _lastActiveArc=num;
-  for(var i=1;i<=7;i++){
-    var a=document.getElementById('zArc'+i);
-    if(!a) continue;
-    if(i===num){
-      a.style.opacity='1';
-      a.style.filter='drop-shadow(0 0 8px '+a.getAttribute('data-color')+')';
-      a.style.transition='opacity .25s,filter .25s';
-    } else {
-      a.style.opacity='0.05';
-      a.style.filter='none';
-      a.style.transition='opacity .5s,filter .5s';
-    }
-  }
-}
-window.addEventListener('DOMContentLoaded',function(){ _dimAllArcs(); });
 var tX=0;
 var cdTimer=null;
 
@@ -1793,13 +1794,15 @@ function startCountdown(){
 
 // \u2550\u2550 LIVE \u2550\u2550
 function startLive(){
-  cAula=aulas[curAulaIdx]; cBloco=0; segS=0; totS=0;
+  // Só troca cAula se não for aula livre (free ride já define cAula antes)
+  if(!cAula||cAula.tipo!=='free') cAula=aulas[curAulaIdx];
+  cBloco=0; segS=0; totS=0;
   zoneTime={z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
   sumFtp=0; cntFtp=0; sumRpm=0; cntRpm=0; maxRpm=0;
   maxRpm=0; sumRpm=0; cntRpm=0; dRpm=83; cPg=0;
   isFtpTest=false; rpmAlertCool=0;
   isPaused=false; gaugeMode=0;
-  _lastActiveArc=null; _dimAllArcs();
+  _fillBar(0);
   setPage(0); buildGraph(); updUpNext();
   var now=new Date();
   var h=now.getHours()%12||12;
@@ -1864,11 +1867,11 @@ function tick(){
   var gVal=document.getElementById('gValue');
   var mono=document.getElementById('monoArc');
   if(gaugeMode===0){
-    // FTP%
+    // FTP% \u2014 barra cont\u00EDnua cresce com o ponteiro
     var ang=-90+(Math.min(ftpPct,150)/150)*180;
     if(ptr) ptr.style.transform='rotate('+ang+'deg)';
     if(gVal) gVal.textContent=ftpPct;
-    _arcLight(_zoneFromAngle(ang));
+    _fillBar(ftpPct);
     var zNMap={z1:'ACTIVE RECOVERY',z2:'ENDURANCE',z3:'TEMPO',z4:'THRESHOLD',z5:'VO2 MAX',z6:'ANAEROBIC',z7:'NEUROMUSCULAR'};
     var znEl=document.getElementById('gZoneName');
     if(znEl){znEl.textContent=zNMap[b.z]||'';znEl.setAttribute('fill',zC[b.z]||'rgba(255,255,255,.55)');}
@@ -1877,22 +1880,20 @@ function tick(){
     var posEl=document.getElementById('gPosText');
     if(posEl) posEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
   } else if(gaugeMode===1){
-    // RPM monocrom\u00E1tico
-    var rpmPct=rpm/140;
-    var ang2=-90+rpmPct*180;
+    // RPM \u2014 barra por rpm/140
+    var rpmPx=(rpm/140)*534;
+    var ang2=-90+(rpm/140)*180;
     if(ptr) ptr.style.transform='rotate('+ang2+'deg)';
     if(gVal) gVal.textContent=rpm;
-    _arcLight(_zoneFromAngle(ang2));
-    var rColor=rpm<80?'#888':rpm<95?'#295fe8':rpm<105?'#5db13d':rpm<115?'#d7c414':rpm<125?'#ea860c':'#d62d2d';
-    if(mono){mono.setAttribute('stroke-dasharray',(rpmPct*534)+' '+(431-rpmPct*534));mono.setAttribute('stroke',rColor);}
+    _fillBarPx(rpmPx);
   } else {
-    // W/kg
+    // W/kg \u2014 barra por wkg/6
     var wkgNum=parseFloat(wkg);
-    var wkgPct=Math.min(wkgNum/6,1);
-    var ang3=-90+wkgPct*180;
+    var wkgPx=Math.min(wkgNum/6,1)*534;
+    var ang3=-90+(wkgPx/534)*180;
     if(ptr) ptr.style.transform='rotate('+ang3+'deg)';
     if(gVal) gVal.textContent=wkg;
-    _arcLight(_zoneFromAngle(ang3));
+    _fillBarPx(wkgPx);
   }
 
   // p2
@@ -1911,7 +1912,7 @@ function tick(){
   if(segS>=b.dur*60){
     cBloco++;
     if(cBloco>=cAula.blocos.length){ clearInterval(lInt); go('sHome'); return; }
-    segS=0; _lastActiveArc=null; updUpNext(); updGraph(); scrollGraph();
+    segS=0; updUpNext(); updGraph(); scrollGraph();
     var zPbar2=document.getElementById('zoneProgressBar');
     if(zPbar2){zPbar2.style.width='0%';}
   }
