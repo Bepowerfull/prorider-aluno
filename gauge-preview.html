@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gauge Preview — ProRider</title>
+<style>
+  body{background:#0d0d10;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:'Arial',sans-serif;gap:40px;}
+  h2{color:rgba(255,255,255,.5);font-size:13px;letter-spacing:3px;text-transform:uppercase;margin:0;}
+  .label{color:rgba(255,255,255,.3);font-size:11px;text-align:center;margin-top:8px;}
+  .gauge-wrap{display:flex;flex-direction:column;align-items:center;}
+  input[type=range]{width:280px;margin-top:16px;accent-color:#ea860c;}
+  .pct-val{color:#fff;font-size:28px;font-weight:900;font-family:'Arial Black',sans-serif;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<h2>Esboço — Gauge ProRider</h2>
+
+<!-- ANTES (atual) -->
+<div class="gauge-wrap">
+  <div class="label">ANTES — 7 arcos separados</div>
+  <svg width="320" viewBox="0 0 360 215" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;display:block;">
+    <path id="b1" data-color="#888888" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#888888" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456"  stroke-dashoffset="-0"   opacity="0.08"/>
+    <path id="b2" data-color="#295fe8" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#295fe8" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456"  stroke-dashoffset="-78"  opacity="0.08"/>
+    <path id="b3" data-color="#5db13d" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#5db13d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456"  stroke-dashoffset="-156" opacity="0.08"/>
+    <path id="b4" data-color="#d7c414" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d7c414" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456"  stroke-dashoffset="-234" opacity="0.08"/>
+    <path id="b5" data-color="#ea860c" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#ea860c" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456"  stroke-dashoffset="-312" opacity="0.08"/>
+    <path id="b6" data-color="#d62d2d" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#d62d2d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="78 456"  stroke-dashoffset="-390" opacity="0.08"/>
+    <path id="b7" data-color="#b030ff" d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="#b030ff" stroke-width="26" stroke-linecap="butt" stroke-dasharray="50 484"  stroke-dashoffset="-468" opacity="0.08"/>
+    <!-- ponteiro -->
+    <g id="bPtr" style="transform-origin:180px 200px;transform:rotate(-45deg);transition:transform .4s ease">
+      <path d="M 180,22 L 162,58 L 173,58 L 166,82 L 188,48 L 176,48 Z" fill="#ea860c"/>
+    </g>
+    <text x="180" y="160" text-anchor="middle" font-family="Arial" font-size="13" fill="rgba(255,255,255,.3)">TEMPO</text>
+    <text x="180" y="182" text-anchor="middle" font-family="Arial Black" font-size="42" font-weight="900" fill="#fff">65</text>
+    <text x="215" y="172" font-family="Arial" font-size="22" fill="rgba(255,255,255,.7)">%</text>
+    <text x="180" y="200" text-anchor="middle" font-family="Arial" font-size="12" letter-spacing="4" fill="rgba(255,255,255,.3)">FTP</text>
+  </svg>
+</div>
+
+<!-- DEPOIS (proposta) -->
+<div class="gauge-wrap">
+  <div class="label">DEPOIS — barra contínua crescente</div>
+  <svg id="newGauge" width="320" viewBox="0 0 360 215" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;display:block;">
+    <defs>
+      <!-- Gradiente das 7 zonas ao longo do arco — de cinza a roxo -->
+      <linearGradient id="zoneGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"    stop-color="#888888"/>
+        <stop offset="14.3%" stop-color="#295fe8"/>
+        <stop offset="28.6%" stop-color="#5db13d"/>
+        <stop offset="42.9%" stop-color="#d7c414"/>
+        <stop offset="57.1%" stop-color="#ea860c"/>
+        <stop offset="71.4%" stop-color="#d62d2d"/>
+        <stop offset="100%"  stop-color="#b030ff"/>
+      </linearGradient>
+      <!-- Filtro glow na ponta -->
+      <filter id="tipGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="boltGlow2"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <linearGradient id="boltG2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#ffe033"/>
+        <stop offset="50%"  stop-color="#ea860c"/>
+        <stop offset="100%" stop-color="#d62d2d"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Fundo escuro (trilha) -->
+    <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="26" stroke-linecap="butt"/>
+
+    <!-- Barra de progresso — cresce com o FTP% -->
+    <!-- stroke-dasharray = [comprimento_preenchido] [restante] — total = 534 -->
+    <path id="nFill" d="M 10 200 A 170 170 0 0 1 350 200" fill="none"
+          stroke="url(#zoneGrad)" stroke-width="26" stroke-linecap="butt"
+          stroke-dasharray="290 244" filter="url(#tipGlow)"
+          style="transition:stroke-dasharray .3s ease"/>
+
+    <!-- Ponteiro raio -->
+    <g id="nPtr" style="transform-origin:180px 200px;transform:rotate(-90deg);transition:transform .4s ease">
+      <path d="M 180,22 L 162,58 L 173,58 L 166,82 L 188,48 L 176,48 Z"
+            fill="url(#boltG2)" filter="url(#boltGlow2)"/>
+    </g>
+
+    <!-- Textos internos -->
+    <text id="nZoneName" x="180" y="140" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" letter-spacing="2" fill="#5db13d">TEMPO</text>
+    <text id="nValue"    x="168" y="182" text-anchor="middle" font-family="Arial Black" font-size="56" font-weight="900" fill="#fff">65</text>
+    <text                x="213" y="172" font-family="Arial" font-size="30" fill="rgba(255,255,255,.8)">%</text>
+    <text                x="180" y="200" text-anchor="middle" font-family="Arial" font-size="12" letter-spacing="5" fill="rgba(255,255,255,.3)">FTP</text>
+  </svg>
+
+  <!-- Slider interativo -->
+  <input type="range" id="ftpSlider" min="0" max="150" value="65">
+  <div class="pct-val"><span id="ftpDisplay">65</span>% FTP — arraste para testar</div>
+</div>
+
+<script>
+// Animação "ANTES" — pisca só o arco ativo
+var bArcs=[
+  {el:document.getElementById('b1'), start:0,   end:78},
+  {el:document.getElementById('b2'), start:78,  end:156},
+  {el:document.getElementById('b3'), start:156, end:234},
+  {el:document.getElementById('b4'), start:234, end:312},
+  {el:document.getElementById('b5'), start:312, end:390},
+  {el:document.getElementById('b6'), start:390, end:468},
+  {el:document.getElementById('b7'), start:468, end:534},
+];
+var bPosAtual=290; // ~65% de 534
+
+function updateBefore(pos){
+  bArcs.forEach(function(z){
+    var isActive = pos >= z.start && pos < z.end;
+    z.el.style.opacity = isActive ? '1' : '0.08';
+    z.el.style.filter  = isActive ? 'drop-shadow(0 0 6px '+z.el.getAttribute('data-color')+')' : 'none';
+    z.el.style.transition = 'opacity .3s, filter .3s';
+  });
+  var ang = -90 + (pos/534)*180;
+  document.getElementById('bPtr').style.transform = 'rotate('+ang+'deg)';
+}
+updateBefore(bPosAtual);
+
+// Animação "DEPOIS" — barra contínua
+var zoneNames  = ['','RECOVERY','ENDURANCE','TEMPO','THRESHOLD','VO2 MAX','ANAEROBIC','NEUROMUSCULAR'];
+var zoneColors = ['','#888888','#295fe8','#5db13d','#d7c414','#ea860c','#d62d2d','#b030ff'];
+var zoneBreaks = [78,156,234,312,390,468,534];
+
+function getZone(pos){
+  for(var i=0;i<zoneBreaks.length;i++) if(pos<=zoneBreaks[i]) return i+1;
+  return 7;
+}
+
+function updateAfter(ftpPct){
+  var pos   = (Math.min(ftpPct,150)/150)*534;
+  var filled= Math.max(2, pos);
+  var rest  = Math.max(0, 534-filled);
+
+  document.getElementById('nFill').setAttribute('stroke-dasharray', filled+' '+rest);
+
+  var ang = -90 + (filled/534)*180;
+  document.getElementById('nPtr').style.transform = 'rotate('+ang+'deg)';
+
+  var z = getZone(filled);
+  document.getElementById('nZoneName').textContent = zoneNames[z];
+  document.getElementById('nZoneName').setAttribute('fill', zoneColors[z]);
+  document.getElementById('nValue').textContent = ftpPct;
+  document.getElementById('ftpDisplay').textContent = ftpPct;
+}
+
+updateAfter(65);
+
+document.getElementById('ftpSlider').addEventListener('input', function(){
+  updateAfter(parseInt(this.value));
+  // sincroniza ANTES também
+  var pos = (Math.min(parseInt(this.value),150)/150)*534;
+  updateBefore(pos);
+});
+</script>
+</body>
+</html>
