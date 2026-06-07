@@ -421,6 +421,23 @@ input[type=file]{display:none}
 
   </div>
 
+  <!-- Build Workout button -->
+  <div style="padding:0 16px 4px;margin-top:-2px;">
+    <div onclick="openConstructor()" style="background:linear-gradient(135deg,rgba(155,48,255,.18),rgba(234,134,12,.1));border:1px solid rgba(155,48,255,.3);border-radius:18px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;">
+      <div style="position:absolute;right:-10px;bottom:-10px;width:60px;height:60px;border-radius:50%;background:rgba(155,48,255,.08);"></div>
+      <div style="width:42px;height:42px;background:rgba(155,48,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9b30ff" stroke-width="2.5" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </div>
+      <div style="flex:1;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:#fff;letter-spacing:.5px;line-height:1.1;">Build Your Workout</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">Create a custom session block by block</div>
+      </div>
+      <div style="font-size:20px;color:rgba(255,255,255,.2);">›</div>
+    </div>
+  </div>
+
   <div class="home-sec">
     <div class="home-sec-title">FTP Tests</div>
     <div class="home-row" style="gap:10px;">
@@ -536,6 +553,123 @@ input[type=file]{display:none}
   <div class="start-btns">
     <button class="btn-start-main" id="btnStartMain" onclick="startCountdown()">▶ Start Workout</button>
     <button class="btn-start-ghost" onclick="startCountdown()">Start without device</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     WORKOUT CONSTRUCTOR
+══════════════════════════════════ -->
+<div class="screen" id="sConstructor" style="padding-bottom:80px;overflow-y:auto;background:linear-gradient(160deg,#0a0812 0%,#110808 60%,#080a14 100%);">
+  <!-- Header -->
+  <div style="display:flex;align-items:center;padding:20px 20px 10px;gap:12px;">
+    <span onclick="go('sHome')" style="font-size:28px;color:rgba(255,255,255,.5);cursor:pointer;line-height:1;">←</span>
+    <div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;line-height:1;">Build Workout</div>
+      <div style="font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-top:2px;">Construtor de Aulas</div>
+    </div>
+  </div>
+
+  <!-- ── Block Form ── -->
+  <div style="margin:4px 14px 6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:18px 14px;">
+
+    <!-- Zone selector -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:8px;">Zone</div>
+    <div id="bldZonePills" style="display:flex;gap:5px;margin-bottom:16px;">
+      <div id="bzp_z1" onclick="bldSetZone('z1')" style="flex:1;background:#888888;border-radius:10px;padding:7px 0;text-align:center;font-size:11px;font-weight:900;color:#fff;cursor:pointer;opacity:.3;transition:.15s;">Z1</div>
+      <div id="bzp_z2" onclick="bldSetZone('z2')" style="flex:1;background:#295fe8;border-radius:10px;padding:7px 0;text-align:center;font-size:11px;font-weight:900;color:#fff;cursor:pointer;opacity:.3;transition:.15s;">Z2</div>
+      <div id="bzp_z3" onclick="bldSetZone('z3')" style="flex:1;background:#5db13d;border-radius:10px;padding:7px 0;text-align:center;font-size:11px;font-weight:900;color:#fff;cursor:pointer;opacity:.3;transition:.15s;">Z3</div>
+      <div id="bzp_z4" onclick="bldSetZone('z4')" style="flex:1;background:#d7c414;border-radius:10px;padding:7px 0;text-align:center;font-size:11px;font-weight:900;color:#fff;cursor:pointer;opacity:.3;transition:.15s;">Z4</div>
+      <div id="bzp_z5" onclick="bldSetZone('z5')" style="flex:1;background:#ea860c;border-radius:10px;padding:7px 0;text-align:center;font-size:11px;font-weight:900;color:#fff;cursor:pointer;opacity:.3;transition:.15s;">Z5</div>
+      <div id="bzp_z6" onclick="bldSetZone('z6')" style="flex:1;background:#d62d2d;border-radius:10px;padding:7px 0;text-align:center;font-size:11px;font-weight:900;color:#fff;cursor:pointer;opacity:.3;transition:.15s;">Z6</div>
+      <div id="bzp_z7" onclick="bldSetZone('z7')" style="flex:1;background:#9b30ff;border-radius:10px;padding:7px 0;text-align:center;font-size:11px;font-weight:900;color:#fff;cursor:pointer;opacity:.3;transition:.15s;">Z7</div>
+    </div>
+
+    <!-- Duration + Position row -->
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+
+      <!-- MM:SS Picker -->
+      <div style="flex:1.2;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:14px 8px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:10px;">Duration</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:0;">
+          <!-- Minutes -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+            <button onclick="bldAdjMin(1)" style="width:38px;height:30px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.7);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">▲</button>
+            <div id="bldMinDisp" style="font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:1px;color:#fff;line-height:1;width:52px;text-align:center;">05</div>
+            <button onclick="bldAdjMin(-1)" style="width:38px;height:30px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.7);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">▼</button>
+            <div style="font-size:9px;color:rgba(255,255,255,.18);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">min</div>
+          </div>
+          <!-- Colon -->
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:rgba(255,255,255,.35);padding:0 2px;margin-bottom:14px;">:</div>
+          <!-- Seconds -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+            <button onclick="bldAdjSec(1)" style="width:38px;height:30px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.7);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">▲</button>
+            <div id="bldSecDisp" style="font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:1px;color:#fff;line-height:1;width:52px;text-align:center;">00</div>
+            <button onclick="bldAdjSec(-1)" style="width:38px;height:30px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.7);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">▼</button>
+            <div style="font-size:9px;color:rgba(255,255,255,.18);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">sec</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column: Position + FTP info -->
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+        <!-- Position -->
+        <div style="background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:12px 8px;text-align:center;flex:1;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:8px;">Position</div>
+          <div style="display:flex;gap:5px;">
+            <button id="bldSeatBtn" onclick="bldSetPos('Seated')" style="flex:1;padding:9px 4px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.14);color:#fff;font-size:11px;font-weight:700;cursor:pointer;line-height:1.2;">🪑<br/>Seated</button>
+            <button id="bldStandBtn" onclick="bldSetPos('Standing')" style="flex:1;padding:9px 4px;border-radius:10px;border:1px solid rgba(255,255,255,.07);background:transparent;color:rgba(255,255,255,.3);font-size:11px;font-weight:700;cursor:pointer;line-height:1.2;">🚵<br/>Stand</button>
+          </div>
+        </div>
+        <!-- FTP% zone badge -->
+        <div style="background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:10px 8px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:3px;">Power</div>
+          <div id="bldFtpDisp" style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#295fe8;letter-spacing:1px;">56–75%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RPM picker -->
+    <div style="background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:10px;">RPM Range</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <!-- Lo -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+          <button onclick="bldAdjRpm('lo',5)" style="width:36px;height:28px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.7);font-size:14px;cursor:pointer;">▲</button>
+          <div id="bldRpmLoDisp" style="font-family:'Bebas Neue',sans-serif;font-size:34px;color:#fff;line-height:1;width:56px;text-align:center;">80</div>
+          <button onclick="bldAdjRpm('lo',-5)" style="width:36px;height:28px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.7);font-size:14px;cursor:pointer;">▼</button>
+        </div>
+        <div style="font-size:24px;color:rgba(255,255,255,.2);font-weight:300;padding-bottom:8px;">–</div>
+        <!-- Hi -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+          <button onclick="bldAdjRpm('hi',5)" style="width:36px;height:28px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.7);font-size:14px;cursor:pointer;">▲</button>
+          <div id="bldRpmHiDisp" style="font-family:'Bebas Neue',sans-serif;font-size:34px;color:#fff;line-height:1;width:56px;text-align:center;">90</div>
+          <button onclick="bldAdjRpm('hi',-5)" style="width:36px;height:28px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.7);font-size:14px;cursor:pointer;">▼</button>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,.22);letter-spacing:1px;text-transform:uppercase;padding-bottom:8px;">rpm</div>
+      </div>
+    </div>
+
+    <!-- Add Block button -->
+    <button onclick="bldAddBlock()" id="bldAddBtn" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(93,177,61,.45),rgba(41,95,232,.25));border:1px solid rgba(93,177,61,.4);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:1px;cursor:pointer;transition:.2s;">
+      + ADD BLOCK
+    </button>
+  </div>
+
+  <!-- ── Block preview ── -->
+  <div style="margin:10px 14px 6px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.28);text-transform:uppercase;">Blocks &nbsp;<span id="bldBlockCount" style="color:rgba(255,255,255,.55);">0</span></div>
+      <div id="bldTotalTime" style="font-size:12px;color:rgba(255,255,255,.3);">0:00 total</div>
+    </div>
+    <div id="bldTimeline" style="display:flex;height:24px;border-radius:8px;overflow:hidden;margin-bottom:8px;gap:2px;background:rgba(255,255,255,.04);"></div>
+    <div id="bldBlockList"></div>
+  </div>
+
+  <!-- ── Save section ── -->
+  <div style="margin:6px 14px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:16px;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:10px;">Save Workout</div>
+    <input id="bldName" placeholder="Workout name..." style="width:100%;box-sizing:border-box;padding:13px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;font-size:16px;font-weight:600;outline:none;margin-bottom:10px;"/>
+    <button onclick="bldSave()" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(234,134,12,.35),rgba(214,45,45,.25));border:1px solid rgba(234,134,12,.4);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:1px;cursor:pointer;">💾 SAVE WORKOUT</button>
   </div>
 </div>
 
@@ -1857,6 +1991,188 @@ function goTab(id,tabId){
   for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
   document.getElementById(tabId).classList.add('active');
   if(id==='sActivity') buildActivity();
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// WORKOUT CONSTRUCTOR
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+var bldM=5, bldS=0;
+var bldRpmLo=80, bldRpmHi=90;
+var bldZone='z2';
+var bldPos='Seated';
+var bldBlocks=[];
+
+var bldFtpMap={z1:'0-55',z2:'56-75',z3:'76-90',z4:'91-105',z5:'106-120',z6:'121-150',z7:'Max'};
+var bldFtpLabel={z1:'0\u201355%',z2:'56\u201375%',z3:'76\u201390%',z4:'91\u2013105%',z5:'106\u2013120%',z6:'121\u2013150%',z7:'MAX'};
+var bldRpmDef={z1:{lo:70,hi:80},z2:{lo:80,hi:90},z3:{lo:85,hi:92},z4:{lo:85,hi:90},z5:{lo:90,hi:95},z6:{lo:85,hi:95},z7:{lo:100,hi:120}};
+
+function openConstructor(){
+  go('sConstructor');
+  // Init only if no blocks yet (preserve state across visits)
+  if(bldBlocks.length===0){ bldSetZone('z2'); bldSetPos('Seated'); }
+  bldRefreshDisp();
+  bldRenderAll();
+}
+
+function bldRefreshDisp(){
+  document.getElementById('bldMinDisp').textContent=(bldM<10?'0':'')+bldM;
+  document.getElementById('bldSecDisp').textContent=(bldS<10?'0':'')+bldS;
+  document.getElementById('bldRpmLoDisp').textContent=bldRpmLo;
+  document.getElementById('bldRpmHiDisp').textContent=bldRpmHi;
+}
+
+function bldAdjMin(d){
+  bldM=Math.max(0,Math.min(99,bldM+d));
+  document.getElementById('bldMinDisp').textContent=(bldM<10?'0':'')+bldM;
+}
+
+function bldAdjSec(d){
+  // steps of 5s, wrap 0-55
+  bldS=(bldS+d*5+60)%60;
+  document.getElementById('bldSecDisp').textContent=(bldS<10?'0':'')+bldS;
+}
+
+function bldAdjRpm(side,d){
+  if(side==='lo'){
+    bldRpmLo=Math.max(40,Math.min(bldRpmHi-5,bldRpmLo+d));
+    document.getElementById('bldRpmLoDisp').textContent=bldRpmLo;
+  } else {
+    bldRpmHi=Math.max(bldRpmLo+5,Math.min(150,bldRpmHi+d));
+    document.getElementById('bldRpmHiDisp').textContent=bldRpmHi;
+  }
+}
+
+function bldSetZone(z){
+  bldZone=z;
+  var zones=['z1','z2','z3','z4','z5','z6','z7'];
+  zones.forEach(function(pz){
+    var el=document.getElementById('bzp_'+pz);
+    if(el) el.style.opacity=(pz===z?'1':'0.28');
+  });
+  // Auto-fill RPM defaults for zone
+  var def=bldRpmDef[z];
+  if(def){ bldRpmLo=def.lo; bldRpmHi=def.hi; }
+  document.getElementById('bldRpmLoDisp').textContent=bldRpmLo;
+  document.getElementById('bldRpmHiDisp').textContent=bldRpmHi;
+  // Update FTP label
+  var ftpEl=document.getElementById('bldFtpDisp');
+  if(ftpEl){ ftpEl.textContent=bldFtpLabel[z]||'\u2013'; ftpEl.style.color=zC[z]||'#fff'; }
+}
+
+function bldSetPos(p){
+  bldPos=p;
+  var seated=(p==='Seated');
+  var sBtn=document.getElementById('bldSeatBtn');
+  var stBtn=document.getElementById('bldStandBtn');
+  if(sBtn){
+    sBtn.style.background=seated?'rgba(255,255,255,.16)':'transparent';
+    sBtn.style.color=seated?'#fff':'rgba(255,255,255,.28)';
+    sBtn.style.border=seated?'1px solid rgba(255,255,255,.22)':'1px solid rgba(255,255,255,.07)';
+  }
+  if(stBtn){
+    stBtn.style.background=!seated?'rgba(255,255,255,.16)':'transparent';
+    stBtn.style.color=!seated?'#fff':'rgba(255,255,255,.28)';
+    stBtn.style.border=!seated?'1px solid rgba(255,255,255,.22)':'1px solid rgba(255,255,255,.07)';
+  }
+}
+
+function bldAddBlock(){
+  var totalSec=bldM*60+bldS;
+  if(totalSec<5){ alert('Minimum duration: 5 seconds'); return; }
+  // Store dur as decimal minutes (e.g. 0.5 = 30s)
+  var dur=Math.round(totalSec/60*100)/100;
+  bldBlocks.push({
+    z:bldZone,
+    ftp:bldFtpMap[bldZone]||'\u2013',
+    rpm:bldRpmLo+'-'+bldRpmHi,
+    dur:dur,
+    pos:bldPos
+  });
+  bldRenderAll();
+  // Flash feedback
+  var btn=document.getElementById('bldAddBtn');
+  if(btn){
+    btn.style.background='linear-gradient(135deg,rgba(93,177,61,.8),rgba(41,95,232,.5))';
+    btn.textContent='\u2713 Added!';
+    setTimeout(function(){ btn.style.background='linear-gradient(135deg,rgba(93,177,61,.45),rgba(41,95,232,.25))'; btn.textContent='+ ADD BLOCK'; },700);
+  }
+  // Values intentionally NOT reset \u2014 sticky by design
+}
+
+function bldRemBlock(i){
+  bldBlocks.splice(i,1);
+  bldRenderAll();
+}
+
+function bldRenderAll(){
+  var list=document.getElementById('bldBlockList');
+  var tl=document.getElementById('bldTimeline');
+  var cnt=document.getElementById('bldBlockCount');
+  var ttm=document.getElementById('bldTotalTime');
+  if(!list) return;
+  // Total time
+  var totalSec=0;
+  bldBlocks.forEach(function(b){ totalSec+=b.dur*60; });
+  if(cnt) cnt.textContent=bldBlocks.length;
+  if(ttm) ttm.textContent=fmMS(totalSec)+' total';
+  // Timeline preview bar
+  if(tl){
+    tl.innerHTML='';
+    if(bldBlocks.length===0){
+      tl.style.background='rgba(255,255,255,.04)';
+    } else {
+      tl.style.background='transparent';
+      bldBlocks.forEach(function(b){
+        var d=document.createElement('div');
+        d.style.cssText='flex:'+Math.max(b.dur,0.05)+';background:'+zC[b.z]+';opacity:.85;border-radius:2px;';
+        tl.appendChild(d);
+      });
+    }
+  }
+  // Block list rows
+  list.innerHTML='';
+  bldBlocks.forEach(function(b,i){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;margin-bottom:6px;';
+    row.innerHTML=
+      '<div style="width:10px;height:10px;border-radius:50%;background:'+zC[b.z]+';flex-shrink:0;box-shadow:0 0 6px '+zC[b.z]+'80;"></div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:13px;font-weight:700;color:#fff;">'+(i+1)+'. '+(b.z.toUpperCase())+'&nbsp;&middot;&nbsp;'+fmDurBlock(b.dur)+'</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.32);margin-top:1px;">'+b.pos+'&nbsp;&middot;&nbsp;'+b.rpm+' rpm&nbsp;&middot;&nbsp;'+b.ftp+'% FTP</div>'
+      +'</div>'
+      +'<button onclick="bldRemBlock('+i+')" style="background:rgba(214,45,45,.18);border:1px solid rgba(214,45,45,.3);border-radius:8px;color:#d62d2d;width:28px;height:28px;font-size:15px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">\u00d7</button>';
+    list.appendChild(row);
+  });
+}
+
+function bldSave(){
+  if(bldBlocks.length<2){ alert('Add at least 2 blocks to save.'); return; }
+  var name=(document.getElementById('bldName').value||'').trim();
+  if(!name) name='Custom '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  var totalSec=0; bldBlocks.forEach(function(b){ totalSec+=b.dur*60; });
+  var newAula={
+    nome:name, icon:'\u2b50', dur:Math.round(totalSec/60),
+    desc:'Custom workout built in ProRider. '+bldBlocks.length+' blocks \u00b7 '+fmMS(totalSec)+' total.',
+    badge:'Custom', badgeColor:'#9b30ff', blocos:bldBlocks.slice()
+  };
+  aulas.unshift(newAula);
+  // Persist custom workouts in localStorage
+  try{
+    var customs=aulas.filter(function(a){return a.badge==='Custom';});
+    localStorage.setItem('pr_customs',JSON.stringify(customs));
+  }catch(e){}
+  buildHome();
+  // Reset builder
+  bldBlocks=[];
+  document.getElementById('bldName').value='';
+  bldRenderAll();
+  go('sHome');
+  // Toast
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:rgba(93,177,61,.92);color:#fff;padding:10px 24px;border-radius:30px;font-weight:700;font-size:13px;z-index:9999;white-space:nowrap;';
+  t.textContent='\u2713 Workout saved!';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(function(){ if(t.parentNode)t.parentNode.removeChild(t); },450); },2200);
 }
 
 // \u2550\u2550 HOME \u2014 popular lista de aulas \u2550\u2550
