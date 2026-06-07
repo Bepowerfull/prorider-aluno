@@ -1011,1497 +1011,1308 @@ input[type=file]{display:none}
 </div>
 
 <script>
-// ---- QR SCAN ----
-var wsConn=null;
-var SERVER_URL='wss://prorider-server-production.up.railway.app';
-// Gráfico da aula recebido do professor
-var aulaGrafico=[], aulaBlocoIdx=0, aulaGraficoNome='';
+// ════════════════════════════════════════════════════════
+// PRORIDER — APLICATIVO DO ALUNO
+// ════════════════════════════════════════════════════════
 
-function renderAulaGrafico(){
-  var wrap=document.getElementById('aulaGraficoPainel');
-  if(!wrap||!aulaGrafico||!aulaGrafico.length) return;
-  var zCores={z1:'#a1a1a1',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
-  var zAlts ={z1:15,z2:28,z3:42,z4:57,z5:71,z6:85,z7:100};
-  var zNomes={z1:'Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuromuscular'};
-  var totalDur=aulaGrafico.reduce(function(a,x){return a+x.dur;},0)||1;
-  var bAt=aulaGrafico[aulaBlocoIdx];
-  var corAt=bAt?zCores[bAt.z]||'#888':'#888';
-  var html='';
+// ── Configuração ──
+var SERVER_URL  = 'wss://prorider-server-production.up.railway.app';
+var SERVER_HTTP = 'https://prorider-server-production.up.railway.app';
 
-  // Bloco atual — destaque no topo
-  if(bAt){
-    html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
-    html+='<div>';
-    html+='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:2px;">Bloco atual</div>';
-    html+='<div style="font-size:18px;font-weight:700;color:'+corAt+';">'+(zNomes[bAt.z]||bAt.z)+'</div>';
-    html+='</div>';
-    html+='<div style="text-align:right;">';
-    html+='<div style="font-size:22px;font-weight:700;color:'+corAt+';">'+bAt.ftpMin+'–'+bAt.ftpMax+'<span style="font-size:12px;color:rgba(255,255,255,.4);margin-left:2px;">%</span></div>';
-    html+='<div style="font-size:12px;color:rgba(255,255,255,.4);">'+bAt.rpmMin+'–'+bAt.rpmMax+' rpm</div>';
-    html+='</div>';
-    html+='</div>';
-  }
+// ── Dados de zona ──
+var zC = {z1:'#888888',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
+var zH = {z1:18,z2:30,z3:42,z4:52,z5:60,z6:66,z7:84};
+var zNames   = {z1:'Active Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuromuscular'};
+var zNamesUp = {z1:'ACTIVE RECOVERY',z2:'ENDURANCE',z3:'TEMPO',z4:'THRESHOLD',z5:'VO2 MAX',z6:'ANAEROBIC',z7:'NEUROMUSCULAR'};
 
-  // Gráfico de barras
-  html+='<div style="display:flex;align-items:flex-end;gap:2px;height:72px;width:100%;margin-bottom:4px;">';
-  aulaGrafico.forEach(function(b,i){
-    var cor=zCores[b.z]||'#888';
-    var h=zAlts[b.z]||15;
-    var isAtual=(i===aulaBlocoIdx);
-    var isPast=(i<aulaBlocoIdx);
-    var flex=Math.max(4,Math.round((b.dur/totalDur)*200));
-    var opacity=isPast?'.2':isAtual?'1':'.4';
-    html+='<div style="flex:'+flex+';height:'+h+'%;border-radius:3px 3px 0 0;background:'+cor+';opacity:'+opacity+';position:relative;transition:all .4s;">';
-    if(isAtual){
-      html+='<div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:'+cor+';"></div>';
+// ── Aulas guiadas ──
+var aulas = [
+  {nome:'Endurance Builder #1',icon:'🚴',dur:45,desc:'Workout focused on Power Zone 2 to build your aerobic base and improve endurance capacity.',badge:'Easy',badgeColor:'#295fe8',
+   blocos:[{z:'z1',ftp:'0-55',rpm:'75-80',dur:5,pos:'Seated'},{z:'z2',ftp:'56-75',rpm:'80-85',dur:10,pos:'Seated'},{z:'z1',ftp:'0-55',rpm:'75-80',dur:3,pos:'Seated'},{z:'z2',ftp:'56-75',rpm:'80-85',dur:10,pos:'Seated'},{z:'z3',ftp:'76-89',rpm:'85-90',dur:8,pos:'Seated'},{z:'z2',ftp:'56-75',rpm:'80-85',dur:6,pos:'Seated'},{z:'z1',ftp:'0-55',rpm:'70-75',dur:3,pos:'Seated'}]},
+  {nome:'HIIT Threshold #3',icon:'🔥',dur:50,desc:'High intensity intervals alternating between Threshold and VO2 Max zones to push your lactate threshold higher.',badge:'Medium',badgeColor:'#d7c414',
+   blocos:[{z:'z1',ftp:'0-55',rpm:'75-80',dur:5,pos:'Seated'},{z:'z3',ftp:'76-89',rpm:'85-90',dur:5,pos:'Seated'},{z:'z4',ftp:'90-104',rpm:'88-93',dur:5,pos:'Seated'},{z:'z5',ftp:'105-118',rpm:'90-95',dur:5,pos:'Standing'},{z:'z2',ftp:'56-75',rpm:'80-85',dur:3,pos:'Seated'},{z:'z4',ftp:'90-104',rpm:'88-93',dur:5,pos:'Seated'},{z:'z5',ftp:'105-118',rpm:'90-95',dur:5,pos:'Standing'},{z:'z6',ftp:'119+',rpm:'92-98',dur:5,pos:'Standing'},{z:'z1',ftp:'0-55',rpm:'70-75',dur:5,pos:'Seated'}]},
+  {nome:'VO2 Max Intervals',icon:'💪',dur:40,desc:'Maximum power intervals targeting VO2 Max and Anaerobic zones to increase your peak power output.',badge:'Hard',badgeColor:'#d62d2d',
+   blocos:[{z:'z1',ftp:'0-55',rpm:'75-80',dur:5,pos:'Seated'},{z:'z5',ftp:'105-118',rpm:'90-95',dur:4,pos:'Standing'},{z:'z2',ftp:'56-75',rpm:'78-83',dur:3,pos:'Seated'},{z:'z6',ftp:'119+',rpm:'92-98',dur:4,pos:'Standing'},{z:'z2',ftp:'56-75',rpm:'78-83',dur:3,pos:'Seated'},{z:'z6',ftp:'119+',rpm:'92-98',dur:4,pos:'Standing'},{z:'z2',ftp:'56-75',rpm:'78-83',dur:3,pos:'Seated'},{z:'z6',ftp:'119+',rpm:'92-98',dur:4,pos:'Standing'},{z:'z1',ftp:'0-55',rpm:'70-75',dur:5,pos:'Seated'}]},
+  {nome:'Sprint Neuromuscular',icon:'⚡',dur:35,desc:'Short explosive sprints in Zone 7 with full recovery between efforts. Trains your neuromuscular system and peak power.',badge:'Advanced',badgeColor:'#9b30ff',
+   blocos:[{z:'z2',ftp:'56-75',rpm:'80-85',dur:5,pos:'Seated'},{z:'z7',ftp:'Max',rpm:'100-120',dur:1,pos:'Standing'},{z:'z2',ftp:'56-75',rpm:'78-83',dur:3,pos:'Seated'},{z:'z7',ftp:'Max',rpm:'100-120',dur:1,pos:'Standing'},{z:'z2',ftp:'56-75',rpm:'78-83',dur:3,pos:'Seated'},{z:'z7',ftp:'Max',rpm:'100-120',dur:1,pos:'Standing'},{z:'z2',ftp:'56-75',rpm:'78-83',dur:3,pos:'Seated'},{z:'z7',ftp:'Max',rpm:'100-120',dur:1,pos:'Standing'},{z:'z1',ftp:'0-55',rpm:'70-75',dur:5,pos:'Seated'}]}
+];
+
+// ── Testes de FTP ──
+var ftpTests = [
+  {id:'ftp5', nome:'FTP Test 5 min', calc:1.05, testDur:5, icon:'🏁', dur:30, badge:'Test', badgeColor:'#ea860c',
+   desc:'5-minute all-out effort test to measure your current FTP. Warm up properly and give everything in the test segment.',
+   blocos:[{z:'z1',ftp:'0-55',rpm:'80-85',dur:5,pos:'Seated'},{z:'z2',ftp:'56-75',rpm:'85-90',dur:3,pos:'Seated'},{z:'z3',ftp:'76-89',rpm:'88-93',dur:2,pos:'Seated'},{z:'z4',ftp:'90-104',rpm:'90-95',dur:2,pos:'Seated'},{z:'z3',ftp:'76-89',rpm:'85-90',dur:3,pos:'Seated'},{z:'z6',ftp:'Max 5min',rpm:'92-100',dur:5,pos:'Standing',teste:true},{z:'z1',ftp:'0-55',rpm:'70-75',dur:10,pos:'Seated'}]},
+  {id:'ftp20', nome:'FTP Test 20 min', calc:0.95, testDur:20, icon:'🏁', dur:45, badge:'Test', badgeColor:'#ea860c',
+   desc:'FTP stands for FUNCTIONAL THRESHOLD POWER — the highest average power a rider can maintain for 45-60 minutes. This 20-minute test estimates your FTP.',
+   blocos:[{z:'z1',ftp:'0-55',rpm:'80-85',dur:5,pos:'Seated'},{z:'z2',ftp:'56-75',rpm:'85-90',dur:3,pos:'Seated'},{z:'z3',ftp:'76-89',rpm:'88-93',dur:3,pos:'Seated'},{z:'z4',ftp:'90-104',rpm:'90-95',dur:3,pos:'Standing'},{z:'z3',ftp:'76-89',rpm:'85-90',dur:3,pos:'Seated'},{z:'z5',ftp:'Max 20min',rpm:'92-100',dur:20,pos:'Seated',teste:true},{z:'z1',ftp:'0-55',rpm:'70-75',dur:8,pos:'Seated'}]}
+];
+
+// ── Histórico ──
+var historico = [
+  {nome:'Endurance Builder #1',data:'Hoje, 09:30',dur:'45 min',z:'z2',totS:2700},
+  {nome:'HIIT Threshold #3',   data:'Ontem, 18:00',dur:'50 min',z:'z5',totS:3000},
+  {nome:'VO2 Max Intervals',   data:'3 dias atrás',dur:'40 min',z:'z6',totS:2400}
+];
+
+// ════════════════════════════════════════════════════════
+// ESTADO DO APP
+// ════════════════════════════════════════════════════════
+var wsConn = null, lastCode = '';
+var aulaGrafico = [], aulaBlocoIdx = 0, aulaGraficoNome = '';
+
+var curAulaIdx = 0, cAula = null, cBloco = 0;
+var segS = 0, totS = 0;
+var isPaused = false, drawerOpen = false, botTY = 0;
+var lInt = null, cdTimer = null, cPg = 0;
+var gaugeMode = 0; // 0=FTP%, 1=RPM, 2=W/kg
+var tX = 0;
+
+// Telemetria simulada
+var dRpm = 83;
+var sumRpm = 0, cntRpm = 0, maxRpm = 0;
+var sumFtp = 0, cntFtp = 0;
+var zoneTime = {z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
+var rpmAlertCool = 0;
+
+// Estado do FTP Test
+var isFtpTest = false, ftpTestCalc = 0.95, ftpTestDur = 20;
+var ftpTestWatts = [], ftpTestPhase = false;
+
+// Áudio
+var audio = null, aPlay = false;
+
+// Bluetooth
+var scanT = {}, connected = {bike:false, hr:false};
+
+// Perfil
+var profData = {nome:'',email:'',peso:'',ftp:'130'};
+var profEditField = '';
+
+// Onboarding
+var obStep = 1, obTotalSteps = 6;
+var obData = {nome:'',email:'',senha:'',peso:70,altura:170,idade:30,nivel:'intermediario',freq:3,ftp:130};
+
+// ════════════════════════════════════════════════════════
+// GAUGE — Barra contínua crescente
+// Arco total = 534px | z1=55 z2=70 z3=75 z4=90 z5=95 z6=95 z7=54
+// ════════════════════════════════════════════════════════
+var _zBreaks = [55,125,200,290,385,480,534];
+
+function _fillBar(ftpPct) {
+  var filled = Math.max(2, Math.min(534, (ftpPct / 150) * 534));
+  var e = document.getElementById('zFill');
+  if (e) e.setAttribute('stroke-dasharray', filled + ' ' + (534 - filled));
+}
+
+function _fillBarPx(px) {
+  var filled = Math.max(2, Math.min(534, px));
+  var e = document.getElementById('zFill');
+  if (e) e.setAttribute('stroke-dasharray', filled + ' ' + (534 - filled));
+}
+
+// ════════════════════════════════════════════════════════
+// HELPERS DOM
+// ════════════════════════════════════════════════════════
+function el(id, val) {
+  var e = document.getElementById(id);
+  if (e) e.textContent = val;
+}
+function elColor(id, val, color) {
+  var e = document.getElementById(id);
+  if (!e) return;
+  e.textContent = val;
+  if (color) e.style.color = color;
+}
+
+// ════════════════════════════════════════════════════════
+// NAVEGAÇÃO
+// ════════════════════════════════════════════════════════
+function go(id) {
+  var ss = document.querySelectorAll('.screen');
+  for (var i = 0; i < ss.length; i++) ss[i].classList.remove('active');
+  document.getElementById(id).classList.add('active');
+  var showNav = (id !== 'sLive' && id !== 'sCountdown' && id !== 'sSplash' && id !== 'sOnboard');
+  var nav = document.getElementById('bNav');
+  if (nav) nav.style.display = showNav ? 'flex' : 'none';
+}
+
+function goTab(id, tabId) {
+  go(id);
+  var tabs = document.querySelectorAll('.nav-tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  var tab = document.getElementById(tabId);
+  if (tab) tab.classList.add('active');
+  if (id === 'sActivity') buildActivity();
+}
+
+function go2(id) { go(id); }
+
+// ════════════════════════════════════════════════════════
+// QR + WEBSOCKET
+// ════════════════════════════════════════════════════════
+function openQRScan() { go('sQRScan'); }
+
+function connectQR(code) {
+  if (!code) return;
+  lastCode = code;
+  if (wsConn && wsConn.readyState === 1) { go('sLive'); return; }
+  var statusEl = document.getElementById('qrStatus');
+  if (statusEl) { statusEl.textContent = 'Conectando...'; statusEl.style.color = '#ea860c'; }
+
+  var connTimeout = setTimeout(function() {
+    if (!wsConn || wsConn.readyState !== 1) {
+      if (wsConn) wsConn.close();
+      if (statusEl) { statusEl.textContent = 'Timeout. Tente novamente.'; statusEl.style.color = '#d62d2d'; }
     }
-    html+='</div>';
-  });
-  html+='</div>';
+  }, 10000);
 
-  // Base line
-  html+='<div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:5px;"></div>';
-
-  // Nome aula + progresso
-  html+='<div style="display:flex;justify-content:space-between;">';
-  html+='<div style="font-size:10px;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:1px;">'+(aulaGraficoNome||'ProRider')+'</div>';
-  html+='<div style="font-size:10px;color:rgba(255,255,255,.22);">'+( aulaBlocoIdx+1)+' / '+aulaGrafico.length+'</div>';
-  html+='</div>';
-
-  wrap.innerHTML=html;
-}
-
-function hexToRgb(hex){
-  var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return r+','+g+','+b;
-}
-
-function openQRScan(){
-  go('sQRScan');
-}
-
-var lastCode='';
-function connectQR(code){
-  if(!code) return;
-  lastCode=code;
-  // Se já está conectado, vai direto para sLive
-  if(wsConn && wsConn.readyState===1){ go('sLive'); return; }
-  var statusEl=document.getElementById('qrStatus');
-  if(statusEl){statusEl.textContent='Conectando...';statusEl.style.color='#ea860c';}
-  try{
-    wsConn=new WebSocket(SERVER_URL);
-    wsConn.onopen=function(){
-      var nome=document.getElementById('profNome');
-      var nomeVal=(nome&&nome.textContent.trim()&&nome.textContent.trim()!=='—')?nome.textContent.trim():(localStorage.getItem('pr_nome')||'Aluno');
-      wsConn.send(JSON.stringify({tipo:'entrar_sala',codigo:code,nome:nomeVal,bike:null}));
+  try {
+    wsConn = new WebSocket(SERVER_URL);
+    wsConn.onopen = function() {
+      clearTimeout(connTimeout);
+      var nEl = document.getElementById('profNome');
+      var nome = (nEl && nEl.textContent.trim() && nEl.textContent.trim() !== '–')
+        ? nEl.textContent.trim() : (localStorage.getItem('pr_nome') || 'Aluno');
+      wsConn.send(JSON.stringify({tipo:'entrar_sala', codigo:code, nome:nome, bike:null}));
     };
-    wsConn.onmessage=function(e){
-      var data=JSON.parse(e.data);
-      if(data.tipo==='conectado'){
-        if(statusEl){statusEl.textContent='Conectado!';statusEl.style.color='#5db13d';}
-        // Para câmera se estiver ativa
-        pararCamera();
-        // Navega para sLive com pequeno delay para iOS processar
-        setTimeout(function(){
-          go('sLive');
-          // Força scroll para o topo
-          var sl=document.getElementById('sLive');
-          if(sl) sl.scrollTop=0;
-        }, 300);
-      }
-      if(data.tipo==='update_aula'){
-        if(data.grafico && data.grafico.length>0){
-          aulaGrafico=data.grafico; aulaBlocoIdx=data.blocoIdx||0;
-          aulaGraficoNome=data.nomeAula||'ProRider';
-          renderAulaGrafico();
-          // Mostra gráfico professor, oculta nativo
-          var gp=document.getElementById('aulaGraficoPainel');
-          if(gp){ gp.style.display='block'; }
-          var gn=document.getElementById('graficoNativo');
-          if(gn) gn.style.display='none';
-          // Popula UP NEXT com próximo bloco
-          var nb=data.grafico[data.blocoIdx+1]||null;
-          var zCUp={z1:'#a1a1a1',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
-          var elT=document.getElementById('unT'),elF=document.getElementById('unF');
-          var elR=document.getElementById('unR'),elP=document.getElementById('unP');
-          var elD=document.getElementById('unDot');
-          if(nb){
-            var corNb=zCUp[nb.z]||'#888';
-            if(elT) elT.textContent=nb.dur+'min';
-            if(elF){elF.textContent=nb.ftpMin+'–'+nb.ftpMax+'%';elF.style.color=corNb;}
-            if(elR) elR.textContent=nb.rpmMin+'–'+nb.rpmMax;
-            if(elP) elP.textContent=nb.pos||'–';
-            if(elD) elD.style.background=corNb;
-          } else {
-            if(elT) elT.textContent='–';
-            if(elF){elF.textContent='Fim';elF.style.color='rgba(255,255,255,.3)';}
-            if(elR) elR.textContent='–';
-            if(elP) elP.textContent='–';
-          }
-        }
-        if(data.bloco){
-          var b=data.bloco;
-          var zona=b.intensity||b.z||'z1';
-          var zCores={z1:'#a1a1a1',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
-          var zNomes={z1:'Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuromuscular'};
-          var cor=zCores[zona]||'#888';
-          var e;
-          e=document.getElementById('liveMetaFtp'); if(e) e.textContent=(b.ftpMin||'—')+'–'+(b.ftpMax||'—')+'%';
-          e=document.getElementById('liveMetaRpm'); if(e) e.textContent=(b.rpmMin||'—')+'–'+(b.rpmMax||'—')+' rpm';
-          e=document.getElementById('liveZonaProf'); if(e){e.textContent=zNomes[zona]||zona; e.style.color=cor;}
-          e=document.getElementById('livePosProf'); if(e) e.textContent=b.pos||b.position||'';
-          // Atualiza UP NEXT com próximo bloco
-          if(data.upNext){
-            var nb=data.upNext;
-            var nz=nb.intensity||nb.z||'z1';
-            var nzNome=zNomes[nz]||nz;
-            var nCor=zCores[nz]||'#888';
-            e=document.getElementById('unT'); if(e) e.textContent=(nb.duration||'—')+'min';
-            e=document.getElementById('unF'); if(e){e.textContent=(nb.ftpMin||'—')+'–'+(nb.ftpMax||'—')+'%'; e.style.color=nCor;}
-            e=document.getElementById('unR'); if(e) e.textContent=(nb.rpmMin||'—')+'–'+(nb.rpmMax||'—');
-            e=document.getElementById('unP'); if(e) e.textContent=nb.pos||nb.position||'—';
-            e=document.getElementById('unDot'); if(e) e.style.background=nCor;
-          } else {
-            e=document.getElementById('unT'); if(e) e.textContent='—';
-            e=document.getElementById('unF'); if(e){e.textContent='Fim da aula'; e.style.color='rgba(255,255,255,.4)';}
-            e=document.getElementById('unR'); if(e) e.textContent='—';
-            e=document.getElementById('unP'); if(e) e.textContent='—';
-          }
-        }
-        if(data.segTime!==undefined){
-          segS=Math.ceil(data.segTime);
-          var tEl=document.getElementById('ltSeg');
-          if(tEl) tEl.textContent=fmMS(segS);
-        }
-      }
-      if(data.tipo==='erro'){
-        if(statusEl){statusEl.textContent='QR invalido. Tente novamente.';statusEl.style.color='#d62d2d';}
-      }
+    wsConn.onmessage = function(e) {
+      try { handleWS(JSON.parse(e.data)); } catch(err) { console.error('WS parse:', err); }
     };
-    wsConn.onclose=function(){
-      wsConn=null;
-      // Tenta reconectar automaticamente em 4s se na tela de live
-      var cur=document.querySelector('.screen.active');
-      // Reconecta automaticamente sempre que cair
-      if(lastCode){
-        setTimeout(function(){ connectQR(lastCode); }, 3000);
-        var ind=document.getElementById('liveConnIndicator');
-        if(ind){ind.textContent='Reconectando...';ind.style.color='#ea860c';}
-      }
+    wsConn.onclose = function() {
+      wsConn = null;
+      var ind = document.getElementById('liveConnIndicator');
+      if (ind) { ind.textContent = 'Reconectando...'; ind.style.color = '#ea860c'; }
+      if (lastCode) setTimeout(function() { connectQR(lastCode); }, 3000);
     };
-    wsConn.onerror=function(){
-      if(statusEl){statusEl.textContent='Sem conexao. Verifique se esta na mesma rede.';statusEl.style.color='#d62d2d';}
+    wsConn.onerror = function() {
+      clearTimeout(connTimeout);
+      if (statusEl) { statusEl.textContent = 'Sem conexão com o servidor.'; statusEl.style.color = '#d62d2d'; }
     };
-    // Keepalive ping a cada 25 segundos (iOS Safari para JS quando tela apaga)
-    var wsAlunoPing=setInterval(function(){
-      if(wsConn&&wsConn.readyState===1){
+    // Keepalive WebSocket
+    var wsPing = setInterval(function() {
+      if (wsConn && wsConn.readyState === 1) {
         wsConn.send(JSON.stringify({tipo:'ping'}));
       } else {
-        clearInterval(wsAlunoPing);
-        // Tenta reconectar
-        if(lastCode) setTimeout(function(){ connectQR(lastCode); }, 2000);
+        clearInterval(wsPing);
+        if (lastCode) setTimeout(function() { connectQR(lastCode); }, 2000);
       }
-    }, 25000); // 25 segundos
-    // Reconecta quando voltar do background (iOS)
-    document.addEventListener('visibilitychange', function(){
-      if(!document.hidden && (!wsConn || wsConn.readyState !== 1)){
-        if(lastCode) setTimeout(function(){ connectQR(lastCode); }, 500);
-      }
+    }, 25000);
+    // Reconectar ao voltar do background (iOS)
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && (!wsConn || wsConn.readyState !== 1) && lastCode)
+        setTimeout(function() { connectQR(lastCode); }, 500);
     });
-  }catch(e){
-    if(statusEl){statusEl.textContent='Sem conexao com o servidor.';statusEl.style.color='#d62d2d';}
+  } catch(e) {
+    clearTimeout(connTimeout);
+    if (statusEl) { statusEl.textContent = 'Sem conexão com o servidor.'; statusEl.style.color = '#d62d2d'; }
   }
 }
 
-// ---- FREE RIDE ----
-function openFreeRide(){
-  isFtpTest=false;
-  // Criar uma aula livre sem blocos definidos
-  var freeAula={
-    nome:'Free Ride',
-    tipo:'free',
-    dur:0,
-    blocos:[{z:'z1',dur:9999,ftp:[0,150],rpm:[60,120],pos:'Seated',label:'Livre'}]
+function handleWS(data) {
+  var statusEl = document.getElementById('qrStatus');
+
+  if (data.tipo === 'conectado') {
+    if (statusEl) { statusEl.textContent = 'Conectado!'; statusEl.style.color = '#5db13d'; }
+    pararCamera();
+    setTimeout(function() { go('sLive'); }, 300);
+  }
+
+  if (data.tipo === 'update_aula') {
+    // Gráfico do professor
+    if (data.grafico && data.grafico.length > 0) {
+      aulaGrafico = data.grafico;
+      aulaBlocoIdx = data.blocoIdx || 0;
+      aulaGraficoNome = data.nomeAula || 'ProRider';
+      renderAulaGrafico();
+      var gp = document.getElementById('aulaGraficoPainel'); if (gp) gp.style.display = 'block';
+      var gn = document.getElementById('graficoNativo');    if (gn) gn.style.display = 'none';
+      // UP NEXT via gráfico
+      var nb = data.grafico[aulaBlocoIdx + 1] || null;
+      if (nb) setUpNext({dur:nb.dur+'min', ftp:nb.ftpMin+'–'+nb.ftpMax+'%', rpm:nb.rpmMin+'–'+nb.rpmMax, pos:nb.pos||'–', z:nb.z});
+      else    setUpNext(null);
+    }
+    // Bloco atual
+    if (data.bloco) {
+      var b = data.bloco, zona = b.intensity || b.z || 'z1', cor = zC[zona] || '#888';
+      el('liveMetaFtp', (b.ftpMin||'—')+'–'+(b.ftpMax||'—')+'%');
+      el('liveMetaRpm', (b.rpmMin||'—')+'–'+(b.rpmMax||'—')+' rpm');
+      elColor('liveZonaProf', zNames[zona] || zona, cor);
+      el('livePosProf', b.pos || b.position || '');
+      // UP NEXT override do servidor
+      if (data.upNext) {
+        var nz = data.upNext.intensity || data.upNext.z || 'z1';
+        setUpNext({
+          dur:(data.upNext.duration||'—')+'min',
+          ftp:(data.upNext.ftpMin||'—')+'–'+(data.upNext.ftpMax||'—')+'%',
+          rpm:(data.upNext.rpmMin||'—')+'–'+(data.upNext.rpmMax||'—'),
+          pos:data.upNext.pos||data.upNext.position||'—', z:nz
+        });
+      }
+    }
+    // Sync timer de segmento com o professor
+    if (data.segTime !== undefined) {
+      segS = Math.ceil(data.segTime);
+      el('ltSeg', fmMS(segS));
+    }
+  }
+
+  if (data.tipo === 'erro') {
+    if (statusEl) { statusEl.textContent = 'QR inválido. Tente novamente.'; statusEl.style.color = '#d62d2d'; }
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// FREE RIDE
+// ════════════════════════════════════════════════════════
+function openFreeRide() {
+  isFtpTest = false;
+  cAula = {
+    nome:'Free Ride', tipo:'free', dur:0,
+    blocos:[{z:'z1', dur:9999, ftp:[0,150], rpm:[60,120], pos:'Seated', label:'Livre'}]
   };
-  cAula=freeAula;
   go('sConnect');
 }
-// ---- FIM QR + FREE RIDE ----
 
-// ---- ACTIVITY SCREEN ----
-function buildActivity(){
-  var list=document.getElementById('actList');
-  var empty=document.getElementById('actEmpty');
-  var totAulas=document.getElementById('actTotalAulas');
-  var totMin=document.getElementById('actTotalMin');
-  var totKcal=document.getElementById('actTotalKcal');
-  if(!list) return;
-  list.innerHTML='';
-  if(historico.length===0){
-    if(empty) empty.style.display='block';
-    if(totAulas) totAulas.textContent='0';
-    if(totMin) totMin.textContent='0';
-    if(totKcal) totKcal.textContent='0';
-    return;
-  }
-  if(empty) empty.style.display='none';
-  // Calcular totais
-  var totalMin=0,totalKcal=0;
-  for(var i=0;i<historico.length;i++){
-    var h=historico[i];
-    var dur=h.totS||0;
-    totalMin+=Math.round(dur/60);
-    totalKcal+=Math.round(dur*.06);
-  }
-  if(totAulas) totAulas.textContent=historico.length;
-  if(totMin) totMin.textContent=totalMin;
-  if(totKcal) totKcal.textContent=totalKcal;
-  // Cards de atividade
-  for(var i=0;i<historico.length;i++){
-    var h=historico[i];
-    var card=document.createElement('div');
-    card.style.cssText='background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:16px;margin-bottom:10px;';
-    // Header do card
-    var dur=h.totS||0;
-    var kcal=Math.round(dur*.06);
-    var dist=(dur*.003).toFixed(1);
-    card.innerHTML=
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
-      +'<div>'
-      +'<div style="font-weight:700;font-size:16px;color:#fff;">'+h.nome+'</div>'
-      +'<div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:2px;">'+h.data+'</div>'
-      +'</div>'
-      +'<div style="width:10px;height:10px;border-radius:50%;background:'+(zC[h.z]||'#888')+';flex-shrink:0;"></div>'
-      +'</div>'
-      +'<div style="display:flex;gap:16px;">'
-      +'<div style="text-align:center;">'
-      +'<div style="font-size:20px;font-weight:900;color:#fff;">'+h.dur+'</div>'
-      +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">DURACAO</div>'
-      +'</div>'
-      +'<div style="text-align:center;">'
-      +'<div style="font-size:20px;font-weight:900;color:#fff;">'+kcal+'</div>'
-      +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">KCAL</div>'
-      +'</div>'
-      +'<div style="text-align:center;">'
-      +'<div style="font-size:20px;font-weight:900;color:#fff;">'+dist+'</div>'
-      +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">KM</div>'
-      +'</div>'
-      +'</div>';
-    list.appendChild(card);
-  }
-}
-// ---- FIM ACTIVITY ----
-
-// ---- PROFILE EDIT ----
-var profEditField='';
-var profData={nome:'',email:'',peso:'',ftp:'130'};
-
-function profEdit(field){
-  profEditField=field;
-  var labels={nome:'Nome',email:'E-mail',peso:'Peso (kg)',ftp:'FTP (Watts)'};
-  var types={nome:'text',email:'email',peso:'number',ftp:'number'};
-  var current={
-    nome:document.getElementById('profNome')?document.getElementById('profNome').textContent.replace('-',''):'',
-    email:document.getElementById('profEmail')?document.getElementById('profEmail').textContent.replace('-',''):'',
-    peso:document.getElementById('profPeso')?document.getElementById('profPeso').textContent.replace(' kg','').replace('-',''):'',
-    ftp:document.getElementById('ftpDisplay')?document.getElementById('ftpDisplay').textContent.replace(' W',''):''
-  };
-  var lbl=document.getElementById('profModalLbl');
-  if(lbl) lbl.textContent=labels[field]||field;
-  var inp=document.getElementById('profModalInput');
-  if(inp){
-    inp.type=types[field]||'text';
-    inp.value=current[field]||'';
-    inp.placeholder=labels[field]||'';
-  }
-  var modal=document.getElementById('profModal');
-  if(modal){ modal.style.display='flex'; }
-  setTimeout(function(){ if(inp) inp.focus(); },100);
+// ════════════════════════════════════════════════════════
+// FTP TESTS
+// ════════════════════════════════════════════════════════
+function goFtpTest(id) {
+  var test = null;
+  for (var i = 0; i < ftpTests.length; i++) if (ftpTests[i].id === id) { test = ftpTests[i]; break; }
+  if (!test) return;
+  isFtpTest     = true;
+  ftpTestCalc   = test.calc;
+  ftpTestDur    = test.testDur;
+  ftpTestWatts  = [];
+  ftpTestPhase  = false;
+  cAula         = test; // usa o objeto do teste como aula
+  openDetail(test);
 }
 
-function profModalCancel(){
-  var modal=document.getElementById('profModal');
-  if(modal) modal.style.display='none';
-}
-
-function profModalSave(){
-  var inp=document.getElementById('profModalInput');
-  if(!inp) return;
-  var val=inp.value.trim();
-  if(!val){ profModalCancel(); return; }
-  if(profEditField==='nome'){
-    var el=document.getElementById('profNome'); if(el) el.textContent=val;
-    profData.nome=val;
-  } else if(profEditField==='email'){
-    var el=document.getElementById('profEmail'); if(el) el.textContent=val;
-    profData.email=val;
-  } else if(profEditField==='peso'){
-    var el=document.getElementById('profPeso'); if(el) el.textContent=val+' kg';
-    profData.peso=val;
-  } else if(profEditField==='ftp'){
-    var el=document.getElementById('ftpDisplay'); if(el) el.textContent=val+' W';
-    profData.ftp=val;
-  }
-  profModalCancel();
-}
-// ---- FIM PROFILE EDIT ----
-
-// ---- ONBOARDING ----
-var obStep=1, obTotalSteps=6;
-var obData={nome:'',email:'',senha:'',peso:70,altura:170,idade:30,nivel:'intermediario',freq:3,ftp:130};
-
-function obGoStep(n){
-  for(var i=1;i<=obTotalSteps;i++){
-    var el=document.getElementById('obStep'+i);
-    if(el) el.style.display=(i===n)?'flex':'none';
-    if(el&&i===n) el.style.flexDirection='column';
-  }
-  obStep=n;
-  var pct=Math.round((n/obTotalSteps)*100);
-  var pb=document.getElementById('obProgress');
-  if(pb) pb.style.width=pct+'%';
-  var lbl=document.getElementById('obStepLbl');
-  if(lbl) lbl.textContent=n+' / '+obTotalSteps;
-  var back=document.getElementById('obBack');
-  if(back) back.style.display=n>1?'block':'none';
-  var nw=document.getElementById('obNextWrap');
-  if(nw) nw.style.display=n===obTotalSteps?'none':'block';
-  obValidateStep();
-}
-
-function obNext(){
-  if(obStep===1){
-    var v=document.getElementById('obNome').value.trim();
-    if(!v){obShake('obNome');return;}
-    obData.nome=v;
-  } else if(obStep===2){
-    var e=document.getElementById('obEmail').value.trim();
-    if(!e){obShake('obEmail');return;}
-    obData.email=e;
-    obData.senha=document.getElementById('obSenha').value;
-  } else if(obStep===3){
-    var p=parseFloat(document.getElementById('obPeso').value)||0;
-    var a=parseFloat(document.getElementById('obAltura').value)||0;
-    var id=parseFloat(document.getElementById('obIdade').value)||0;
-    if(!p||!a||!id){return;}
-    obData.peso=p; obData.altura=a; obData.idade=id;
-  } else if(obStep===4){
-    if(!obData.nivel) return;
-  } else if(obStep===5){
-    if(!obData.freq) return;
-    obCalcFtp();
-    obGoStep(6);
-    return;
-  }
-  obGoStep(obStep+1);
-}
-
-function obPrev(){
-  if(obStep>1) obGoStep(obStep-1);
-}
-
-function obSelectNivel(nivel,btn){
-  obData.nivel=nivel;
-  var btns=document.getElementById('obNivelBtns').getElementsByTagName('button');
-  for(var i=0;i<btns.length;i++) btns[i].className='ob-choice';
-  btn.className='ob-choice selected';
-  obValidateStep();
-}
-
-function obSelectFreq(freq,btn){
-  obData.freq=freq;
-  var btns=document.getElementById('obFreqBtns').getElementsByTagName('button');
-  for(var i=0;i<btns.length;i++) btns[i].className='ob-freq-btn';
-  btn.className='ob-freq-btn selected';
-  obValidateStep();
-}
-
-function obCalcFtp(){
-  var mult={iniciante:1.5, intermediario:2.2, avancado:3.0};
-  var freqBonus={1:0.85,2:0.92,3:1.0,4:1.08,5:1.15};
-  var base=mult[obData.nivel]||2.2;
-  var fb=freqBonus[Math.min(obData.freq,5)]||1.0;
-  var ftp=Math.round(obData.peso*base*fb);
-  obData.ftp=ftp;
-  var wkg=(ftp/obData.peso).toFixed(1);
-  var vEl=document.getElementById('obFtpVal');
-  if(vEl) vEl.textContent=ftp;
-  var wEl=document.getElementById('obFtpWkg');
-  if(wEl) wEl.textContent=wkg+' W/kg';
-  var bEl=document.getElementById('obFtpBase');
-  if(bEl) bEl.textContent='Baseado em: '+obData.nivel+', '+obData.freq+'x/sem, '+obData.peso+'kg';
-}
-
-function obSaveProfile(){
-  var nEl=document.getElementById('profNome'); if(nEl) nEl.textContent=obData.nome;
-  var eEl=document.getElementById('profEmail'); if(eEl) eEl.textContent=obData.email;
-  var pEl=document.getElementById('profPeso'); if(pEl) pEl.textContent=obData.peso;
-  var fEl=document.getElementById('ftpDisplay'); if(fEl) fEl.textContent=obData.ftp+' W';
-}
-
-function obSaveAndHome(){
-  obSaveProfile();
-  go('sHome');
-}
-
-function obSaveAndTest(){
-  obSaveProfile();
-  goFtpTest('ftp5');
-}
-
-function obValidateStep(){
-  var btn=document.getElementById('obNextBtn');
-  if(!btn) return;
-  var ok=false;
-  if(obStep===1) ok=true;
-  else if(obStep===2) ok=true;
-  else if(obStep===3) ok=true;
-  else if(obStep===4) ok=!!obData.nivel;
-  else if(obStep===5) ok=!!obData.freq;
-  btn.style.opacity=ok?'1':'0.4';
-}
-
-function obShake(id){
-  var el=document.getElementById(id);
-  if(!el) return;
-  el.style.borderColor='#d62d2d';
-  setTimeout(function(){el.style.borderColor='rgba(255,255,255,.12)';},1000);
-}
-// ---- FIM ONBOARDING ----
-
-
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
-// DADOS
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
-var zC={z1:"#888",z2:"#295fe8",z3:"#5db13d",z4:"#d7c414",z5:"#ea860c",z6:"#d62d2d",z7:"#9b30ff"};
-var zH={z1:18,z2:30,z3:42,z4:52,z5:60,z6:66,z7:84};
-var zNames={z1:"Active Recovery",z2:"Endurance",z3:"Tempo",z4:"Threshold",z5:"VO2 Max",z6:"Anaerobic",z7:"Neuromuscular"};
-
-var aulas = [
-  {nome:"Endurance Builder #1",icon:"\uD83D\uDEB4",dur:45,desc:"Workout focused on Power Zone 2 to build your aerobic base and improve endurance capacity.",badge:"Easy",badgeColor:"#295fe8",
-   blocos:[{z:"z1",ftp:"0-55",rpm:"75-80",dur:5,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"80-85",dur:10,pos:"Seated"},{z:"z1",ftp:"0-55",rpm:"75-80",dur:3,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"80-85",dur:10,pos:"Seated"},{z:"z3",ftp:"76-89",rpm:"85-90",dur:8,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"80-85",dur:6,pos:"Seated"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:3,pos:"Seated"}]},
-  {nome:"HIIT Threshold #3",icon:"\uD83D\uDD25",dur:50,desc:"High intensity intervals alternating between Threshold and VO2 Max zones to push your lactate threshold higher.",badge:"Medium",badgeColor:"#d7c414",
-   blocos:[{z:"z1",ftp:"0-55",rpm:"75-80",dur:5,pos:"Seated"},{z:"z3",ftp:"76-89",rpm:"85-90",dur:5,pos:"Seated"},{z:"z4",ftp:"90-104",rpm:"88-93",dur:5,pos:"Seated"},{z:"z5",ftp:"105-118",rpm:"90-95",dur:5,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"80-85",dur:3,pos:"Seated"},{z:"z4",ftp:"90-104",rpm:"88-93",dur:5,pos:"Seated"},{z:"z5",ftp:"105-118",rpm:"90-95",dur:5,pos:"Standing"},{z:"z6",ftp:"119+",rpm:"92-98",dur:5,pos:"Standing"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:5,pos:"Seated"}]},
-  {nome:"VO2 Max Intervals",icon:"\uD83D\uDCAA",dur:40,desc:"Maximum power intervals targeting VO2 Max and Anaerobic zones to increase your peak power output.",badge:"Hard",badgeColor:"#d62d2d",
-   blocos:[{z:"z1",ftp:"0-55",rpm:"75-80",dur:5,pos:"Seated"},{z:"z5",ftp:"105-118",rpm:"90-95",dur:4,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z6",ftp:"119+",rpm:"92-98",dur:4,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z6",ftp:"119+",rpm:"92-98",dur:4,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z6",ftp:"119+",rpm:"92-98",dur:4,pos:"Standing"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:5,pos:"Seated"}]},
-  {nome:"Sprint Neuromuscular",icon:"\u26A1",dur:35,desc:"Short explosive sprints in Zone 7 with full recovery between efforts. Trains your neuromuscular system and peak power.",badge:"Advanced",badgeColor:"#9b30ff",
-   blocos:[{z:"z2",ftp:"56-75",rpm:"80-85",dur:5,pos:"Seated"},{z:"z7",ftp:"Max",rpm:"100-120",dur:1,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z7",ftp:"Max",rpm:"100-120",dur:1,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z7",ftp:"Max",rpm:"100-120",dur:1,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z7",ftp:"Max",rpm:"100-120",dur:1,pos:"Standing"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:5,pos:"Seated"}]},
-  {nome:"FTP Test 5 min",icon:"\uD83C\uDFC1",dur:30,desc:"5-minute all-out effort test to measure your current FTP. Warm up properly and give everything in the test segment.",badge:"Test",badgeColor:"#ea860c",
-   blocos:[{z:"z1",ftp:"0-55",rpm:"80-85",dur:5,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"85-90",dur:3,pos:"Seated"},{z:"z3",ftp:"76-89",rpm:"88-93",dur:2,pos:"Seated"},{z:"z4",ftp:"90-104",rpm:"90-95",dur:2,pos:"Seated"},{z:"z3",ftp:"76-89",rpm:"85-90",dur:3,pos:"Seated"},{z:"z6",ftp:"Max 5min",rpm:"92-100",dur:5,pos:"Standing"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:10,pos:"Seated"}]},
-  {nome:"FTP Test 20 min",icon:"\uD83C\uDFC1",dur:45,desc:"FTP stands for FUNCTIONAL THRESHOLD POWER \u2014 the highest average power a rider can maintain for 45-60 minutes. This 20-minute test estimates your FTP to set your Power Training Zones.",badge:"Test",badgeColor:"#ea860c",
-   blocos:[{z:"z1",ftp:"0-55",rpm:"80-85",dur:5,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"85-90",dur:3,pos:"Seated"},{z:"z3",ftp:"76-89",rpm:"88-93",dur:3,pos:"Seated"},{z:"z4",ftp:"90-104",rpm:"90-95",dur:3,pos:"Standing"},{z:"z3",ftp:"76-89",rpm:"85-90",dur:3,pos:"Seated"},{z:"z5",ftp:"Max 20min",rpm:"92-100",dur:20,pos:"Seated"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:8,pos:"Seated"}]}
-];
-
-// hist\u00F3rico fake
-var historico = [
-  {nome:"Endurance Builder #1",data:"Hoje, 09:30",dur:"45 min",z:"z2"},
-  {nome:"HIIT Threshold #3",data:"Ontem, 18:00",dur:"50 min",z:"z5"},
-  {nome:"VO2 Max Intervals",data:"3 dias atr\u00E1s",dur:"40 min",z:"z6"}
-];
-
-// \u2550\u2550 ESTADO \u2550\u2550
-var curAulaIdx=0, cAula=null, cBloco=0, segS=0, totS=0;
-var lInt=null, cPg=0, isPaused=false;
-var maxRpm=0, sumRpm=0, cntRpm=0, dRpm=83;
-var audio=null, aPlay=false;
-var scanT={}, connected={bike:false,hr:false};
-var gaugeMode=0; // 0=FTP%, 1=RPM, 2=W/kg
-var botTY=0, drawerOpen=false;
-
-// ── Gauge barra contínua ──
-// Total arco = 534px. Zonas: z1=55 z2=70 z3=75 z4=90 z5=95 z6=95 z7=54
-var _zBreaks=[55,125,200,290,385,480,534]; // px acumulados por zona
-function _fillBar(ftpPct){
-  var filled=Math.max(2,Math.min(534,(ftpPct/150)*534));
-  var el=document.getElementById('zFill');
-  if(el) el.setAttribute('stroke-dasharray',filled+' '+(534-filled));
-}
-function _fillBarPx(px){
-  var filled=Math.max(2,Math.min(534,px));
-  var el=document.getElementById('zFill');
-  if(el) el.setAttribute('stroke-dasharray',filled+' '+(534-filled));
-}
-function _zoneFromPx(px){
-  for(var i=0;i<_zBreaks.length;i++) if(px<=_zBreaks[i]) return i+1;
-  return 7;
-}
-var tX=0;
-var cdTimer=null;
-
-// \u2550\u2550 NAVEGA\u00C7\u00C3O \u2550\u2550
-function goFtpTest(id){
-  var test=null;
-  for(var i=0;i<ftpTests.length;i++) if(ftpTests[i].id===id){test=ftpTests[i];break;}
-  if(!test) return;
-  isFtpTest=true; ftpTestCalc=test.calc; ftpTestDur=test.testDur;
-  ftpTestWatts=[]; ftpTestPhase=false;
-  goDetail(test);
-}
-
-function go(id){
-  var ss=document.querySelectorAll('.screen');
-  for(var i=0;i<ss.length;i++) ss[i].classList.remove('active');
-  document.getElementById(id).classList.add('active');
-  var showNav=(id!=='sLive' && id!=='sCountdown' && id!=='sSplash' && id!=='sOnboard');
-  var bNav=document.getElementById('bNav');
-  if(bNav) bNav.style.display=showNav?'flex':'none';
-
-}
-function goTab(id,tabId){
-  go(id);
-  var tabs=document.querySelectorAll('.nav-tab');
-  for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
-  document.getElementById(tabId).classList.add('active');
-  if(id==='sActivity') buildActivity();
-}
-
-// \u2550\u2550 HOME \u2014 popular lista de aulas \u2550\u2550
-function buildHome(){
-  var list=document.getElementById('aulasList');
-  if(!list) return;
-  list.innerHTML='';
-  for(var i=0;i<4;i++){
-    var a=aulas[i];
-    var div=document.createElement('div');
-    div.className='gsess-card';
-    // onclick no atributo do div, nao como propriedade JS
-    div.setAttribute('onclick','openDetail('+i+')');
-    div.innerHTML=
+// ════════════════════════════════════════════════════════
+// HOME — lista de aulas
+// ════════════════════════════════════════════════════════
+function buildHome() {
+  var list = document.getElementById('aulasList');
+  if (!list) return;
+  list.innerHTML = '';
+  for (var i = 0; i < Math.min(4, aulas.length); i++) {
+    var a = aulas[i];
+    var div = document.createElement('div');
+    div.className = 'gsess-card';
+    div.setAttribute('onclick', 'openDetail(aulas['+i+'])');
+    div.innerHTML =
       '<div class="gsess-card-over"></div>'
       +'<div class="gsess-card-body">'
         +'<div class="gsess-card-name">'+a.nome+'</div>'
         +'<div class="gsess-card-meta">'+a.dur+' min</div>'
         +'<span class="gsess-badge" style="background:'+a.badgeColor+'33;border:1px solid '+a.badgeColor+'55;color:'+a.badgeColor+'">'+a.badge+'</span>'
-        +'<div style="display:flex;gap:3px;align-items:flex-end;height:22px;margin-top:8px;">'
-        +buildMiniBlocks(a)
-        +'</div>'
+        +'<div style="display:flex;gap:3px;align-items:flex-end;height:22px;margin-top:8px;">'+buildMiniBlocks(a)+'</div>'
       +'</div>'
       +'<div class="gsess-card-ring"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="16" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="3"/><circle cx="22" cy="22" r="16" fill="none" stroke="'+a.badgeColor+'" stroke-width="3" stroke-dasharray="30 70" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg></div>';
     list.appendChild(div);
   }
-  // historico
-  var hl=document.getElementById('histList');
-  if(hl){
-    hl.innerHTML='';
-    for(var j=0;j<historico.length;j++){
-      var h=historico[j];
-      hl.innerHTML+='<div class="hist-row"><div class="hist-dot" style="background:'+zC[h.z]+'"></div><div class="hist-info"><div class="hist-name">'+h.nome+'</div><div class="hist-meta">'+h.data+'</div></div><div class="hist-dur">'+h.dur+'</div></div>';
+  // Histórico no perfil
+  var hl = document.getElementById('histList');
+  if (hl) {
+    hl.innerHTML = '';
+    for (var j = 0; j < historico.length; j++) {
+      var h = historico[j];
+      hl.innerHTML += '<div class="hist-row"><div class="hist-dot" style="background:'+zC[h.z]+'"></div><div class="hist-info"><div class="hist-name">'+h.nome+'</div><div class="hist-meta">'+h.data+'</div></div><div class="hist-dur">'+h.dur+'</div></div>';
     }
   }
 }
 
-function buildMiniBlocks(a){
-  var s='';
-  var zH={z1:8,z2:12,z3:15,z4:17,z5:19,z6:20,z7:22};
-  for(var i=0;i<a.blocos.length;i++){
-    var b=a.blocos[i];
-    s+='<div style="flex:'+b.dur+';height:'+( zH[b.z]||8)+'px;background:'+zC[b.z]+';border-radius:2px 2px 0 0;opacity:.85;min-width:4px;"></div>';
+function buildMiniBlocks(a) {
+  var s = '', zHm = {z1:8,z2:12,z3:15,z4:17,z5:19,z6:20,z7:22};
+  for (var i = 0; i < a.blocos.length; i++) {
+    var b = a.blocos[i];
+    s += '<div style="flex:'+b.dur+';height:'+(zHm[b.z]||8)+'px;background:'+zC[b.z]+';border-radius:2px 2px 0 0;opacity:.85;min-width:4px;"></div>';
   }
   return s;
 }
 
-
-function openDetail(idx){
-  curAulaIdx=idx;
-  var a=aulas[idx];
+// ── Detalhe da aula ──
+function openDetail(a) {
+  // Aceita objeto aula diretamente (não precisa de índice)
+  if (!a) return;
+  // Se for aula normal (não FTP test), registra o índice
+  if (!isFtpTest) {
+    for (var i = 0; i < aulas.length; i++) if (aulas[i] === a) { curAulaIdx = i; break; }
+  }
   go('sDetail');
-  var elName=document.getElementById('detName');
-  if(elName) elName.textContent=a.nome;
-  var elDur=document.getElementById('detDur');
-  if(elDur) elDur.textContent=a.dur;
-  var elDesc=document.getElementById('detDesc');
-  if(elDesc) elDesc.textContent=a.desc;
-  var elHero=document.getElementById('detHeroImg');
-  if(elHero){
-    elHero.textContent=a.icon;
-    var mainZ=a.blocos[Math.floor(a.blocos.length/2)].z;
-    var hc=zC[mainZ]||'#ea860c';
-    elHero.style.background='linear-gradient(135deg,rgba(0,0,0,.8) 0%,'+hc+'44 100%)';
-    elHero.style.fontSize='80px';
+  el('detName', a.nome);
+  el('detDur',  a.dur);
+  el('detDesc', a.desc || '');
+  var elHero = document.getElementById('detHeroImg');
+  if (elHero) {
+    elHero.textContent = a.icon || '🚴';
+    var mainZ = a.blocos[Math.floor(a.blocos.length / 2)].z;
+    elHero.style.background = 'linear-gradient(135deg,rgba(0,0,0,.8) 0%,'+(zC[mainZ]||'#ea860c')+'44 100%)';
+    elHero.style.fontSize = '80px';
   }
-  var badgeEl=document.getElementById('detBadge');
-  if(badgeEl){
-    badgeEl.textContent=a.badge;
-    badgeEl.style.background=a.badgeColor+'33';
-    badgeEl.style.border='1px solid '+a.badgeColor+'55';
-    badgeEl.style.color=a.badgeColor;
+  var badgeEl = document.getElementById('detBadge');
+  if (badgeEl && a.badgeColor) {
+    badgeEl.textContent = a.badge || '';
+    badgeEl.style.background = a.badgeColor+'33';
+    badgeEl.style.border = '1px solid '+a.badgeColor+'55';
+    badgeEl.style.color = a.badgeColor;
   }
-  // Grafico simples
-  var g=document.getElementById('detGraph');
-  if(g){
-    g.innerHTML='';
-    var bl=a.blocos;
-    var tot=0;
-    for(var i=0;i<bl.length;i++) tot+=bl[i].dur;
-    var row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:flex-end;gap:3px;height:100px;padding-left:32px;';
-    for(var i=0;i<bl.length;i++){
-      var b=bl[i];
-      var zi={z1:1,z2:2,z3:3,z4:4,z5:5,z6:6,z7:7}[b.z]||1;
-      var bar=document.createElement('div');
-      bar.style.cssText='flex:'+b.dur+';height:'+Math.round(zi/7*90)+'px;background:'+zC[b.z]+';border-radius:3px 3px 0 0;opacity:.85;min-width:8px;';
+  // Gráfico de preview
+  var g = document.getElementById('detGraph');
+  if (g) {
+    g.innerHTML = '';
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-end;gap:3px;height:100px;padding-left:32px;';
+    for (var i = 0; i < a.blocos.length; i++) {
+      var b = a.blocos[i];
+      var zi = {z1:1,z2:2,z3:3,z4:4,z5:5,z6:6,z7:7}[b.z] || 1;
+      var bar = document.createElement('div');
+      bar.style.cssText = 'flex:'+b.dur+';height:'+Math.round(zi/7*90)+'px;background:'+zC[b.z]+';border-radius:3px 3px 0 0;opacity:.85;min-width:8px;';
       row.appendChild(bar);
     }
     g.appendChild(row);
   }
-  // Donut
   buildDonut(a);
 }
 
-
-function buildDonut(a){
-  var svg=document.getElementById('detDonut');
-  var listEl=document.getElementById('detZdist');
-  if(!svg||!listEl) return;
-  svg.innerHTML=''; listEl.innerHTML='';
-
-  var totals={};
-  var totalDur=0;
-  for(var i=0;i<a.blocos.length;i++){
-    var z=a.blocos[i].z;
-    totals[z]=(totals[z]||0)+a.blocos[i].dur;
-    totalDur+=a.blocos[i].dur;
+function buildDonut(a) {
+  var svg   = document.getElementById('detDonut');
+  var listEl = document.getElementById('detZdist');
+  if (!svg || !listEl) return;
+  svg.innerHTML = ''; listEl.innerHTML = '';
+  var totals = {}, totalDur = 0;
+  for (var i = 0; i < a.blocos.length; i++) {
+    var z = a.blocos[i].z;
+    totals[z] = (totals[z] || 0) + a.blocos[i].dur;
+    totalDur += a.blocos[i].dur;
   }
-
-  var cx=50,cy=50,r=36,stroke=12;
-  var offset=0;
-  var circ=2*3.14159*r;
-  var zOrder=['z1','z2','z3','z4','z5','z6','z7'];
-  for(var i=0;i<zOrder.length;i++){
-    var z=zOrder[i];
-    if(!totals[z]) continue;
-    var frac=totals[z]/totalDur;
-    var dash=frac*circ;
-    var gap=circ-dash;
-    var circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
-    circle.setAttribute('cx',cx); circle.setAttribute('cy',cy); circle.setAttribute('r',r);
-    circle.setAttribute('fill','none');
-    circle.setAttribute('stroke',zC[z]);
-    circle.setAttribute('stroke-width',stroke);
-    circle.setAttribute('stroke-dasharray',dash+' '+gap);
-    circle.setAttribute('stroke-dashoffset',-offset);
-    circle.setAttribute('transform','rotate(-90 '+cx+' '+cy+')');
-    svg.appendChild(circle);
-    offset+=dash;
-    // lista
-    var mins=totals[z];
-    var mm=String(Math.floor(mins)).padStart(2,'0');
-    var ss='00';
-    var row=document.createElement('div');
-    row.className='zdist-row';
-    row.innerHTML='<div class="zdist-dot" style="background:'+zC[z]+'"></div><div class="zdist-name">'+zNames[z]+'</div><div class="zdist-time">'+mm+':'+ss+'</div>';
-    listEl.appendChild(row);
+  var r = 36, circ = 2 * Math.PI * r, offset = 0;
+  var zOrder = ['z1','z2','z3','z4','z5','z6','z7'];
+  for (var i = 0; i < zOrder.length; i++) {
+    var z = zOrder[i];
+    if (!totals[z]) continue;
+    var dash = (totals[z] / totalDur) * circ;
+    var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx','50'); c.setAttribute('cy','50'); c.setAttribute('r',r);
+    c.setAttribute('fill','none'); c.setAttribute('stroke',zC[z]); c.setAttribute('stroke-width','12');
+    c.setAttribute('stroke-dasharray', dash+' '+(circ-dash));
+    c.setAttribute('stroke-dashoffset', -offset);
+    c.setAttribute('transform','rotate(-90 50 50)');
+    svg.appendChild(c);
+    offset += dash;
+    var rowEl = document.createElement('div'); rowEl.className = 'zdist-row';
+    rowEl.innerHTML = '<div class="zdist-dot" style="background:'+zC[z]+'"></div>'
+      +'<div class="zdist-name">'+zNames[z]+'</div>'
+      +'<div class="zdist-time">'+String(Math.floor(totals[z])).padStart(2,'0')+':00</div>';
+    listEl.appendChild(rowEl);
   }
 }
 
-// \u2550\u2550 CONECTAR \u2550\u2550
-function goConnectDirect(){
-  // Botao rapido: vai direto para BT sem escolher aula especifica
-  // usa a primeira aula como padrao ou a ultima selecionada
-  if(curAulaIdx===null || curAulaIdx===undefined) curAulaIdx=0;
-  var nameEl=document.getElementById('connAulaName');
-  if(nameEl) nameEl.textContent='Quick Ride';
-  connected.bike=false; connected.hr=false;
-  var mb=document.getElementById('btnStartMain');
-  if(mb) mb.classList.remove('show');
-  // Mudar botao para "Iniciar" em vez de "Start Workout"
-  var sb=document.getElementById('btnStartGhost');
-  if(sb) sb.textContent='Iniciar direto para Live';
+// ════════════════════════════════════════════════════════
+// CONECTAR
+// ════════════════════════════════════════════════════════
+function goConnect() {
+  var nameEl = document.getElementById('connAulaName');
+  if (nameEl) nameEl.textContent = cAula ? cAula.nome : (aulas[curAulaIdx] ? aulas[curAulaIdx].nome : 'Aula');
+  connected.bike = false; connected.hr = false;
+  var mb = document.getElementById('btnStartMain');
+  if (mb) mb.classList.remove('show');
   go('sConnect');
 }
 
-function goConnect(){
-  // Atualizar nome da aula na tela de conexao
-  var nameEl=document.getElementById('connAulaName');
-  if(nameEl && cAula){
-    nameEl.textContent=cAula.nome;
-  } else if(nameEl && aulas[curAulaIdx]){
-    nameEl.textContent=aulas[curAulaIdx].nome;
-  }
-  // Resetar estado de conexao
-  connected.bike=false; connected.hr=false;
-  var mb=document.getElementById('btnStartMain');
-  if(mb) mb.classList.remove('show');
-  go('sConnect');
-}
-function scanDev(type){
-  // Se Bluetooth real dispon\u00EDvel, usar API nativa
-  if(navigator.bluetooth){
-    scanDevBT(type);
-    return;
-  }
-  // Modo demo (sem Bluetooth / iPhone / arquivo local)
-  var fEl=document.getElementById(type==='bike'?'fndBike':'fndHR');
-  var dEl=document.getElementById(type==='bike'?'devBike':'devHR');
-  var btn=document.getElementById(type==='bike'?'btnBike':'btnHR');
-  var st=document.getElementById(type==='bike'?'stBike':'stHR');
-  dEl.classList.add('scanning'); btn.textContent='Searching...'; btn.disabled=true;
-  st.className='dev-status st-search'; st.textContent='Searching...';
-  fEl.style.display='none';
+function scanDev(type) {
+  if (navigator.bluetooth) { scanDevBT(type); return; }
+  var fEl = document.getElementById(type === 'bike' ? 'fndBike' : 'fndHR');
+  var dEl = document.getElementById(type === 'bike' ? 'devBike' : 'devHR');
+  var btn = document.getElementById(type === 'bike' ? 'btnBike' : 'btnHR');
+  var st  = document.getElementById(type === 'bike' ? 'stBike'  : 'stHR');
+  dEl.classList.add('scanning'); btn.textContent = 'Searching...'; btn.disabled = true;
+  st.className = 'dev-status st-search'; st.textContent = 'Searching...';
+  fEl.style.display = 'none';
   clearTimeout(scanT[type]);
-  scanT[type]=setTimeout(function(){
-    dEl.classList.remove('scanning');
-    fEl.style.display='block';
-    btn.textContent='Refresh'; btn.disabled=false;
-    st.textContent='Select a device';
-  },2000);
+  scanT[type] = setTimeout(function() {
+    dEl.classList.remove('scanning'); fEl.style.display = 'block';
+    btn.textContent = 'Refresh'; btn.disabled = false; st.textContent = 'Select a device';
+  }, 2000);
 }
-function connDev(type,name,id){
-  var dEl=document.getElementById(type==='bike'?'devBike':'devHR');
-  var btn=document.getElementById(type==='bike'?'btnBike':'btnHR');
-  var st=document.getElementById(type==='bike'?'stBike':'stHR');
-  var fEl=document.getElementById(type==='bike'?'fndBike':'fndHR');
-  connected[type]=true;
+
+function connDev(type, name, id) {
+  var dEl = document.getElementById(type === 'bike' ? 'devBike' : 'devHR');
+  var btn = document.getElementById(type === 'bike' ? 'btnBike' : 'btnHR');
+  var st  = document.getElementById(type === 'bike' ? 'stBike'  : 'stHR');
+  var fEl = document.getElementById(type === 'bike' ? 'fndBike' : 'fndHR');
+  connected[type] = true;
   dEl.classList.remove('scanning'); dEl.classList.add('connected');
-  st.className='dev-status st-ok'; st.textContent='\u2713 '+name+' '+id;
-  btn.className='dev-btn db-c'; btn.textContent='Connected'; btn.disabled=false;
-  fEl.style.display='none';
-  if(connected.bike||connected.hr){
-    var mb=document.getElementById('btnStartMain');
-    if(mb) mb.classList.add('show');
+  st.className = 'dev-status st-ok'; st.textContent = '✓ '+name+' '+id;
+  btn.className = 'dev-btn db-c'; btn.textContent = 'Connected'; btn.disabled = false;
+  fEl.style.display = 'none';
+  if (connected.bike || connected.hr) {
+    var mb = document.getElementById('btnStartMain');
+    if (mb) mb.classList.add('show');
   }
 }
 
-// \u2550\u2550 COUNTDOWN \u2550\u2550
-function startCountdown(){
+// ════════════════════════════════════════════════════════
+// COUNTDOWN + LIVE
+// ════════════════════════════════════════════════════════
+function startCountdown() {
   go('sCountdown');
-  var n=3;
-  document.getElementById('cdNum').textContent=n;
-  document.getElementById('cdLabel').textContent='Prepare-se';
+  var n = 3;
+  el('cdNum','3'); el('cdLabel','Prepare-se');
   clearInterval(cdTimer);
-  cdTimer=setInterval(function(){
+  cdTimer = setInterval(function() {
     n--;
-    var numEl=document.getElementById('cdNum');
-    var lblEl=document.getElementById('cdLabel');
-    if(n>0){
-      numEl.textContent=n;
-      numEl.style.animation='none';
-      setTimeout(function(){
-        numEl.style.animation='cdPop .6s cubic-bezier(.34,1.56,.64,1)';
-      },20);
+    var numEl = document.getElementById('cdNum');
+    var lblEl = document.getElementById('cdLabel');
+    if (n > 0) {
+      numEl.textContent = n;
+      numEl.style.animation = 'none';
+      setTimeout(function() { numEl.style.animation = 'cdPop .6s cubic-bezier(.34,1.56,.64,1)'; }, 20);
     } else {
       clearInterval(cdTimer);
-      numEl.textContent='GO!';
-      lblEl.textContent='';
-      setTimeout(function(){ startLive(); },600);
+      numEl.textContent = 'GO!';
+      lblEl.textContent = '';
+      setTimeout(startLive, 600);
     }
-  },1000);
+  }, 1000);
 }
 
-// \u2550\u2550 LIVE \u2550\u2550
-function startLive(){
-  // Só troca cAula se não for aula livre (free ride já define cAula antes)
-  if(!cAula||cAula.tipo!=='free') cAula=aulas[curAulaIdx];
-  cBloco=0; segS=0; totS=0;
-  zoneTime={z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
-  sumFtp=0; cntFtp=0; sumRpm=0; cntRpm=0; maxRpm=0;
-  maxRpm=0; sumRpm=0; cntRpm=0; dRpm=83; cPg=0;
-  isFtpTest=false; rpmAlertCool=0;
-  isPaused=false; gaugeMode=0;
+function startLive() {
+  // Só sobrescreve cAula se não for free ride (nem FTP test que já setou cAula)
+  if (!cAula || (cAula.tipo !== 'free' && !isFtpTest)) cAula = aulas[curAulaIdx];
+  // Reset de contadores
+  cBloco = 0; segS = 0; totS = 0;
+  zoneTime = {z1:0,z2:0,z3:0,z4:0,z5:0,z6:0,z7:0};
+  sumFtp = 0; cntFtp = 0;
+  sumRpm = 0; cntRpm = 0; maxRpm = 0;
+  dRpm = 83; cPg = 0;
+  isPaused = false; gaugeMode = 0;
+  rpmAlertCool = 0;
+  if (!isFtpTest) ftpTestWatts = [];
+  // UI
   _fillBar(0);
   setPage(0); buildGraph(); updUpNext();
-  var now=new Date();
-  var h=now.getHours()%12||12;
-  var m=now.getMinutes();
-  document.getElementById('p2St').textContent=h+':'+(m<10?'0':'')+m+(now.getHours()>=12?' PM':' AM');
+  var now = new Date(), h = now.getHours() % 12 || 12, m = now.getMinutes();
+  el('p2St', h+':'+(m<10?'0':'')+m+(now.getHours()>=12?' PM':' AM'));
   go('sLive');
   clearInterval(lInt);
-  lInt=setInterval(tick,1000);
+  lInt = setInterval(tick, 1000);
 }
 
-function tick(){
-  try{
-  if(isPaused) return;
-  segS++; totS++;
-  var b=cAula&&cAula.blocos?cAula.blocos[cBloco]:null;
-  if(!b){ clearInterval(lInt); return; }
-  dRpm=Math.max(70,Math.min(140,dRpm+(Math.random()-.46)*3));
-  var rpm=Math.round(dRpm);
-  var ftpPct=Math.round(20+(cBloco/cAula.blocos.length)*80);
-  var watts=Math.round(ftpPct*1.3);
-  var wkg=(watts/90).toFixed(1);
-  sumRpm+=rpm; cntRpm++;
-  if(rpm>maxRpm) maxRpm=rpm;
+// ── Tick principal (1x/segundo) ──
+function tick() {
+  try {
+    if (isPaused) return;
+    segS++; totS++;
+    var b = cAula && cAula.blocos ? cAula.blocos[cBloco] : null;
+    if (!b) { clearInterval(lInt); return; }
 
-  document.getElementById('ltSeg').textContent=fmMS(segS);
-  document.getElementById('ltTot').textContent=fmMS(totS);
-  if(zoneTime[b.z]!==undefined) zoneTime[b.z]++;
-  var curRpm=dRpm||0;
-  if(curRpm>0){sumRpm+=curRpm;cntRpm++;if(curRpm>maxRpm)maxRpm=curRpm;}
-  if(isFtpTest&&b.teste){
-    ftpTestWatts.push(curRpm>0?Math.round(curRpm*1.8):0);
-  }
-  sumFtp+=Math.round(20+(cBloco/cAula.blocos.length)*80); cntFtp++;
-  rpmAlertCool=rpmAlertCool>0?rpmAlertCool-1:0;
-  if(rpmAlertCool===0&&curRpm>0&&b.rpm){
-    var wattsNow=Math.round(curRpm*1.8);
-    var alertEl=document.getElementById('rpmAlert');
-    if(curRpm>(b.rpm[1]+15)&&wattsNow<60){
-      if(alertEl){alertEl.textContent='Aumente a carga!';alertEl.style.display='block';alertEl.style.background='rgba(214,45,45,.85)';}
-      rpmAlertCool=8;
-    } else if(curRpm<(b.rpm[0]-10)){
-      if(alertEl){alertEl.textContent='Aumente a rotacao!';alertEl.style.display='block';alertEl.style.background='rgba(215,196,20,.85)';}
-      rpmAlertCool=8;
-    } else {
-      if(alertEl) alertEl.style.display='none';
+    // Telemetria simulada (substitui leitura real de BT quando não conectado)
+    dRpm = Math.max(70, Math.min(140, dRpm + (Math.random() - 0.46) * 3));
+    var rpm    = Math.round(dRpm);
+    var ftpPct = Math.round(20 + (cBloco / cAula.blocos.length) * 80);
+    var watts  = Math.round(ftpPct * 1.3);
+    var wkg    = watts / 90;
+
+    // Acumuladores (uma vez por tick)
+    sumRpm += rpm; cntRpm++;
+    if (rpm > maxRpm) maxRpm = rpm;
+    sumFtp += ftpPct; cntFtp++;
+    if (zoneTime[b.z] !== undefined) zoneTime[b.z]++;
+    if (isFtpTest && b.teste) ftpTestWatts.push(watts);
+    rpmAlertCool = rpmAlertCool > 0 ? rpmAlertCool - 1 : 0;
+
+    // Timers
+    el('ltSeg', fmMS(segS));
+    el('ltTot', fmMS(totS));
+
+    // Barra de progresso da zona
+    var zPbar = document.getElementById('zoneProgressBar');
+    if (zPbar) {
+      zPbar.style.width      = Math.min(100, (segS / (b.dur * 60)) * 100) + '%';
+      zPbar.style.background = zC[b.z] || '#888';
     }
-  }
-  // Barra de progresso da zona atual
-  var zPbar=document.getElementById('zoneProgressBar');
-  if(zPbar){
-    var pct=Math.min(100,(segS/(b.dur*60))*100);
-    zPbar.style.width=pct+'%';
-    zPbar.style.background=zC[b.z]||'#888';
-    zPbar.style.boxShadow='0 0 8px '+( zC[b.z]||'#888' );
-  }
-  document.getElementById('botT').textContent=fmHMS(totS);
-  document.getElementById('bigRpm').textContent=rpm;
-  document.getElementById('bigWatts').textContent=watts;
 
-  // gauge mode
-  var ptr=document.getElementById('gPtr');
-  var gVal=document.getElementById('gValue');
-  var mono=document.getElementById('monoArc');
-  if(gaugeMode===0){
-    // FTP% \u2014 barra cont\u00EDnua cresce com o ponteiro
-    var ang=-90+(Math.min(ftpPct,150)/150)*180;
-    if(ptr) ptr.style.transform='rotate('+ang+'deg)';
-    if(gVal) gVal.textContent=ftpPct;
+    // Métricas grandes
+    el('bigRpm',   rpm);
+    el('bigWatts', watts);
+
+    // Gauge
+    updateGauge(ftpPct, rpm, wkg, b);
+
+    // Página performance (P2)
+    el('p2Ftp',  ftpPct);
+    el('p2Hr',   Math.round(ftpPct * 0.85));
+    el('p2Rpm',  rpm);
+    el('p2Spd',  (rpm * 0.35).toFixed(1));
+    el('p2AR',   cntRpm > 0 ? Math.round(sumRpm / cntRpm) : 0);
+    el('p2MR',   maxRpm);
+    el('p2Dist', (totS * 0.003).toFixed(1));
+    el('p2Kc',   Math.round(totS * 0.06));
+    el('p2KH',   Math.round(0.06 * 3600));
+    el('p2AS',   (rpm * 0.35).toFixed(1));
+    el('p2Dur',  fmMS(totS));
+
+    // Avança bloco ao terminar o tempo
+    if (segS >= b.dur * 60) {
+      cBloco++;
+      if (cBloco >= cAula.blocos.length) { clearInterval(lInt); showResults(); return; }
+      segS = 0;
+      updUpNext(); updGraph(); scrollGraph();
+      if (zPbar) zPbar.style.width = '0%';
+    }
+  } catch(err) { console.error('tick:', err); }
+}
+
+// ════════════════════════════════════════════════════════
+// GAUGE
+// ════════════════════════════════════════════════════════
+var gModeLbls    = ['FTP %', 'RPM', 'W/kg'];
+var gModeMaxLbls = ['150+', '140 rpm', '6.0'];
+var gModeUnits   = ['%', 'rpm', 'W/kg'];
+
+function updateGauge(ftpPct, rpm, wkg, b) {
+  var ptr  = document.getElementById('gPtr');
+  var gVal = document.getElementById('gValue');
+  var ang, px;
+
+  if (gaugeMode === 0) {
+    // FTP%
+    ang = -90 + (Math.min(ftpPct, 150) / 150) * 180;
+    if (ptr)  ptr.style.transform = 'rotate('+ang+'deg)';
+    if (gVal) gVal.textContent = ftpPct;
     _fillBar(ftpPct);
-    var zNMap={z1:'ACTIVE RECOVERY',z2:'ENDURANCE',z3:'TEMPO',z4:'THRESHOLD',z5:'VO2 MAX',z6:'ANAEROBIC',z7:'NEUROMUSCULAR'};
-    var znEl=document.getElementById('gZoneName');
-    if(znEl){znEl.textContent=zNMap[b.z]||'';znEl.setAttribute('fill',zC[b.z]||'rgba(255,255,255,.55)');}
-    var gpEl=document.getElementById('gPosition');
-    if(gpEl) gpEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
-    var posEl=document.getElementById('gPosText');
-    if(posEl) posEl.textContent=b.pos==='Standing'?'STANDING':'SEATED';
-  } else if(gaugeMode===1){
-    // RPM \u2014 barra por rpm/140
-    var rpmPx=(rpm/140)*534;
-    var ang2=-90+(rpm/140)*180;
-    if(ptr) ptr.style.transform='rotate('+ang2+'deg)';
-    if(gVal) gVal.textContent=rpm;
-    _fillBarPx(rpmPx);
+    var znEl = document.getElementById('gZoneName');
+    if (znEl) { znEl.textContent = zNamesUp[b.z] || ''; znEl.setAttribute('fill', zC[b.z] || 'rgba(255,255,255,.55)'); }
+    var gpEl = document.getElementById('gPosition');
+    if (gpEl) gpEl.textContent = b.pos === 'Standing' ? 'STANDING' : 'SEATED';
+  } else if (gaugeMode === 1) {
+    // RPM
+    ang = -90 + (rpm / 140) * 180;
+    px  = (rpm / 140) * 534;
+    if (ptr)  ptr.style.transform = 'rotate('+ang+'deg)';
+    if (gVal) gVal.textContent = rpm;
+    _fillBarPx(px);
   } else {
-    // W/kg \u2014 barra por wkg/6
-    var wkgNum=parseFloat(wkg);
-    var wkgPx=Math.min(wkgNum/6,1)*534;
-    var ang3=-90+(wkgPx/534)*180;
-    if(ptr) ptr.style.transform='rotate('+ang3+'deg)';
-    if(gVal) gVal.textContent=wkg;
-    _fillBarPx(wkgPx);
+    // W/kg
+    px  = Math.min(wkg / 6, 1) * 534;
+    ang = -90 + (px / 534) * 180;
+    if (ptr)  ptr.style.transform = 'rotate('+ang+'deg)';
+    if (gVal) gVal.textContent = wkg.toFixed(1);
+    _fillBarPx(px);
   }
-
-  // p2
-  document.getElementById('p2Ftp').textContent=ftpPct;
-  document.getElementById('p2Hr').textContent=Math.round(ftpPct*.85);
-  document.getElementById('p2Rpm').textContent=rpm;
-  document.getElementById('p2Spd').textContent=(rpm*.35).toFixed(1);
-  document.getElementById('p2AR').textContent=Math.round(sumRpm/cntRpm);
-  document.getElementById('p2MR').textContent=maxRpm;
-  document.getElementById('p2Dist').textContent=(totS*.003).toFixed(1);
-  document.getElementById('p2Kc').textContent=Math.round(totS*.06);
-  document.getElementById('p2KH').textContent=Math.round(.06*3600);
-  document.getElementById('p2AS').textContent=(rpm*.35).toFixed(1);
-  document.getElementById('p2Dur').textContent=fmMS(totS);
-
-  if(segS>=b.dur*60){
-    cBloco++;
-    if(cBloco>=cAula.blocos.length){ clearInterval(lInt); go('sHome'); return; }
-    segS=0; updUpNext(); updGraph(); scrollGraph();
-    var zPbar2=document.getElementById('zoneProgressBar');
-    if(zPbar2){zPbar2.style.width='0%';}
-  }
-  }catch(err){ console.error('tick error:',err); }
 }
 
-// \u2500\u2500 gauge modes \u2500\u2500
-var gModeLbls=['FTP %','RPM','W/kg'];
-var gModeMins=[0,0,0];
-var gModeMaxLbls=['130%','140 rpm','6.0'];
-function cycleGaugeMode(){
-  gaugeMode=(gaugeMode+1)%3;
-  var mono=document.getElementById('monoArc');
-  var zones=['nZ1','nZ2','nZ3','nZ4','nZ5','nZ6','nZ7'];
-  // mostrar/ocultar arco de zonas vs mono
-  var zPaths=document.querySelectorAll('#gaugeSvg path');
-  if(gaugeMode===1){
-    // mostrar mono, ocultar zones
-    for(var i=0;i<zPaths.length;i++){
-      var p=zPaths[i];
-      if(p.hasAttribute('filter')) p.style.display='none';
-    }
-    if(mono) mono.style.display='block';
-  } else {
-    for(var i=0;i<zPaths.length;i++){
-      var p=zPaths[i];
-      if(p.hasAttribute('filter')) p.style.display='';
-    }
-    if(mono){ mono.style.display='none'; mono.setAttribute('stroke-dasharray','0 431'); }
-  }
-  document.getElementById('gModeLabel').textContent=gModeLbls[gaugeMode];
-  document.getElementById('gMaxLbl').textContent=gModeMaxLbls[gaugeMode];
-  document.getElementById('gModeHint').textContent=gModeLbls[gaugeMode]+' \u2014 toque para alternar';
-  
+function cycleGaugeMode() {
+  gaugeMode = (gaugeMode + 1) % 3;
+  el('gModeLabel', gModeLbls[gaugeMode]);
+  var maxEl  = document.getElementById('gMaxLbl');    if (maxEl)  maxEl.textContent  = gModeMaxLbls[gaugeMode];
+  var unitEl = document.getElementById('gValueUnit'); if (unitEl) unitEl.textContent = gModeUnits[gaugeMode];
 }
 
-// \u2500\u2500 gr\u00E1fico timeline \u2500\u2500
-function buildGraph(){
-  var g=document.getElementById('lgT'); g.innerHTML='';
-  for(var i=0;i<cAula.blocos.length;i++){
-    var b=cAula.blocos[i];
-    var d=document.createElement('div');
-    d.className='lg-blk'+(i===cBloco?' cur':i<cBloco?' past':'');
-    d.id='lgb'+i;
-    d.style.cssText='--c:'+zC[b.z]+';width:'+Math.max(14,b.dur*4)+'px;height:'+zH[b.z]+'px;background:'+zC[b.z]+';opacity:'+(i<cBloco?.2:.85)+';';
-    if(b.pos==='Standing') d.style.borderTop='3px solid rgba(255,255,255,.5)';
+// ════════════════════════════════════════════════════════
+// GRÁFICO TIMELINE DA AULA
+// ════════════════════════════════════════════════════════
+function buildGraph() {
+  var g = document.getElementById('lgT');
+  if (!g || !cAula) return;
+  g.innerHTML = '';
+  for (var i = 0; i < cAula.blocos.length; i++) {
+    var b = cAula.blocos[i];
+    var d = document.createElement('div');
+    d.className = 'lg-blk'+(i===cBloco?' cur':i<cBloco?' past':'');
+    d.id = 'lgb'+i;
+    d.style.cssText = '--c:'+zC[b.z]+';width:'+Math.max(14,b.dur*4)+'px;height:'+zH[b.z]+'px;background:'+zC[b.z]+';opacity:'+(i<cBloco?.2:.85)+';';
+    if (b.pos === 'Standing') d.style.borderTop = '3px solid rgba(255,255,255,.5)';
     g.appendChild(d);
   }
 }
-function updGraph(){
-  for(var i=0;i<cAula.blocos.length;i++){
-    var e=document.getElementById('lgb'+i);
-    if(!e) continue;
-    e.className='lg-blk'+(i===cBloco?' cur':i<cBloco?' past':'');
-    e.style.opacity=i<cBloco?.2:.85;
-  }
-}
-function scrollGraph(){
-  var e=document.getElementById('lgb'+cBloco);
-  var g=document.getElementById('lgT');
-  if(e&&g) g.scrollLeft=Math.max(0,e.offsetLeft-g.parentElement.offsetWidth/2);
-}
-function updUpNext(){
-  var n=cAula.blocos[cBloco+1];
-  if(n){
-    document.getElementById('unT').textContent=n.dur+'m';
-    document.getElementById('unF').textContent=n.ftp;
-    document.getElementById('unR').textContent=n.rpm;
-    document.getElementById('unP').textContent=n.pos.toUpperCase().substring(0,5);
-    document.getElementById('unDot').style.background=zC[n.z];
-    document.getElementById('dNextZone').textContent=zNames[n.z];
-    document.getElementById('dNextZone').style.color=zC[n.z];
-    document.getElementById('dNextInfo').textContent=n.dur+' min \u00B7 '+n.ftp+'% FTP \u00B7 '+n.rpm+' RPM \u00B7 '+n.pos;
-  } else {
-    document.getElementById('unT').textContent='End';
-    document.getElementById('unF').textContent='\u2013';
-    document.getElementById('unR').textContent='\u2013';
-    document.getElementById('unP').textContent='\u2013';
-    document.getElementById('dNextZone').textContent='\u00DAltimo bloco';
-    document.getElementById('dNextInfo').textContent='';
+
+function updGraph() {
+  if (!cAula) return;
+  for (var i = 0; i < cAula.blocos.length; i++) {
+    var e = document.getElementById('lgb'+i);
+    if (!e) continue;
+    e.className = 'lg-blk'+(i===cBloco?' cur':i<cBloco?' past':'');
+    e.style.opacity = i < cBloco ? '.2' : '.85';
   }
 }
 
-// \u2500\u2500 controles \u2500\u2500
-function togglePause(){
-  isPaused=!isPaused;
-  document.getElementById('pauseBtn').textContent=isPaused?'\u25B6':'\u23F8';
-  if(audio){ if(isPaused) audio.pause(); else if(aPlay) audio.play(); }
+function scrollGraph() {
+  var e = document.getElementById('lgb'+cBloco);
+  var g = document.getElementById('lgT');
+  if (e && g) g.scrollLeft = Math.max(0, e.offsetLeft - g.parentElement.offsetWidth / 2);
 }
-function prevB(){ if(cBloco>0){ cBloco--; segS=0; updUpNext(); updGraph(); scrollGraph(); } }
-function nextB(){ if(cBloco<cAula.blocos.length-1){ cBloco++; segS=0; updUpNext(); updGraph(); scrollGraph(); } }
-function quitW(){ clearInterval(lInt); closeDrawer(); if(audio){audio.pause();audio.src='';} showResults(); }
-function showResults(){
+
+// ════════════════════════════════════════════════════════
+// UP NEXT
+// ════════════════════════════════════════════════════════
+function setUpNext(nb) {
+  if (nb) {
+    el('unT', nb.dur); el('unF', nb.ftp); el('unR', nb.rpm); el('unP', nb.pos);
+    var dotEl = document.getElementById('unDot');
+    if (dotEl) dotEl.style.background = zC[nb.z] || '#295fe8';
+  } else {
+    el('unT','–'); el('unF','Fim'); el('unR','–'); el('unP','–');
+    var dotEl = document.getElementById('unDot');
+    if (dotEl) dotEl.style.background = 'rgba(255,255,255,.2)';
+  }
+}
+
+function updUpNext() {
+  if (!cAula) return;
+  var n = cAula.blocos[cBloco + 1];
+  if (n) {
+    setUpNext({dur:n.dur+'m', ftp:n.ftp, rpm:n.rpm, pos:n.pos.toUpperCase().substring(0,5), z:n.z});
+    elColor('dNextZone', zNames[n.z], zC[n.z]);
+    el('dNextInfo', n.dur+' min · '+n.ftp+'% FTP · '+n.rpm+' RPM · '+n.pos);
+  } else {
+    setUpNext(null);
+    el('dNextZone','Último bloco'); el('dNextInfo','');
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// CONTROLES
+// ════════════════════════════════════════════════════════
+function togglePause() {
+  isPaused = !isPaused;
+  el('pauseBtn', isPaused ? '▶' : '⏸');
+  if (audio) { if (isPaused) audio.pause(); else if (aPlay) audio.play(); }
+}
+
+function prevB() {
+  if (cBloco > 0) { cBloco--; segS = 0; updUpNext(); updGraph(); scrollGraph(); }
+}
+
+function nextB() {
+  if (cAula && cBloco < cAula.blocos.length - 1) { cBloco++; segS = 0; updUpNext(); updGraph(); scrollGraph(); }
+}
+
+function quitW() {
+  clearInterval(lInt); closeDrawer();
+  if (audio) { audio.pause(); audio.src = ''; }
+  showResults();
+}
+
+function markInt() { segS = 0; }
+
+// ════════════════════════════════════════════════════════
+// RESULTADOS
+// ════════════════════════════════════════════════════════
+function showResults() {
   clearInterval(lInt);
-  if(isFtpTest&&ftpTestWatts.length>0){ showFtpResult(); return; }
+  if (isFtpTest && ftpTestWatts.length > 0) { showFtpResult(); return; }
   showResultsReal();
 }
-function showResultsReal(){
-  closeDrawer();
-  if(audio){audio.pause();}
-  var nameEl=document.getElementById('resAulaName');
-  if(nameEl&&cAula) nameEl.textContent=cAula.nome;
-  var totEl=document.getElementById('resTot'); if(totEl) totEl.textContent=fmHMS(totS);
-  var kcalEl=document.getElementById('resKcal'); if(kcalEl) kcalEl.textContent=Math.round(totS*.06);
-  var distEl=document.getElementById('resDist'); if(distEl) distEl.textContent=(totS*.003).toFixed(1);
-  var avgFEl=document.getElementById('resAvgFtp'); if(avgFEl) avgFEl.textContent=cntFtp>0?Math.round(sumFtp/cntFtp):0;
-  var avgREl=document.getElementById('resAvgRpm'); if(avgREl) avgREl.textContent=cntRpm>0?Math.round(sumRpm/cntRpm):0;
-  var maxREl=document.getElementById('resMaxRpm'); if(maxREl) maxREl.textContent=maxRpm;
-  var wEl=document.getElementById('resWatts'); if(wEl) wEl.textContent=cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):0;
+
+function showResultsReal() {
+  closeDrawer(); if (audio) audio.pause();
+  el('resAulaName', cAula ? cAula.nome : 'Aula');
+  el('resTot',  fmHMS(totS));
+  el('resKcal', Math.round(totS * 0.06));
+  el('resDist', (totS * 0.003).toFixed(1));
+  el('resAvgFtp', cntFtp > 0 ? Math.round(sumFtp / cntFtp) : 0);
+  el('resAvgRpm', cntRpm > 0 ? Math.round(sumRpm / cntRpm) : 0);
+  el('resMaxRpm', maxRpm);
+  el('resWatts',  cntFtp > 0 ? Math.round((sumFtp / cntFtp) * 1.3) : 0);
   buildResChart(); go('sResults');
 }
-function buildResChart(){
-  var chart=document.getElementById('resZoneChart');
-  var donut=document.getElementById('resDonut');
-  var list=document.getElementById('resZoneList');
-  if(!chart||!donut||!list) return;
-  chart.innerHTML=''; donut.innerHTML=''; list.innerHTML='';
-  var zOrder=['z1','z2','z3','z4','z5','z6','z7'];
-  var zLabel=['Z1','Z2','Z3','Z4','Z5','Z6','Z7'];
-  var zName={z1:'Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuro'};
-  var maxT=0;
-  for(var i=0;i<zOrder.length;i++) if(zoneTime[zOrder[i]]>maxT) maxT=zoneTime[zOrder[i]];
-  if(maxT===0) maxT=1;
-  for(var i=0;i<zOrder.length;i++){
-    var z=zOrder[i]; var t=zoneTime[z]; if(t===0) continue;
-    var row=document.createElement('div'); row.className='res-zone-row';
-    row.innerHTML='<div class="res-zone-lbl">'+zLabel[i]+'</div>'
+
+function buildResChart() {
+  var chart = document.getElementById('resZoneChart');
+  var donut = document.getElementById('resDonut');
+  var list  = document.getElementById('resZoneList');
+  if (!chart || !donut || !list) return;
+  chart.innerHTML = ''; donut.innerHTML = ''; list.innerHTML = '';
+  var zOrder = ['z1','z2','z3','z4','z5','z6','z7'];
+  var zLabel = ['Z1','Z2','Z3','Z4','Z5','Z6','Z7'];
+  var zName  = {z1:'Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuro'};
+  var maxT = 1;
+  for (var i = 0; i < zOrder.length; i++) if (zoneTime[zOrder[i]] > maxT) maxT = zoneTime[zOrder[i]];
+  for (var i = 0; i < zOrder.length; i++) {
+    var z = zOrder[i], t = zoneTime[z];
+    if (!t) continue;
+    var rowEl = document.createElement('div'); rowEl.className = 'res-zone-row';
+    rowEl.innerHTML = '<div class="res-zone-lbl">'+zLabel[i]+'</div>'
       +'<div class="res-zone-bar-wrap"><div class="res-zone-bar" style="width:'+Math.round(t/maxT*100)+'%;background:'+zC[z]+';"></div></div>'
       +'<div class="res-zone-time">'+fmMS(t)+'</div>';
-    chart.appendChild(row);
+    chart.appendChild(rowEl);
   }
-  var totalT=0;
-  for(var i=0;i<zOrder.length;i++) totalT+=zoneTime[zOrder[i]];
-  if(totalT===0) totalT=1;
-  var offset=0; var r=36; var circ=2*3.14159*r;
-  for(var i=0;i<zOrder.length;i++){
-    var z=zOrder[i]; var t=zoneTime[z]; if(t===0) continue;
-    var dash=(t/totalT)*circ;
-    var circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
-    circle.setAttribute('cx','50'); circle.setAttribute('cy','50'); circle.setAttribute('r',r);
-    circle.setAttribute('fill','none'); circle.setAttribute('stroke',zC[z]);
-    circle.setAttribute('stroke-width','12');
-    circle.setAttribute('stroke-dasharray',dash+' '+(circ-dash));
-    circle.setAttribute('stroke-dashoffset',-offset);
-    circle.setAttribute('transform','rotate(-90 50 50)');
-    donut.appendChild(circle);
-    offset+=dash;
-    var li=document.createElement('div');
-    li.style.cssText='display:flex;align-items:center;gap:6px;';
-    li.innerHTML='<div style="width:8px;height:8px;border-radius:50%;background:'+zC[z]+';flex-shrink:0;"></div>'
+  var totalT = 1;
+  for (var i = 0; i < zOrder.length; i++) totalT += zoneTime[zOrder[i]];
+  var offset = 0, r = 36, circ = 2 * Math.PI * r;
+  for (var i = 0; i < zOrder.length; i++) {
+    var z = zOrder[i], t = zoneTime[z];
+    if (!t) continue;
+    var dash = (t / totalT) * circ;
+    var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx','50'); c.setAttribute('cy','50'); c.setAttribute('r',r);
+    c.setAttribute('fill','none'); c.setAttribute('stroke',zC[z]); c.setAttribute('stroke-width','12');
+    c.setAttribute('stroke-dasharray', dash+' '+(circ-dash));
+    c.setAttribute('stroke-dashoffset', -offset);
+    c.setAttribute('transform','rotate(-90 50 50)');
+    donut.appendChild(c); offset += dash;
+    var li = document.createElement('div');
+    li.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    li.innerHTML = '<div style="width:8px;height:8px;border-radius:50%;background:'+zC[z]+';flex-shrink:0;"></div>'
       +'<div style="flex:1;font-size:12px;color:rgba(255,255,255,.55);">'+zName[z]+'</div>'
       +'<div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);">'+fmMS(t)+'</div>';
     list.appendChild(li);
   }
 }
-function showFtpResult(){
-  clearInterval(lInt); closeDrawer(); if(audio){audio.pause();}
-  var sum=0;
-  for(var i=0;i<ftpTestWatts.length;i++) sum+=ftpTestWatts[i];
-  var avgW=ftpTestWatts.length>0?Math.round(sum/ftpTestWatts.length):100;
-  var ftp=Math.round(avgW*ftpTestCalc);
-  var pesoEl=document.getElementById('profPeso');
-  var peso=pesoEl?parseFloat(pesoEl.textContent)||70:70;
-  var wkg=(ftp/peso).toFixed(1);
-  var zC2=['#888','#295fe8','#5db13d','#d7c414','#ea860c','#d62d2d','#b030ff'];
-  var zNames=['Z1 Recovery','Z2 Endurance','Z3 Tempo','Z4 Threshold','Z5 VO2 Max','Z6 Anaerobic','Z7 Neuromuscular'];
-  var zMults=[0,0.56,0.76,0.91,1.06,1.21,1.51];
-  var zMaxMults=[0.55,0.75,0.90,1.05,1.20,1.50,99];
-  var el=document.getElementById('sFtpResult');
-  if(!el) return;
-  var vEl=document.getElementById('ftpResultVal'); if(vEl) vEl.textContent=ftp;
-  var wEl=document.getElementById('ftpResultWkg'); if(wEl) wEl.textContent=wkg+' W/kg';
-  var tEl=document.getElementById('ftpResultType'); if(tEl) tEl.textContent=cAula?cAula.nome:'FTP Test';
-  var zList=document.getElementById('ftpZoneList');
-  if(zList){
-    zList.innerHTML='';
-    for(var i=0;i<7;i++){
-      var minW=Math.round(ftp*zMults[i]);
-      var maxW=zMaxMults[i]===99?'max':Math.round(ftp*zMaxMults[i])+'W';
-      var row=document.createElement('div');
-      row.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);';
-      row.innerHTML='<div style="width:10px;height:10px;border-radius:50%;background:'+zC2[i]+';flex-shrink:0;"></div>'
-        +'<div style="flex:1;font-size:13px;color:rgba(255,255,255,.7);">'+zNames[i]+'</div>'
+
+function showFtpResult() {
+  clearInterval(lInt); closeDrawer(); if (audio) audio.pause();
+  var sum = 0;
+  for (var i = 0; i < ftpTestWatts.length; i++) sum += ftpTestWatts[i];
+  var avgW = ftpTestWatts.length > 0 ? Math.round(sum / ftpTestWatts.length) : 100;
+  var ftp  = Math.round(avgW * ftpTestCalc);
+  var pesoEl = document.getElementById('profPeso');
+  var peso = pesoEl ? parseFloat(pesoEl.textContent) || 70 : 70;
+  el('ftpResultVal',  ftp);
+  el('ftpResultWkg',  (ftp/peso).toFixed(1)+' W/kg');
+  el('ftpResultType', cAula ? cAula.nome : 'FTP Test');
+  var zMults    = [0,0.56,0.76,0.91,1.06,1.21,1.51];
+  var zMaxMults = [0.55,0.75,0.90,1.05,1.20,1.50,99];
+  var zNms = ['Z1 Recovery','Z2 Endurance','Z3 Tempo','Z4 Threshold','Z5 VO2 Max','Z6 Anaerobic','Z7 Neuromuscular'];
+  var zCo  = ['#888','#295fe8','#5db13d','#d7c414','#ea860c','#d62d2d','#b030ff'];
+  var zList = document.getElementById('ftpZoneList');
+  if (zList) {
+    zList.innerHTML = '';
+    for (var i = 0; i < 7; i++) {
+      var minW = Math.round(ftp * zMults[i]);
+      var maxW = zMaxMults[i] === 99 ? 'max' : Math.round(ftp * zMaxMults[i])+'W';
+      var rowEl = document.createElement('div');
+      rowEl.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);';
+      rowEl.innerHTML = '<div style="width:10px;height:10px;border-radius:50%;background:'+zCo[i]+';flex-shrink:0;"></div>'
+        +'<div style="flex:1;font-size:13px;color:rgba(255,255,255,.7);">'+zNms[i]+'</div>'
         +'<div style="font-size:13px;font-weight:700;color:#fff;">'+minW+'-'+maxW+'</div>';
-      zList.appendChild(row);
+      zList.appendChild(rowEl);
     }
   }
   go('sFtpResult');
 }
-function saveFtp(){
-  var vEl=document.getElementById('ftpResultVal');
-  var ftp=vEl?parseInt(vEl.textContent)||130:130;
-  var ftpEl=document.getElementById('ftpDisplay');
-  if(ftpEl) ftpEl.textContent=ftp+' W';
-  isFtpTest=false;
-  go('sHome');
-}
-function markInt(){ segS=0; }
 
-// \u2500\u2500 p\u00E1ginas \u2500\u2500
-function setPage(n){
-  var ps=document.querySelectorAll('.lpage');
-  for(var i=0;i<ps.length;i++){
+function saveFtp() {
+  var vEl = document.getElementById('ftpResultVal');
+  var ftp = vEl ? parseInt(vEl.textContent) || 130 : 130;
+  el('ftpDisplay', ftp+' W');
+  isFtpTest = false; go('sHome');
+}
+
+function saveAndGoHistory() {
+  var entry = {
+    nome: cAula ? cAula.nome : 'Aula',
+    data: 'Hoje, '+new Date().getHours()+':'+('0'+new Date().getMinutes()).slice(-2),
+    dur:  fmHMS(totS), totS: totS,
+    z:    cAula && cAula.blocos.length > 0 ? cAula.blocos[Math.floor(cAula.blocos.length/2)].z : 'z2'
+  };
+  historico.unshift(entry);
+  if (historico.length > 10) historico.pop();
+  buildHome(); goTab('sHome','navActivity');
+}
+
+// ════════════════════════════════════════════════════════
+// PÁGINAS (swipe)
+// ════════════════════════════════════════════════════════
+function setPage(n) {
+  var ps = document.querySelectorAll('.lpage');
+  for (var i = 0; i < ps.length; i++) {
     ps[i].classList.remove('left','center','right');
-    if(i<n) ps[i].classList.add('left');
-    else if(i===n) ps[i].classList.add('center');
+    if (i < n) ps[i].classList.add('left');
+    else if (i === n) ps[i].classList.add('center');
     else ps[i].classList.add('right');
   }
-  var ds=document.querySelectorAll('.nd');
-  for(var i=0;i<ds.length;i++){
-    if(i===n){ ds[i].classList.add('active'); }
-    else{ ds[i].classList.remove('active'); }
-  }
-  document.getElementById('pgLbl').textContent='Page '+(n+1)+' of 3';
-  cPg=n;
-}
-function tS(e){ tX=e.touches[0].clientX; }
-function tE(e){
-  var dx=e.changedTouches[0].clientX-tX;
-  if(Math.abs(dx)<40) return;
-  if(dx<0&&cPg<2) setPage(cPg+1);
-  if(dx>0&&cPg>0) setPage(cPg-1);
+  var ds = document.querySelectorAll('.nd');
+  for (var i = 0; i < ds.length; i++) ds[i].classList.toggle('active', i === n);
+  el('pgLbl', 'Page '+(n+1)+' of 3');
+  cPg = n;
 }
 
-// \u2500\u2500 drawer \u2500\u2500
-function openDrawer(){
-  drawerOpen=true;
+function tS(e) { tX = e.touches[0].clientX; }
+function tE(e) {
+  var dx = e.changedTouches[0].clientX - tX;
+  if (Math.abs(dx) < 40) return;
+  if (dx < 0 && cPg < 2) setPage(cPg + 1);
+  if (dx > 0 && cPg > 0) setPage(cPg - 1);
+}
+
+// ════════════════════════════════════════════════════════
+// DRAWER
+// ════════════════════════════════════════════════════════
+function openDrawer() {
+  drawerOpen = true;
   document.getElementById('drawer').classList.add('open');
   document.getElementById('dOverlay').classList.add('open');
   updUpNext();
 }
-function closeDrawer(){
-  drawerOpen=false;
+
+function closeDrawer() {
+  drawerOpen = false;
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('dOverlay').classList.remove('open');
 }
-function botTS(e){ botTY=e.touches[0].clientY; }
-function botTE(e){
-  var dy=botTY-e.changedTouches[0].clientY;
-  if(dy>30) openDrawer();
-  else if(dy<-20) closeDrawer();
+
+function botTS(e) { botTY = e.touches[0].clientY; }
+function botTE(e) {
+  var dy = botTY - e.changedTouches[0].clientY;
+  if (dy > 30) openDrawer();
+  else if (dy < -20) closeDrawer();
 }
 
-// \u2500\u2500 m\u00FAsica \u2500\u2500
-function p3Pick(src){
-  if(src==='mp3') document.getElementById('mp3In').click();
-  else { document.getElementById('p3Empty').style.display='none'; document.getElementById('p3Now').style.display='block'; document.getElementById('p3Tr').textContent='Abra o Spotify'; document.getElementById('p3Art').textContent='A m\u00FAsica tocar\u00E1 no seu app'; }
+// ════════════════════════════════════════════════════════
+// GRÁFICO DO PROFESSOR (quando conectado via QR)
+// ════════════════════════════════════════════════════════
+function renderAulaGrafico() {
+  var wrap = document.getElementById('aulaGraficoPainel');
+  if (!wrap || !aulaGrafico || !aulaGrafico.length) return;
+  var zCores = {z1:'#a1a1a1',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
+  var zAlts  = {z1:15,z2:28,z3:42,z4:57,z5:71,z6:85,z7:100};
+  var zNms   = {z1:'Recovery',z2:'Endurance',z3:'Tempo',z4:'Threshold',z5:'VO2 Max',z6:'Anaerobic',z7:'Neuromuscular'};
+  var totalDur = aulaGrafico.reduce(function(a,x){ return a+x.dur; },0) || 1;
+  var bAt = aulaGrafico[aulaBlocoIdx], corAt = bAt ? zCores[bAt.z]||'#888' : '#888';
+  var html = '';
+  if (bAt) {
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+      +'<div><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:2px;">Bloco atual</div>'
+      +'<div style="font-size:18px;font-weight:700;color:'+corAt+';">'+(zNms[bAt.z]||bAt.z)+'</div></div>'
+      +'<div style="text-align:right;">'
+      +'<div style="font-size:22px;font-weight:700;color:'+corAt+';">'+bAt.ftpMin+'–'+bAt.ftpMax+'<span style="font-size:12px;color:rgba(255,255,255,.4);margin-left:2px;">%</span></div>'
+      +'<div style="font-size:12px;color:rgba(255,255,255,.4);">'+bAt.rpmMin+'–'+bAt.rpmMax+' rpm</div></div></div>';
+  }
+  html += '<div style="display:flex;align-items:flex-end;gap:2px;height:72px;width:100%;margin-bottom:4px;">';
+  aulaGrafico.forEach(function(b, i) {
+    var cor = zCores[b.z]||'#888', h = zAlts[b.z]||15;
+    var isAtual = (i===aulaBlocoIdx), isPast = (i<aulaBlocoIdx);
+    var flex = Math.max(4, Math.round((b.dur/totalDur)*200));
+    var op   = isPast ? '.2' : isAtual ? '1' : '.4';
+    html += '<div style="flex:'+flex+';height:'+h+'%;border-radius:3px 3px 0 0;background:'+cor+';opacity:'+op+';position:relative;transition:all .4s;">';
+    if (isAtual) html += '<div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:'+cor+';"></div>';
+    html += '</div>';
+  });
+  html += '</div>'
+    +'<div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:5px;"></div>'
+    +'<div style="display:flex;justify-content:space-between;">'
+    +'<div style="font-size:10px;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:1px;">'+(aulaGraficoNome||'ProRider')+'</div>'
+    +'<div style="font-size:10px;color:rgba(255,255,255,.22);">'+(aulaBlocoIdx+1)+' / '+aulaGrafico.length+'</div>'
+    +'</div>';
+  wrap.innerHTML = html;
 }
-function loadMp3(inp){
-  if(!inp.files||!inp.files[0]) return;
-  var f=inp.files[0];
-  audio=document.getElementById('aud');
-  audio.src=URL.createObjectURL(f);
-  audio.play(); aPlay=true;
-  document.getElementById('p3Empty').style.display='none';
-  document.getElementById('p3Now').style.display='block';
-  document.getElementById('p3Tr').textContent=f.name.replace(/\.mp3$/i,'');
-  document.getElementById('p3Art').textContent='Arquivo local';
-  document.getElementById('p3Pb').textContent='\u23F8';
-  audio.ontimeupdate=function(){
-    if(!audio.duration) return;
-    var pct=(audio.currentTime/audio.duration*100).toFixed(1);
-    document.getElementById('p3Pf').style.width=pct+'%';
-    document.getElementById('p3Tc').textContent=fmMS(Math.floor(audio.currentTime));
-    document.getElementById('p3Tr2').textContent='-'+fmMS(Math.floor(audio.duration-audio.currentTime));
+
+// ════════════════════════════════════════════════════════
+// MÚSICA
+// ════════════════════════════════════════════════════════
+function p3Pick(src) {
+  if (src === 'mp3') { document.getElementById('mp3In').click(); return; }
+  var p3Empty = document.getElementById('p3Empty'), p3Now = document.getElementById('p3Now');
+  if (p3Empty) p3Empty.style.display = 'none';
+  if (p3Now)   p3Now.style.display   = 'block';
+  el('p3Tr','Abra o Spotify'); el('p3Art','A música tocará no seu app');
+}
+
+function loadMp3(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  var f = inp.files[0];
+  audio = document.getElementById('aud');
+  audio.src = URL.createObjectURL(f); audio.play(); aPlay = true;
+  var p3Empty = document.getElementById('p3Empty'), p3Now = document.getElementById('p3Now');
+  if (p3Empty) p3Empty.style.display = 'none';
+  if (p3Now)   p3Now.style.display   = 'block';
+  el('p3Tr', f.name.replace(/\.mp3$/i,'')); el('p3Art','Arquivo local'); el('p3Pb','⏸');
+  audio.ontimeupdate = function() {
+    if (!audio.duration) return;
+    var pct = (audio.currentTime / audio.duration * 100).toFixed(1);
+    var pf = document.getElementById('p3Pf'); if (pf) pf.style.width = pct+'%';
+    el('p3Tc',  fmMS(Math.floor(audio.currentTime)));
+    el('p3Tr2', '-'+fmMS(Math.floor(audio.duration-audio.currentTime)));
   };
 }
-function p3Toggle(){ if(!audio) return; if(aPlay){audio.pause();document.getElementById('p3Pb').textContent='\u25B6';}else{audio.play();document.getElementById('p3Pb').textContent='\u23F8';} aPlay=!aPlay; }
-function p3Skip(s){ if(audio) audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+s)); }
 
-// \u2500\u2500 profile \u2500\u2500
-function connectSpotify(){
-  document.getElementById('spotifyConnBtn').textContent='\u2713 Spotify Conectado';
-  document.getElementById('spotifyConnBtn').style.background='rgba(29,185,84,.25)';
+function p3Toggle() {
+  if (!audio) return;
+  if (aPlay) { audio.pause(); el('p3Pb','▶'); } else { audio.play(); el('p3Pb','⏸'); }
+  aPlay = !aPlay;
 }
 
-// \u2500\u2500 utilit\u00E1rios \u2500\u2500
-function go2(id){ go(id); }
-function fmMS(s){ s=Math.max(0,Math.floor(s)); return (Math.floor(s/60)<10?'0':'')+Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60; }
-function fmHMS(s){ s=Math.max(0,Math.floor(s)); var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss; }
+function p3Skip(s) { if (audio) audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime+s)); }
 
-// \u2500\u2500 BLUETOOTH WEB API \u2014 Chrome Android, requer HTTPS \u2500\u2500
-// UUIDs oficiais dos protocolos
-var BTUUID = {
-  // Servi\u00E7os de bike/pot\u00EAncia
-  CYCLING_POWER:     '00001818-0000-1000-8000-00805f9b34fb', // Stages, Garmin Vector
-  FTMS:              '00001826-0000-1000-8000-00805f9b34fb', // Wahoo KICKR, Tacx, Elite, Schwinn IC8
-  CSC:               '00001816-0000-1000-8000-00805f9b34fb', // Cycling Speed & Cadence
-  KEISER:            '0bf669f0-45f2-11e7-9598-0800200c9a66', // Keiser M3i (propriet\u00E1rio)
-  // Frequ\u00EAncia card\u00EDaca
-  HEART_RATE:        '0000180d-0000-1000-8000-00805f9b34fb', // Polar, Garmin, Wahoo TICKR
-  // Caracter\u00EDsticas
-  CHAR_POWER:        '00002a63-0000-1000-8000-00805f9b34fb',
-  CHAR_FTMS_DATA:    '00002ad2-0000-1000-8000-00805f9b34fb', // Indoor Bike Data
-  CHAR_FTMS_STATUS:  '00002ada-0000-1000-8000-00805f9b34fb',
-  CHAR_CSC:          '00002a5b-0000-1000-8000-00805f9b34fb',
-  CHAR_KEISER_DATA:  '0bf669f2-45f2-11e7-9598-0800200c9a66',
-  CHAR_HR:           '00002a37-0000-1000-8000-00805f9b34fb'
-};
+// ════════════════════════════════════════════════════════
+// PERFIL
+// ════════════════════════════════════════════════════════
+function connectSpotify() {
+  el('spotifyConnBtn','✓ Spotify Conectado');
+  var btn = document.getElementById('spotifyConnBtn');
+  if (btn) btn.style.background = 'rgba(29,185,84,.25)';
+}
 
-function scanDevBT(type){
-  if(!navigator.bluetooth){
-    alert('Bluetooth requer HTTPS. Para testar: netlify.com/drop no Chrome Android.');
-    return;
+function profEdit(field) {
+  profEditField = field;
+  var labels = {nome:'Nome',email:'E-mail',peso:'Peso (kg)',ftp:'FTP (Watts)'};
+  var types  = {nome:'text',email:'email',peso:'number',ftp:'number'};
+  var getVal = function(id, strip) {
+    var e = document.getElementById(id);
+    var v = e ? e.textContent : '';
+    return strip ? v.replace(strip,'') : v;
+  };
+  var current = {nome:getVal('profNome'), email:getVal('profEmail'), peso:getVal('profPeso',' kg'), ftp:getVal('ftpDisplay',' W')};
+  el('profModalLbl', labels[field]||field);
+  var inp = document.getElementById('profModalInput');
+  if (inp) { inp.type = types[field]||'text'; inp.value = current[field]||''; inp.placeholder = labels[field]||''; }
+  var modal = document.getElementById('profModal');
+  if (modal) modal.style.display = 'flex';
+  setTimeout(function(){ if(inp) inp.focus(); }, 100);
+}
+
+function profModalCancel() {
+  var modal = document.getElementById('profModal'); if (modal) modal.style.display = 'none';
+}
+
+function profModalSave() {
+  var inp = document.getElementById('profModalInput'); if (!inp) return;
+  var val = inp.value.trim(); if (!val) { profModalCancel(); return; }
+  if      (profEditField === 'nome')  el('profNome',    val);
+  else if (profEditField === 'email') el('profEmail',   val);
+  else if (profEditField === 'peso')  el('profPeso',    val+' kg');
+  else if (profEditField === 'ftp')   el('ftpDisplay',  val+' W');
+  profData[profEditField] = val; profModalCancel();
+}
+
+// ════════════════════════════════════════════════════════
+// ACTIVITY
+// ════════════════════════════════════════════════════════
+function buildActivity() {
+  var list = document.getElementById('actList');
+  var empty = document.getElementById('actEmpty');
+  if (!list) return;
+  list.innerHTML = '';
+  if (historico.length === 0) {
+    if (empty) empty.style.display = 'block';
+    el('actTotalAulas','0'); el('actTotalMin','0'); el('actTotalKcal','0'); return;
   }
-
-  var dEl=document.getElementById(type==='bike'?'devBike':'devHR');
-  var btn=document.getElementById(type==='bike'?'btnBike':'btnHR');
-  var st=document.getElementById(type==='bike'?'stBike':'stHR');
-
-  dEl.classList.add('scanning');
-  btn.textContent='Searching...';
-  btn.disabled=true;
-  st.className='dev-status st-search';
-  st.textContent='Opening Bluetooth selector...';
-
-  var btOptions;
-  if(type==='hr'){
-    btOptions={
-      filters:[{services:[BTUUID.HEART_RATE]}],
-      optionalServices:[BTUUID.HEART_RATE]
-    };
-  } else {
-    btOptions={
-      filters:[
-        {services:[BTUUID.KEISER]},
-        {services:[BTUUID.CYCLING_POWER]},
-        {services:[BTUUID.FTMS]},
-        {services:[BTUUID.CSC]}
-      ],
-      optionalServices:[BTUUID.KEISER,BTUUID.CYCLING_POWER,BTUUID.FTMS,BTUUID.CSC]
-    };
+  if (empty) empty.style.display = 'none';
+  var totalMin = 0, totalKcal = 0;
+  for (var i = 0; i < historico.length; i++) {
+    var h = historico[i], dur = h.totS || 0;
+    totalMin  += Math.round(dur / 60);
+    totalKcal += Math.round(dur * 0.06);
   }
-
-  navigator.bluetooth.requestDevice(btOptions)
-  .then(function(device){
-    st.textContent='Connecting to '+device.name+'...';
-    return device.gatt.connect().then(function(server){
-      if(type==='hr'){
-        return btConnectHR(server, device);
-      }
-      var name=(device.name||'').toLowerCase();
-      // detectar protocolo pelo nome do dispositivo
-      if(name.indexOf('keiser')!==-1 || name.indexOf('m3')!==-1){
-        return btConnectKeiser(server, device);
-      } else if(name.indexOf('wahoo')!==-1 || name.indexOf('kickr')!==-1 ||
-                name.indexOf('tacx')!==-1 || name.indexOf('elite')!==-1 ||
-                name.indexOf('suito')!==-1 || name.indexOf('neo')!==-1 ||
-                name.indexOf('schwinn')!==-1){
-        return btConnectFTMS(server, device);
-      } else {
-        // tentar Cycling Power primeiro (Stages), depois FTMS
-        return btConnectCyclingPower(server, device)
-          .catch(function(){ return btConnectFTMS(server, device); })
-          .catch(function(){ connDev('bike',device.name,''); });
-      }
-    });
-  })
-  .catch(function(err){
-    if(err.name!=='NotFoundError') alert('Bluetooth error: '+err.message);
-    dEl.classList.remove('scanning');
-    btn.textContent='Search';
-    btn.disabled=false;
-    st.className='dev-status st-idle';
-    st.textContent='Not connected';
-  });
+  el('actTotalAulas', historico.length);
+  el('actTotalMin',   totalMin);
+  el('actTotalKcal',  totalKcal);
+  for (var i = 0; i < historico.length; i++) {
+    var h = historico[i], dur = h.totS || 0;
+    var card = document.createElement('div');
+    card.style.cssText = 'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:16px;margin-bottom:10px;';
+    card.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
+      +'<div><div style="font-weight:700;font-size:16px;color:#fff;">'+h.nome+'</div>'
+      +'<div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:2px;">'+h.data+'</div></div>'
+      +'<div style="width:10px;height:10px;border-radius:50%;background:'+(zC[h.z]||'#888')+';flex-shrink:0;"></div></div>'
+      +'<div style="display:flex;gap:16px;">'
+      +'<div style="text-align:center;"><div style="font-size:20px;font-weight:900;color:#fff;">'+h.dur+'</div><div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">DURACAO</div></div>'
+      +'<div style="text-align:center;"><div style="font-size:20px;font-weight:900;color:#fff;">'+Math.round(dur*.06)+'</div><div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">KCAL</div></div>'
+      +'<div style="text-align:center;"><div style="font-size:20px;font-weight:900;color:#fff;">'+(dur*.003).toFixed(1)+'</div><div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">KM</div></div>'
+      +'</div>';
+    list.appendChild(card);
+  }
 }
 
-// \u2500\u2500 Keiser M3i (protocolo propriet\u00E1rio) \u2500\u2500
-function btConnectKeiser(server, device){
-  return server.getPrimaryService(BTUUID.KEISER).then(function(svc){
-    return svc.getCharacteristic(BTUUID.CHAR_KEISER_DATA).then(function(ch){
-      return ch.startNotifications().then(function(){
-        ch.addEventListener('characteristicvaluechanged', function(ev){
-          var d=ev.target.value;
-          if(d.byteLength>=19){
-            // Keiser: bytes 7-8 = cad\u00EAncia (RPM*10), bytes 9-10 = pot\u00EAncia (W)
-            var cadence = d.getUint16(7, true) / 10;
-            var power   = d.getUint16(9, true);
-            var gear    = d.getUint8(3);
-            dRpm = cadence;
-            document.getElementById('bigRpm').textContent=Math.round(cadence);
-            document.getElementById('bigWatts').textContent=power;
-          }
-        });
-        connDev('bike', device.name, '');
-      });
-    });
-  });
+// ════════════════════════════════════════════════════════
+// ONBOARDING
+// ════════════════════════════════════════════════════════
+function obGoStep(n) {
+  for (var i = 1; i <= obTotalSteps; i++) {
+    var e = document.getElementById('obStep'+i);
+    if (e) { e.style.display = (i===n) ? 'flex' : 'none'; if (i===n) e.style.flexDirection='column'; }
+  }
+  obStep = n;
+  var pb = document.getElementById('obProgress'); if (pb) pb.style.width = Math.round((n/obTotalSteps)*100)+'%';
+  el('obStepLbl', n+' / '+obTotalSteps);
+  var back = document.getElementById('obBack'); if (back) back.style.display = n>1?'block':'none';
+  var nw = document.getElementById('obNextWrap'); if (nw) nw.style.display = n===obTotalSteps?'none':'block';
 }
 
-// \u2500\u2500 Stages, Garmin Vector \u2014 Cycling Power Service \u2500\u2500
-function btConnectCyclingPower(server, device){
-  return server.getPrimaryService(BTUUID.CYCLING_POWER).then(function(svc){
-    return svc.getCharacteristic(BTUUID.CHAR_POWER).then(function(ch){
-      return ch.startNotifications().then(function(){
-        ch.addEventListener('characteristicvaluechanged', function(ev){
-          var d=ev.target.value;
-          // flags: byte 0-1; power: bytes 2-3 (sint16)
-          var flags = d.getUint16(0, true);
-          var power = d.getInt16(2, true);
-          document.getElementById('bigWatts').textContent=power;
-          // cad\u00EAncia opcional \u2014 bit 2 flag
-          if(flags & 0x0004 && d.byteLength >= 6){
-            var rpm = (d.getUint16(4, true) / 2048) * 60;
-            dRpm = rpm;
-            document.getElementById('bigRpm').textContent=Math.round(rpm);
-          }
-        });
-        connDev('bike', device.name, '');
-      });
-    });
-  });
+function obNext() {
+  if (obStep===1) {
+    var v = document.getElementById('obNome').value.trim(); if (!v){obShake('obNome');return;} obData.nome=v;
+  } else if (obStep===2) {
+    var e = document.getElementById('obEmail').value.trim(); if (!e){obShake('obEmail');return;} obData.email=e; obData.senha=document.getElementById('obSenha').value;
+  } else if (obStep===3) {
+    var p=parseFloat(document.getElementById('obPeso').value)||0, a=parseFloat(document.getElementById('obAltura').value)||0, id=parseFloat(document.getElementById('obIdade').value)||0;
+    if (!p||!a||!id) return; obData.peso=p; obData.altura=a; obData.idade=id;
+  } else if (obStep===4) { if (!obData.nivel) return;
+  } else if (obStep===5) { if (!obData.freq) return; obCalcFtp(); obGoStep(6); return; }
+  obGoStep(obStep+1);
 }
 
-// \u2500\u2500 Wahoo KICKR, Tacx Neo, Elite Suito, Schwinn IC8 \u2014 FTMS \u2500\u2500
-function btConnectFTMS(server, device){
-  return server.getPrimaryService(BTUUID.FTMS).then(function(svc){
-    return svc.getCharacteristic(BTUUID.CHAR_FTMS_DATA).then(function(ch){
-      return ch.startNotifications().then(function(){
-        ch.addEventListener('characteristicvaluechanged', function(ev){
-          var d=ev.target.value;
-          var flags=d.getUint16(0, true);
-          var offset=2;
-          // bit 0: Instantaneous Speed (0.01 km/h)
-          if(flags & 0x0001){ offset+=2; }
-          // bit 2: Instantaneous Cadence (0.5 rpm)
-          if(flags & 0x0004){
-            var rpm = d.getUint16(offset, true) * 0.5;
-            dRpm = rpm;
-            document.getElementById('bigRpm').textContent=Math.round(rpm);
-            offset+=2;
-          }
-          // bit 3: Average Speed \u2014 pular
-          if(flags & 0x0008){ offset+=2; }
-          // bit 4: Total Distance \u2014 pular
-          if(flags & 0x0010){ offset+=3; }
-          // bit 5: Resistance Level \u2014 pular
-          if(flags & 0x0020){ offset+=2; }
-          // bit 6: Instantaneous Power (sint16, watts)
-          if(flags & 0x0040){
-            var power=d.getInt16(offset, true);
-            document.getElementById('bigWatts').textContent=power;
-          }
-        });
-        connDev('bike', device.name, '');
-      });
-    });
-  });
+function obPrev() { if (obStep>1) obGoStep(obStep-1); }
+
+function obSelectNivel(nivel, btn) {
+  obData.nivel = nivel;
+  var btns = document.getElementById('obNivelBtns').getElementsByTagName('button');
+  for (var i=0;i<btns.length;i++) btns[i].className='ob-choice';
+  btn.className='ob-choice selected'; obValidateStep();
 }
 
-// \u2500\u2500 Polar H10, Polar H9, Garmin HRM, Wahoo TICKR \u2500\u2500
-function btConnectHR(server, device){
-  return server.getPrimaryService(BTUUID.HEART_RATE).then(function(svc){
-    return svc.getCharacteristic(BTUUID.CHAR_HR).then(function(ch){
-      return ch.startNotifications().then(function(){
-        ch.addEventListener('characteristicvaluechanged', function(ev){
-          var d=ev.target.value;
-          var flags=d.getUint8(0);
-          // bit 0: formato \u2014 0=uint8, 1=uint16
-          var hr = (flags & 0x01) ? d.getUint16(1, true) : d.getUint8(1);
-          document.getElementById('bigHR').textContent=hr;
-          document.getElementById('p2AHr').textContent=hr;
-        });
-        connDev('hr', device.name, '');
-      });
-    });
-  });
+function obSelectFreq(freq, btn) {
+  obData.freq = freq;
+  var btns = document.getElementById('obFreqBtns').getElementsByTagName('button');
+  for (var i=0;i<btns.length;i++) btns[i].className='ob-freq-btn';
+  btn.className='ob-freq-btn selected'; obValidateStep();
 }
 
+function obCalcFtp() {
+  var mult = {iniciante:1.5,intermediario:2.2,avancado:3.0};
+  var freqBonus = {1:0.85,2:0.92,3:1.0,4:1.08,5:1.15};
+  var ftp = Math.round(obData.peso*(mult[obData.nivel]||2.2)*(freqBonus[Math.min(obData.freq,5)]||1.0));
+  obData.ftp = ftp;
+  el('obFtpVal', ftp); el('obFtpWkg',(ftp/obData.peso).toFixed(1)+' W/kg');
+  el('obFtpBase','Baseado em: '+obData.nivel+', '+obData.freq+'x/sem, '+obData.peso+'kg');
+}
 
+function obSaveProfile() {
+  el('profNome',   obData.nome); el('profEmail',  obData.email);
+  el('profPeso',   obData.peso); el('ftpDisplay', obData.ftp+' W');
+}
 
-// \u2500\u2500 INIT \u2550\u2550
-buildHome();
-function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, "+new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2),dur:fmHMS(totS),z:cAula&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:"z2"};historico.unshift(entry);if(historico.length>10)historico.pop();buildHome();goTab("sHome","navActivity");}
-// ── Scanner de câmera real ─────────────────────────────────
-var qrStream = null;
-var qrScanInterval = null;
+function obSaveAndHome() { obSaveProfile(); go('sHome'); }
+function obSaveAndTest() { obSaveProfile(); goFtpTest('ftp5'); }
 
-function iniciarCamera(){
+function obValidateStep() {
+  var btn = document.getElementById('obNextBtn'); if (!btn) return;
+  var ok = (obStep<=3) || (obStep===4 && !!obData.nivel) || (obStep===5 && !!obData.freq);
+  btn.style.opacity = ok ? '1' : '0.4';
+}
+
+function obShake(id) {
+  var e = document.getElementById(id); if (!e) return;
+  e.style.borderColor='#d62d2d';
+  setTimeout(function(){ e.style.borderColor='rgba(255,255,255,.12)'; },1000);
+}
+
+// ════════════════════════════════════════════════════════
+// QR CÂMERA
+// ════════════════════════════════════════════════════════
+var qrStream = null, qrScanInterval = null;
+
+function iniciarCamera() {
   var prompt = document.getElementById('qrScanPrompt');
   var video  = document.getElementById('qrVideo');
   var line   = document.getElementById('qrScanLine');
   var status = document.getElementById('qrStatus');
-
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    if(status) status.textContent = 'Câmera não suportada. Digite o código abaixo.';
-    return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (status) status.textContent = 'Câmera não suportada. Digite o código abaixo.'; return;
   }
-
-  if(status) status.textContent = 'Aguardando permissão...';
-
-  navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } })
-    .then(function(stream){
-      qrStream = stream;
-      video.srcObject = stream;
-      video.style.display = 'block';
-      if(prompt) prompt.style.display = 'none';
-      if(line)   line.style.display = 'block';
-      if(status) status.textContent = 'Aponte para o QR Code';
+  if (status) status.textContent = 'Aguardando permissão...';
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
+    .then(function(stream) {
+      qrStream = stream; video.srcObject = stream; video.style.display = 'block';
+      if (prompt) prompt.style.display = 'none';
+      if (line)   line.style.display   = 'block';
+      if (status) status.textContent = 'Aponte para o QR Code';
       video.play();
-      // Tenta BarcodeDetector (Chrome/Android) ou fallback jsQR
-      if('BarcodeDetector' in window){
-        var bd = new BarcodeDetector({ formats:['qr_code'] });
-        qrScanInterval = setInterval(function(){
-          bd.detect(video).then(function(codes){
-            if(codes.length > 0){
-              var raw = codes[0].rawValue;
-              pararCamera();
-              processarQRCode(raw);
-            }
+      if ('BarcodeDetector' in window) {
+        var bd = new BarcodeDetector({formats:['qr_code']});
+        qrScanInterval = setInterval(function() {
+          bd.detect(video).then(function(codes) {
+            if (codes.length>0){ pararCamera(); processarQRCode(codes[0].rawValue); }
           }).catch(function(){});
         }, 300);
-      } else {
-        // Fallback: usa canvas + jsQR
-        carregarJsQR();
-      }
+      } else { carregarJsQR(); }
     })
-    .catch(function(err){
-      if(status) status.textContent = 'Sem acesso à câmera. Digite o código abaixo.';
-      console.warn('Camera error:', err);
+    .catch(function(err) {
+      if (status) status.textContent = 'Sem acesso à câmera. Digite o código abaixo.';
+      console.warn('Camera:', err);
     });
 }
 
-function carregarJsQR(){
+function carregarJsQR() {
   var s = document.createElement('script');
   s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
-  s.onload = function(){ iniciarScanCanvas(); };
-  document.head.appendChild(s);
+  s.onload = iniciarScanCanvas; document.head.appendChild(s);
 }
 
-function iniciarScanCanvas(){
-  var video  = document.getElementById('qrVideo');
+function iniciarScanCanvas() {
+  var video = document.getElementById('qrVideo');
   var canvas = document.getElementById('qrCanvas');
-  var ctx    = canvas.getContext('2d');
-  qrScanInterval = setInterval(function(){
-    if(video.readyState === video.HAVE_ENOUGH_DATA){
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
+  var ctx = canvas.getContext('2d');
+  qrScanInterval = setInterval(function() {
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
       ctx.drawImage(video,0,0,canvas.width,canvas.height);
-      var img = ctx.getImageData(0,0,canvas.width,canvas.height);
-      if(window.jsQR){
-        var code = jsQR(img.data,img.width,img.height);
-        if(code){
-          pararCamera();
-          processarQRCode(code.data);
-        }
+      if (window.jsQR) {
+        var code = jsQR(ctx.getImageData(0,0,canvas.width,canvas.height).data, canvas.width, canvas.height);
+        if (code){ pararCamera(); processarQRCode(code.data); }
       }
     }
   }, 400);
 }
 
-function pararCamera(){
-  if(qrScanInterval){ clearInterval(qrScanInterval); qrScanInterval=null; }
-  if(qrStream){ qrStream.getTracks().forEach(function(t){t.stop();}); qrStream=null; }
+function pararCamera() {
+  if (qrScanInterval){ clearInterval(qrScanInterval); qrScanInterval=null; }
+  if (qrStream){ qrStream.getTracks().forEach(function(t){ t.stop(); }); qrStream=null; }
   var video = document.getElementById('qrVideo');
-  if(video){ video.style.display='none'; video.srcObject=null; }
+  if (video){ video.style.display='none'; video.srcObject=null; }
 }
 
-function processarQRCode(raw){
-  // Aceita formato PR-XXXX-XXXX ou URL com código
+function processarQRCode(raw) {
   var match = raw.match(/PR-[A-Z0-9]{4}-[A-Z0-9]{4}/);
   var code  = match ? match[0] : raw.trim().toUpperCase();
-  var input = document.getElementById('qrCodeInput');
-  if(input) input.value = code;
+  var input = document.getElementById('qrCodeInput'); if (input) input.value = code;
   var status = document.getElementById('qrStatus');
-  if(status){ status.textContent = 'QR lido: '+code; status.style.color='#5db13d'; }
+  if (status){ status.textContent = 'QR lido: '+code; status.style.color = '#5db13d'; }
   connectQR(code);
 }
 
+// ════════════════════════════════════════════════════════
+// BLUETOOTH
+// ════════════════════════════════════════════════════════
+var BTUUID = {
+  CYCLING_POWER: '00001818-0000-1000-8000-00805f9b34fb',
+  FTMS:          '00001826-0000-1000-8000-00805f9b34fb',
+  CSC:           '00001816-0000-1000-8000-00805f9b34fb',
+  KEISER:        '0bf669f0-45f2-11e7-9598-0800200c9a66',
+  HEART_RATE:    '0000180d-0000-1000-8000-00805f9b34fb',
+  CHAR_POWER:    '00002a63-0000-1000-8000-00805f9b34fb',
+  CHAR_FTMS:     '00002ad2-0000-1000-8000-00805f9b34fb',
+  CHAR_KEISER:   '0bf669f2-45f2-11e7-9598-0800200c9a66',
+  CHAR_HR:       '00002a37-0000-1000-8000-00805f9b34fb'
+};
 
-// ── Leitura automática do código na URL (?sala=PR-XXXX-XXXX) ──
-(function(){
-  try{
-    var params = new URLSearchParams(window.location.search);
-    var sala = params.get('sala');
-    if(sala && /^PR-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(sala.toUpperCase())){
-      sala = sala.toUpperCase();
-      // Preenche o campo e navega para a tela de QR
-      setTimeout(function(){
-        var input = document.getElementById('qrCodeInput');
-        if(input) input.value = sala;
-        // Vai direto para a tela de entrada
-        if(typeof go === 'function') go('sQRScan');
-        // Auto-conecta em 1 segundo
-        setTimeout(function(){
-          connectQR(sala);
-        }, 800);
-      }, 600);
-    }
-  }catch(e){}
+function scanDevBT(type) {
+  if (!navigator.bluetooth){ alert('Bluetooth requer HTTPS.'); return; }
+  var dEl = document.getElementById(type==='bike'?'devBike':'devHR');
+  var btn = document.getElementById(type==='bike'?'btnBike':'btnHR');
+  var st  = document.getElementById(type==='bike'?'stBike' :'stHR');
+  dEl.classList.add('scanning'); btn.textContent='Searching...'; btn.disabled=true;
+  st.className='dev-status st-search'; st.textContent='Opening Bluetooth...';
+  var btOptions = type==='hr'
+    ? {filters:[{services:[BTUUID.HEART_RATE]}], optionalServices:[BTUUID.HEART_RATE]}
+    : {filters:[{services:[BTUUID.KEISER]},{services:[BTUUID.CYCLING_POWER]},{services:[BTUUID.FTMS]},{services:[BTUUID.CSC]}],
+       optionalServices:[BTUUID.KEISER,BTUUID.CYCLING_POWER,BTUUID.FTMS,BTUUID.CSC]};
+  navigator.bluetooth.requestDevice(btOptions)
+    .then(function(device) {
+      st.textContent = 'Connecting to '+device.name+'...';
+      return device.gatt.connect().then(function(server) {
+        if (type==='hr') return btConnectHR(server, device);
+        var name = (device.name||'').toLowerCase();
+        if (name.indexOf('keiser')!==-1||name.indexOf('m3')!==-1) return btConnectKeiser(server,device);
+        if (name.indexOf('wahoo')!==-1||name.indexOf('kickr')!==-1||name.indexOf('tacx')!==-1||
+            name.indexOf('elite')!==-1||name.indexOf('suito')!==-1||name.indexOf('neo')!==-1||
+            name.indexOf('schwinn')!==-1) return btConnectFTMS(server,device);
+        return btConnectCyclingPower(server,device)
+          .catch(function(){ return btConnectFTMS(server,device); })
+          .catch(function(){ connDev('bike',device.name,''); });
+      });
+    })
+    .catch(function(err) {
+      if (err.name!=='NotFoundError') alert('Bluetooth error: '+err.message);
+      dEl.classList.remove('scanning'); btn.textContent='Search'; btn.disabled=false;
+      st.className='dev-status st-idle'; st.textContent='Not connected';
+    });
+}
+
+function btConnectKeiser(server, device) {
+  return server.getPrimaryService(BTUUID.KEISER).then(function(svc) {
+    return svc.getCharacteristic(BTUUID.CHAR_KEISER).then(function(ch) {
+      return ch.startNotifications().then(function() {
+        ch.addEventListener('characteristicvaluechanged', function(ev) {
+          var d=ev.target.value;
+          if (d.byteLength>=19){ dRpm=d.getUint16(7,true)/10; el('bigRpm',Math.round(dRpm)); el('bigWatts',d.getUint16(9,true)); }
+        });
+        connDev('bike',device.name,'');
+      });
+    });
+  });
+}
+
+function btConnectCyclingPower(server, device) {
+  return server.getPrimaryService(BTUUID.CYCLING_POWER).then(function(svc) {
+    return svc.getCharacteristic(BTUUID.CHAR_POWER).then(function(ch) {
+      return ch.startNotifications().then(function() {
+        ch.addEventListener('characteristicvaluechanged', function(ev) {
+          var d=ev.target.value, flags=d.getUint16(0,true);
+          el('bigWatts',d.getInt16(2,true));
+          if ((flags&0x0004)&&d.byteLength>=6){ dRpm=(d.getUint16(4,true)/2048)*60; el('bigRpm',Math.round(dRpm)); }
+        });
+        connDev('bike',device.name,'');
+      });
+    });
+  });
+}
+
+function btConnectFTMS(server, device) {
+  return server.getPrimaryService(BTUUID.FTMS).then(function(svc) {
+    return svc.getCharacteristic(BTUUID.CHAR_FTMS).then(function(ch) {
+      return ch.startNotifications().then(function() {
+        ch.addEventListener('characteristicvaluechanged', function(ev) {
+          var d=ev.target.value, flags=d.getUint16(0,true), offset=2;
+          if (flags&0x0001) offset+=2;
+          if (flags&0x0004){ dRpm=d.getUint16(offset,true)*0.5; el('bigRpm',Math.round(dRpm)); offset+=2; }
+          if (flags&0x0008) offset+=2;
+          if (flags&0x0010) offset+=3;
+          if (flags&0x0020) offset+=2;
+          if (flags&0x0040) el('bigWatts',d.getInt16(offset,true));
+        });
+        connDev('bike',device.name,'');
+      });
+    });
+  });
+}
+
+function btConnectHR(server, device) {
+  return server.getPrimaryService(BTUUID.HEART_RATE).then(function(svc) {
+    return svc.getCharacteristic(BTUUID.CHAR_HR).then(function(ch) {
+      return ch.startNotifications().then(function() {
+        ch.addEventListener('characteristicvaluechanged', function(ev) {
+          var d=ev.target.value, flags=d.getUint8(0);
+          var hr=(flags&0x01)?d.getUint16(1,true):d.getUint8(1);
+          el('bigHR',hr); el('p2AHr',hr);
+        });
+        connDev('hr',device.name,'');
+      });
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// UTILITÁRIOS
+// ════════════════════════════════════════════════════════
+function fmMS(s)  { s=Math.max(0,Math.floor(s)); return (Math.floor(s/60)<10?'0':'')+Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60; }
+function fmHMS(s) { s=Math.max(0,Math.floor(s)); var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss; }
+
+// ════════════════════════════════════════════════════════
+// HTTP KEEPALIVE (evita Railway dormir)
+// ════════════════════════════════════════════════════════
+(function() {
+  fetch(SERVER_HTTP+'/ping',{method:'GET',cache:'no-store'}).catch(function(){});
+  setInterval(function(){ fetch(SERVER_HTTP+'/ping',{method:'GET',cache:'no-store'}).catch(function(){}); }, 30000);
 })();
 
+// ════════════════════════════════════════════════════════
+// AUTO-CONNECT VIA URL (?sala=PR-XXXX-XXXX)
+// ════════════════════════════════════════════════════════
+(function() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var sala = params.get('sala');
+    if (sala && /^PR-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(sala.toUpperCase())) {
+      sala = sala.toUpperCase();
+      setTimeout(function() {
+        var input = document.getElementById('qrCodeInput'); if (input) input.value = sala;
+        if (typeof go === 'function') go('sQRScan');
+        setTimeout(function() { connectQR(sala); }, 800);
+      }, 600);
+    }
+  } catch(e) {}
+})();
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+buildHome();
 </script>
 </body>
 </html><!-- QR Scan screen -->
