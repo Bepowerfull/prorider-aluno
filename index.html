@@ -653,15 +653,17 @@ input[type=file]{display:none}
           -->
           <defs>
             <linearGradient id="zoneGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <!-- Cinza e roxo comprimidos nas pontas; azul→vermelho dominam -->
-              <stop offset="0%"   stop-color="#888888" stop-opacity="0.6"/>
-              <stop offset="6%"   stop-color="#295fe8"/>
-              <stop offset="22%"  stop-color="#5db13d"/>
-              <stop offset="40%"  stop-color="#d7c414"/>
-              <stop offset="58%"  stop-color="#ea860c"/>
-              <stop offset="76%"  stop-color="#d62d2d"/>
-              <stop offset="94%"  stop-color="#9b30ff"/>
-              <stop offset="100%" stop-color="#9b30ff" stop-opacity="0.5"/>
+              <!-- Stops alinhados com o centro real de cada zona FTP no arco -->
+              <!-- Ponteiro em ftpPct/150*534 px = cor exata da zona -->
+              <stop offset="0%"    stop-color="#888888" stop-opacity="0.4"/>
+              <stop offset="20%"   stop-color="#888888" stop-opacity="0.7"/>
+              <stop offset="43.3%" stop-color="#295fe8"/>
+              <stop offset="54.7%" stop-color="#5db13d"/>
+              <stop offset="64.7%" stop-color="#d7c414"/>
+              <stop offset="74.7%" stop-color="#ea860c"/>
+              <stop offset="84%"   stop-color="#d62d2d"/>
+              <stop offset="94.7%" stop-color="#9b30ff"/>
+              <stop offset="100%"  stop-color="#9b30ff" stop-opacity="0.6"/>
             </linearGradient>
             <filter id="fillGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           </defs>
