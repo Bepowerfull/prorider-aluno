@@ -1636,23 +1636,23 @@ var zH={z1:18,z2:30,z3:42,z4:52,z5:60,z6:66,z7:84};
 var zNames={z1:"Active Recovery",z2:"Endurance",z3:"Tempo",z4:"Threshold",z5:"VO2 Max",z6:"Anaerobic",z7:"Neuromuscular"};
 
 var aulas = [
-  {nome:"Endurance Builder #1",icon:"\uD83D\uDEB4",dur:45,desc:"Treino focado na Zona de Potência 2 para construir sua base aeróbica e aumentar a capacidade de resistência.",badge:"Easy",badgeColor:"#295fe8",
+  {nome:"Endurance Builder #1",icon:"\uD83D\uDEB4",dur:45,desc:"Treino focado na Zona 2 de Potência para construir sua base aeróbica. Você vai pedalando em intensidade moderada por blocos longos, com breves subidas até a Zona 3. Esse tipo de esforço ensina o corpo a usar gordura como combustível, aumenta a densidade mitocondrial e melhora a eficiência cardiovascular — a fundação de todo o treinamento de ciclismo.",badge:"Easy",badgeColor:"#295fe8",
    blocos:[{z:"z1",ftp:"0-55",rpm:"75-80",dur:5,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"80-85",dur:10,pos:"Seated"},{z:"z1",ftp:"0-55",rpm:"75-80",dur:3,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"80-85",dur:10,pos:"Seated"},{z:"z3",ftp:"76-90",rpm:"85-90",dur:8,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"80-85",dur:6,pos:"Seated"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:3,pos:"Seated"}]},
-  {nome:"HIIT Threshold #3",icon:"\uD83D\uDD25",dur:50,desc:"Intervalos de alta intensidade alternando entre as zonas de Limiar e VO2 Máximo para elevar seu limiar de lactato.",badge:"Medium",badgeColor:"#d7c414",
+  {nome:"HIIT Threshold #3",icon:"\uD83D\uDD25",dur:50,desc:"Sessão de alta intensidade que alterna entre as Zonas 4 (Limiar), 5 (VO2 Máx) e 6 (Anaeróbico). Os intervalos sobem progressivamente de intensidade ao longo da aula, forçando o organismo a trabalhar cada vez mais perto — e acima — do limiar de lactato. O objetivo é empurrar esse limiar para cima a cada semana de treino.",badge:"Medium",badgeColor:"#d7c414",
    blocos:[{z:"z1",ftp:"0-55",rpm:"75-80",dur:5,pos:"Seated"},{z:"z3",ftp:"76-90",rpm:"85-90",dur:5,pos:"Seated"},{z:"z4",ftp:"91-105",rpm:"88-93",dur:5,pos:"Seated"},{z:"z5",ftp:"106-120",rpm:"90-95",dur:5,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"80-85",dur:3,pos:"Seated"},{z:"z4",ftp:"91-105",rpm:"88-93",dur:5,pos:"Seated"},{z:"z5",ftp:"106-120",rpm:"90-95",dur:5,pos:"Standing"},{z:"z6",ftp:"121-150",rpm:"92-98",dur:5,pos:"Standing"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:5,pos:"Seated"}]},
-  {nome:"VO2 Max Intervals",icon:"\uD83D\uDCAA",dur:40,desc:"Intervalos de potência máxima nas zonas de VO2 Máximo e Anaeróbico para aumentar sua potência de pico.",badge:"Hard",badgeColor:"#d62d2d",
+  {nome:"VO2 Max Intervals",icon:"\uD83D\uDCAA",dur:40,desc:"Intervalos repetidos na Zona 6 (Anaeróbico), intercalados com recuperação ativa na Zona 2. Esse formato treina o sistema de energia anaeróbico e aumenta o VO2 Máximo, que é a maior quantidade de oxigênio que seu corpo consegue utilizar. Quanto maior o VO2 Máx, maior o teto de potência aeróbica.",badge:"Hard",badgeColor:"#d62d2d",
    blocos:[{z:"z1",ftp:"0-55",rpm:"75-80",dur:5,pos:"Seated"},{z:"z5",ftp:"106-120",rpm:"90-95",dur:4,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z6",ftp:"121-150",rpm:"92-98",dur:4,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z6",ftp:"121-150",rpm:"92-98",dur:4,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z6",ftp:"121-150",rpm:"92-98",dur:4,pos:"Standing"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:5,pos:"Seated"}]},
-  {nome:"Sprint Neuromuscular",icon:"\u26A1",dur:35,desc:"Sprints explosivos curtos na Zona 7 com recuperação completa entre os esforços. Treina o sistema neuromuscular e a potência de pico.",badge:"Advanced",badgeColor:"#9b30ff",
+  {nome:"Sprint Neuromuscular",icon:"\u26A1",dur:35,desc:"Quatro sprints explosivos na Zona 7 — potência máxima absoluta — com recuperação completa entre cada esforço. O foco aqui não é o condicionamento aeróbico, mas o recrutamento de fibras musculares rápidas e a capacidade de produzir força instantânea. Essencial para ciclistas que precisam de acelerações, ataques e chegadas.",badge:"Advanced",badgeColor:"#9b30ff",
    blocos:[{z:"z2",ftp:"56-75",rpm:"80-85",dur:5,pos:"Seated"},{z:"z7",ftp:"Max",rpm:"100-120",dur:1,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z7",ftp:"Max",rpm:"100-120",dur:1,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z7",ftp:"Max",rpm:"100-120",dur:1,pos:"Standing"},{z:"z2",ftp:"56-75",rpm:"78-83",dur:3,pos:"Seated"},{z:"z7",ftp:"Max",rpm:"100-120",dur:1,pos:"Standing"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:5,pos:"Seated"}]},
-  {nome:"FTP Test 5 min",icon:"\uD83C\uDFC1",dur:30,desc:"Teste de esforço máximo de 5 minutos para medir seu FTP atual. Aqueça bem e dê tudo no segmento de teste.",badge:"Test",badgeColor:"#ea860c",
+  {nome:"FTP Test 5 min",icon:"\uD83C\uDFC1",dur:30,desc:"Teste de 5 minutos em esforço máximo para estimar seu FTP. Após um aquecimento progressivo, você dará tudo em um único bloco de 5 minutos. O resultado é multiplicado por 1,05 para calcular sua Potência Funcional de Limiar. Aqueça bem, conserve nos primeiros 2 minutos e vá aumentando até o limite.",badge:"Test",badgeColor:"#ea860c",
    blocos:[{z:"z1",ftp:"0-55",rpm:"80-85",dur:5,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"85-90",dur:3,pos:"Seated"},{z:"z3",ftp:"76-90",rpm:"88-93",dur:2,pos:"Seated"},{z:"z4",ftp:"91-105",rpm:"90-95",dur:2,pos:"Seated"},{z:"z3",ftp:"76-90",rpm:"85-90",dur:3,pos:"Seated"},{z:"z6",ftp:"Max 5min",rpm:"92-100",dur:5,pos:"Standing"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:10,pos:"Seated"}]},
-  {nome:"FTP Test 20 min",icon:"\uD83C\uDFC1",dur:45,desc:"FTP \u00e9 a POT\u00caNCIA FUNCIONAL DE LIMIAR \u2014 a maior pot\u00eancia m\u00e9dia que um ciclista consegue manter por 45\u201360 minutos. Este teste de 20 minutos estima seu FTP para definir suas Zonas de Treinamento de Pot\u00eancia.",badge:"Test",badgeColor:"#ea860c",
+  {nome:"FTP Test 20 min",icon:"\uD83C\uDFC1",dur:45,desc:"FTP \u2014 Pot\u00eancia Funcional de Limiar \u2014 \u00e9 a maior pot\u00eancia m\u00e9dia que voc\u00ea consegue sustentar por 45 a 60 minutos. Este teste usa um esfor\u00e7o de 20 minutos: ap\u00f3s o aquecimento, voc\u00ea vai pedalar no limite m\u00e1ximo sustent\u00e1vel durante 20 minutos. 95% da m\u00e9dia de pot\u00eancia desse bloco \u00e9 o seu FTP. Com ele, todas as suas Zonas de Treinamento s\u00e3o calculadas automaticamente.",badge:"Test",badgeColor:"#ea860c",
    blocos:[{z:"z1",ftp:"0-55",rpm:"80-85",dur:5,pos:"Seated"},{z:"z2",ftp:"56-75",rpm:"85-90",dur:3,pos:"Seated"},{z:"z3",ftp:"76-90",rpm:"88-93",dur:3,pos:"Seated"},{z:"z4",ftp:"91-105",rpm:"90-95",dur:3,pos:"Standing"},{z:"z3",ftp:"76-90",rpm:"85-90",dur:3,pos:"Seated"},{z:"z5",ftp:"Max 20min",rpm:"92-100",dur:20,pos:"Seated"},{z:"z1",ftp:"0-55",rpm:"70-75",dur:8,pos:"Seated"}]},
 
   // ── 8 novas aulas — Coggan & Allen | 50 min | warmup variável | cooldown z1 5 min ──
 
   // ── ENDURANCE BUILDER ──
-  {nome:"Endurance Builder #2",icon:"🚴",dur:50,desc:"Treino Sweetspot combinando as zonas de Tempo e Limiar. Blocos sustentados próximos ao seu limiar de lactato para maximizar os ganhos aeróbicos.",badge:"Easy",badgeColor:"#295fe8",
+  {nome:"Endurance Builder #2",icon:"🚴",dur:50,desc:"Treino Sweetspot — a zona entre Tempo (Z3) e Limiar (Z4) — considerada por muitos treinadores como a mais eficiente para ganhos aeróbicos. Você sustenta blocos longos nessa faixa de potência, que exige esforço real mas não gera tanto acúmulo de lactato quanto os intervalos de alta intensidade. Resultado: mais adaptação aeróbica com menos tempo de recuperação necessário.",badge:"Easy",badgeColor:"#295fe8",
    blocos:[
     // Aquecimento EASY — 4+3+2+1 = 10 min
     {z:"z1",ftp:"0-55",rpm:"70-80",dur:4,pos:"Seated"},
@@ -1670,7 +1670,7 @@ var aulas = [
     {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
    ]},
 
-  {nome:"Endurance Builder #3",icon:"🚴",dur:50,desc:"Sessão aeróbica de subida desenvolvendo força e resistência nas pernas com cadências variadas. Blocos de Tempo sentado e em pé para um estímulo aeróbico equilibrado.",badge:"Easy",badgeColor:"#295fe8",
+  {nome:"Endurance Builder #3",icon:"🚴",dur:50,desc:"Sessão que simula uma subida aeróbica longa, alternando blocos sentado em cadência alta com blocos em pé em cadência mais baixa. Essa variação de posição e cadência recruta grupos musculares diferentes, desenvolve força específica para subidas e aumenta a resistência aeróbica de forma equilibrada. Ideal para quem quer melhorar nas subidas sem forçar nas articulações.",badge:"Easy",badgeColor:"#295fe8",
    blocos:[
     // Aquecimento EASY — 4+3+2+1 = 10 min
     {z:"z1",ftp:"0-55",rpm:"70-80",dur:4,pos:"Seated"},
@@ -1689,7 +1689,7 @@ var aulas = [
    ]},
 
   // ── HIIT THRESHOLD ──
-  {nome:"HIIT Threshold #4",icon:"🔥",dur:50,desc:"Treino clássico Over-Under de Limiar. Alternância entre ligeiramente abaixo e acima do seu limiar de lactato em dois blocos intensos com recuperação completa entre eles.",badge:"Medium",badgeColor:"#d7c414",
+  {nome:"HIIT Threshold #4",icon:"🔥",dur:50,desc:"Over-Under é um dos treinos mais eficazes para aumentar o Limiar de Potência. Você alterna entre Zona 3 (ligeiramente abaixo do limiar) e Zona 4 (no limiar ou acima), em dois blocos principais com recuperação entre eles. Esse vai e vem ensina o corpo a tolerar e limpar o lactato acumulado, aumentando a potência que você consegue sustentar por longos períodos.",badge:"Medium",badgeColor:"#d7c414",
    blocos:[
     // Aquecimento MEDIUM — 3+3+2+1+1 = 10 min
     {z:"z1",ftp:"0-55",rpm:"70-80",dur:3,pos:"Seated"},
@@ -1717,7 +1717,7 @@ var aulas = [
     {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
    ]},
 
-  {nome:"HIIT Threshold #5",icon:"🔥",dur:50,desc:"Intervalos em pirâmide de Limiar que sobem de 4 para 8 minutos no limiar de lactato e depois descem. Testa e desenvolve sua potência máxima sustentada.",badge:"Medium",badgeColor:"#d7c414",
+  {nome:"HIIT Threshold #5",icon:"🔥",dur:50,desc:"Pirâmide de intervalos no Limiar: você começa com 4 minutos na Zona 4, sobe para 6, depois para 8 minutos, e retorna para 6. A progressão crescente e decrescente impede que o ritmo seja pré-calculado e força uma adaptação constante. Um dos formatos mais desafiadores para desenvolver a capacidade de sustentar potência máxima por tempo prolongado.",badge:"Medium",badgeColor:"#d7c414",
    blocos:[
     // Aquecimento MEDIUM — 3+3+2+1+1 = 10 min
     {z:"z1",ftp:"0-55",rpm:"70-80",dur:3,pos:"Seated"},
@@ -1739,7 +1739,7 @@ var aulas = [
    ]},
 
   // ── VO2 MAX INTERVALS ──
-  {nome:"VO2 Max Intervals #2",icon:"💪",dur:50,desc:"Intervalos de VO2 Máximo combinando esforços sentados em alta cadência com potência de subida em pé. Oito repetições para maximizar o consumo de oxigênio por dois ângulos diferentes.",badge:"Hard",badgeColor:"#d62d2d",
+  {nome:"VO2 Max Intervals #2",icon:"💪",dur:50,desc:"Oito repetições de VO2 Máximo na Zona 5, combinando esforços sentados em alta cadência com blocos em pé simulando subida. Alternar a posição distribui o esforço entre diferentes grupos musculares, permitindo que você acumule mais volume de alta intensidade. Cada repetição de 4 minutos é suficiente para ativar o consumo máximo de oxigênio.",badge:"Hard",badgeColor:"#d62d2d",
    blocos:[
     // Aquecimento HARD — 2+2+2+2+2 = 10 min
     {z:"z1",ftp:"0-55",rpm:"70-80",dur:2,pos:"Seated"},
@@ -1761,7 +1761,7 @@ var aulas = [
     {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
    ]},
 
-  {nome:"VO2 Max Intervals #3",icon:"💪",dur:50,desc:"Pirâmide de VO2 Máximo com ativadores de 30 segundos em pé e alta cadência entre os intervalos. Cada repetição ligeiramente mais longa — força o corpo a se adaptar e evita o ritmo automático.",badge:"Hard",badgeColor:"#d62d2d",
+  {nome:"VO2 Max Intervals #3",icon:"💪",dur:50,desc:"Pirâmide de VO2 Máximo com um detalhe tático: antes de cada intervalo longo, há um ativador de 30 segundos em pé e alta cadência para pré-ativar as fibras musculares. Cada intervalo principal é um pouco mais longo que o anterior, impedindo que o corpo encontre um ritmo confortável. Essa variação constante é o que torna essa aula especialmente eficaz para aumentar o VO2 Máx.",badge:"Hard",badgeColor:"#d62d2d",
    blocos:[
     // Aquecimento HARD — 2+2+2+2+2 = 10 min
     {z:"z1",ftp:"0-55",rpm:"70-80",dur:2,pos:"Seated"},
@@ -1788,7 +1788,7 @@ var aulas = [
    ]},
 
   // ── SPRINT NEUROMUSCULAR ──
-  {nome:"Sprint Neuromuscular #2",icon:"⚡",dur:50,desc:"Quatro sprints máximos de 30 segundos com recuperação completa de PCr, mais duas acelerações anaeróbicas em subida. Potência de pico com sprints sentado e subida em pé.",badge:"Advanced",badgeColor:"#9b30ff",
+  {nome:"Sprint Neuromuscular #2",icon:"⚡",dur:50,desc:"Quatro sprints máximos de 30 segundos na Zona 7, intercalados com recuperação longa para reposição completa do PCr (fosfocreatina) — o combustível dos esforços explosivos. Além dos sprints sentados, há duas acelerações anaeróbicas em pé simulando uma subida com ataque. Essa combinação treina tanto a potência neuromuscular quanto a capacidade de repetir esforços máximos.",badge:"Advanced",badgeColor:"#9b30ff",
    blocos:[
     // Aquecimento ADVANCED — 2+2+2+2+1+1 = 10 min
     {z:"z1",ftp:"0-55",rpm:"70-78",dur:2,pos:"Seated"},
@@ -1815,7 +1815,7 @@ var aulas = [
     {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
    ]},
 
-  {nome:"Sprint Neuromuscular #3",icon:"⚡",dur:50,desc:"Séries de sprints progressivas — 1, depois 2, depois 3 sprints máximos de 30 segundos com recuperação completa de PCr. O volume aumenta a cada série. Fisiologicamente exigente do início ao fim.",badge:"Advanced",badgeColor:"#9b30ff",
+  {nome:"Sprint Neuromuscular #3",icon:"⚡",dur:50,desc:"Três séries de sprints com volume crescente: 1 sprint na primeira, 2 na segunda e 3 na terceira — sempre com recuperação completa entre cada esforço para reposição do PCr. A lógica é simples: quando você chega na terceira série, as fibras musculares rápidas já estão parcialmente fatigadas. Completar os sprints nesse estado é o que gera a adaptação neuromuscular mais profunda.",badge:"Advanced",badgeColor:"#9b30ff",
    blocos:[
     // Aquecimento ADVANCED — 2+2+2+2+1+1 = 10 min
     {z:"z1",ftp:"0-55",rpm:"70-78",dur:2,pos:"Seated"},
