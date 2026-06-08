@@ -3258,189 +3258,188 @@ function shareCard(){
   var overlay=document.getElementById('shareOverlay');
   var canvas=document.getElementById('shareCanvas');
   if(!overlay||!canvas) return;
+  overlay.style.display='flex';
+  // Aguarda fontes carregarem antes de desenhar
+  var ready = document.fonts ? document.fonts.ready : Promise.resolve();
+  ready.then(function(){ _drawShareCard(canvas); });
+}
 
+function _drawShareCard(canvas){
   var SIZE=1080;
   canvas.width=SIZE; canvas.height=SIZE;
   var ctx=canvas.getContext('2d');
 
-  // ── Background gradient ──
-  var bg=ctx.createLinearGradient(0,0,SIZE,SIZE);
-  bg.addColorStop(0,'#0a0812');
-  bg.addColorStop(0.5,'#110a08');
-  bg.addColorStop(1,'#08080e');
-  ctx.fillStyle=bg;
+  // ── Background ──
+  // Fundo principal escuro-azulado
+  ctx.fillStyle='#0f0e17';
   ctx.fillRect(0,0,SIZE,SIZE);
 
-  // ── Subtle radial glow top-left ──
-  var glow=ctx.createRadialGradient(200,200,0,200,200,600);
-  glow.addColorStop(0,'rgba(234,134,12,0.12)');
-  glow.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=glow;
+  // Acento laranja/vermelho no canto superior direito
+  var glow1=ctx.createRadialGradient(SIZE,0,0,SIZE,0,700);
+  glow1.addColorStop(0,'rgba(214,45,45,0.35)');
+  glow1.addColorStop(0.5,'rgba(234,134,12,0.15)');
+  glow1.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=glow1;
   ctx.fillRect(0,0,SIZE,SIZE);
 
-  // ── Divider lines (subtle grid feel) ──
-  ctx.strokeStyle='rgba(255,255,255,0.04)';
-  ctx.lineWidth=1;
-  for(var y=120;y<SIZE;y+=120){ ctx.beginPath();ctx.moveTo(60,y);ctx.lineTo(SIZE-60,y);ctx.stroke(); }
+  // Acento azul no canto inferior esquerdo
+  var glow2=ctx.createRadialGradient(0,SIZE,0,0,SIZE,600);
+  glow2.addColorStop(0,'rgba(41,95,232,0.2)');
+  glow2.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=glow2;
+  ctx.fillRect(0,0,SIZE,SIZE);
 
-  // ── Bolt icon (top-left) ──
+  // ── Faixa lateral esquerda (acento de cor da aula) ──
+  var accentColor=(cAula&&cAula.badgeColor)||'#ea860c';
+  var accentGrad=ctx.createLinearGradient(0,0,0,SIZE);
+  accentGrad.addColorStop(0,accentColor);
+  accentGrad.addColorStop(1,accentColor+'44');
+  ctx.fillStyle=accentGrad;
+  ctx.fillRect(0,0,8,SIZE);
+
+  // ── Bolt icon ──
   ctx.save();
-  ctx.translate(72, 72);
-  ctx.scale(1.8, 1.8);
+  ctx.translate(72,65);
+  ctx.scale(2.0,2.0);
   var boltGrad=ctx.createLinearGradient(0,0,0,56);
   boltGrad.addColorStop(0,'#ffe033');
   boltGrad.addColorStop(0.45,'#ea860c');
   boltGrad.addColorStop(1,'#d62d2d');
   ctx.fillStyle=boltGrad;
   ctx.beginPath();
-  // bolt path (scaled from viewBox 0 0 44 56)
-  ctx.moveTo(30,4); ctx.lineTo(10,30); ctx.lineTo(20,30); ctx.lineTo(14,52); ctx.lineTo(34,26); ctx.lineTo(24,26); ctx.closePath();
+  ctx.moveTo(30,4);ctx.lineTo(10,30);ctx.lineTo(20,30);ctx.lineTo(14,52);ctx.lineTo(34,26);ctx.lineTo(24,26);ctx.closePath();
   ctx.fill();
   ctx.restore();
 
-  // ── "PRORIDER" brand name ──
-  ctx.fillStyle='rgba(255,255,255,0.9)';
-  ctx.font='700 52px "Bebas Neue", Arial';
-  ctx.letterSpacing='8px';
-  ctx.fillText('PRORIDER', 185, 122);
+  // ── PRORIDER wordmark ──
+  ctx.fillStyle='#ffffff';
+  ctx.font='bold 58px "Bebas Neue", Impact, Arial';
+  ctx.fillText('PRORIDER', 195,130);
 
-  // ── Subtle top-right tag ──
-  ctx.fillStyle='rgba(255,255,255,0.18)';
-  ctx.font='600 28px "Barlow Condensed", Arial';
+  // ── prorider.app (top right) ──
+  ctx.fillStyle='rgba(255,255,255,0.3)';
+  ctx.font='500 26px "Barlow Condensed", Arial';
   ctx.textAlign='right';
-  ctx.fillText('prorider.app', SIZE-72, 122);
+  ctx.fillText('prorider.app', SIZE-72,130);
   ctx.textAlign='left';
 
-  // ── Aula nome ──
-  var nome=(cAula?cAula.nome:'Treino').toUpperCase();
-  ctx.fillStyle='rgba(255,255,255,0.95)';
-  ctx.font='900 '+( nome.length>18 ? '88' : nome.length>12 ? '104' : '120')+'px "Bebas Neue", Arial';
-  // Wrap long name
+  // ── Separador ──
+  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(72,160); ctx.lineTo(SIZE-72,160); ctx.stroke();
+
+  // ── Nome da aula ──
+  var nome=(cAula?cAula.nome:'Treino Concluído').toUpperCase();
   var words=nome.split(' ');
-  var line1='', line2='';
-  for(var w=0;w<words.length;w++){
-    if((line1+words[w]).length<=12) line1+=(line1?' ':'')+words[w];
-    else line2+=(line2?' ':'')+words[w];
-  }
-  if(!line2){ ctx.fillText(line1||nome, 72, 380); }
-  else {
-    ctx.fillText(line1, 72, 340);
-    ctx.fillStyle='rgba(255,255,255,0.75)';
-    ctx.font='900 88px "Bebas Neue", Arial';
-    ctx.fillText(line2, 72, 430);
+  // Quebra em 2 linhas: primeira até 12 chars
+  var l1='', l2='';
+  words.forEach(function(w){ if((l1+' '+w).trim().length<=14) l1=(l1+' '+w).trim(); else l2=(l2+' '+w).trim(); });
+  var fs1=l2?108:120;
+  ctx.fillStyle='#ffffff';
+  ctx.font='bold '+fs1+'px "Bebas Neue", Impact, Arial';
+  ctx.fillText(l1||nome, 72, l2?290:330);
+  if(l2){
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.font='bold 88px "Bebas Neue", Impact, Arial';
+    ctx.fillText(l2, 72, 390);
   }
 
-  // ── Badge (difficulty) ──
+  // ── Badge ──
+  var badgeY=l2?420:370;
   if(cAula&&cAula.badge){
-    var bColor=cAula.badgeColor||'#ea860c';
-    ctx.fillStyle=bColor+'44';
-    roundRect(ctx, 72, 460, 180, 52, 14);
-    ctx.fill();
-    ctx.strokeStyle=bColor+'88';
-    ctx.lineWidth=1.5;
-    roundRect(ctx, 72, 460, 180, 52, 14);
-    ctx.stroke();
-    ctx.fillStyle=bColor;
-    ctx.font='700 26px "Barlow Condensed", Arial';
+    ctx.fillStyle=accentColor+'33';
+    roundRect(ctx,72,badgeY,200,56,12); ctx.fill();
+    ctx.strokeStyle=accentColor+'99'; ctx.lineWidth=2;
+    roundRect(ctx,72,badgeY,200,56,12); ctx.stroke();
+    ctx.fillStyle=accentColor;
+    ctx.font='bold 28px "Barlow Condensed", Arial';
     ctx.textAlign='center';
-    ctx.fillText(cAula.badge.toUpperCase(), 162, 492);
+    ctx.fillText((cAula.badge+' · '+cAula.dur+' MIN').toUpperCase(),172,badgeY+37);
     ctx.textAlign='left';
   }
 
-  // ── Stats grid ──
+  // ── Stats (4 caixas 2×2) ──
   var stats=[
-    {label:'DURAÇÃO',   value: fmHMS(totS)},
-    {label:'CALORIAS',  value: Math.round(totS*.06)+' kcal'},
-    {label:'RPM MÉD',   value: (cntRpm>0?Math.round(sumRpm/cntRpm):0)+' rpm'},
-    {label:'WATTS MÉD', value: (cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):0)+' W'}
+    {label:'DURAÇÃO',    value:fmHMS(totS),                                      color:'#ffffff'},
+    {label:'CALORIAS',   value:Math.round(totS*.06)+' kcal',                     color:'#ea860c'},
+    {label:'RPM MÉD',    value:(cntRpm>0?Math.round(sumRpm/cntRpm):'-')+' rpm',  color:'#295fe8'},
+    {label:'WATTS MÉD',  value:(cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):'-')+' W', color:'#5db13d'}
   ];
-  var gx=72, gy=560, gw=(SIZE-144)/2, gh=170;
+  var gx=72,gy=530,gcols=2,gcw=(SIZE-144-20)/gcols,gch=160;
   stats.forEach(function(s,i){
-    var cx=gx+(i%2)*gw, cy=gy+Math.floor(i/2)*gh;
-    // card bg
-    ctx.fillStyle='rgba(255,255,255,0.05)';
-    roundRect(ctx, cx, cy, gw-16, gh-16, 20);
-    ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.07)';
-    ctx.lineWidth=1;
-    roundRect(ctx, cx, cy, gw-16, gh-16, 20);
-    ctx.stroke();
-    // value
-    ctx.fillStyle='#ffffff';
-    ctx.font='700 '+( s.value.length>7?'52':'64')+'px "Bebas Neue", Arial';
+    var col=i%gcols, row=Math.floor(i/gcols);
+    var bx=gx+col*(gcw+20), by=gy+row*(gch+16);
+    // fundo
+    ctx.fillStyle='rgba(255,255,255,0.06)';
+    roundRect(ctx,bx,by,gcw,gch,18); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1;
+    roundRect(ctx,bx,by,gcw,gch,18); ctx.stroke();
+    // valor
+    var vlen=String(s.value).length;
+    ctx.fillStyle=s.color;
+    ctx.font='bold '+(vlen>8?'52':vlen>5?'62':'72')+'px "Bebas Neue", Impact, Arial';
     ctx.textAlign='center';
-    ctx.fillText(s.value, cx+(gw-16)/2, cy+90);
+    ctx.fillText(s.value, bx+gcw/2, by+90);
     // label
-    ctx.fillStyle='rgba(255,255,255,0.3)';
-    ctx.font='700 22px "Barlow Condensed", Arial';
-    ctx.fillText(s.label, cx+(gw-16)/2, cy+125);
+    ctx.fillStyle='rgba(255,255,255,0.35)';
+    ctx.font='600 22px "Barlow Condensed", Arial';
+    ctx.fillText(s.label, bx+gcw/2, by+125);
     ctx.textAlign='left';
   });
 
-  // ── Zone distribution bar ──
+  // ── Zona bar ──
   var zOrder=['z1','z2','z3','z4','z5','z6','z7'];
-  var zColors={z1:'#888888',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
-  var totalZT=0;
-  zOrder.forEach(function(z){ totalZT+=zoneTime[z]; });
+  var zColors={z1:'#666666',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
+  var totalZT=0; zOrder.forEach(function(z){ totalZT+=zoneTime[z]; });
+  var barX=72, barY=900, barW=SIZE-144, barH=32;
+  // label
+  ctx.fillStyle='rgba(255,255,255,0.3)';
+  ctx.font='600 22px "Barlow Condensed", Arial';
+  ctx.fillText('DISTRIBUIÇÃO DE ZONAS', barX, barY-14);
+  // fundo
+  ctx.fillStyle='rgba(255,255,255,0.07)';
+  roundRect(ctx,barX,barY,barW,barH,10); ctx.fill();
   if(totalZT>0){
-    var barX=72, barY=928, barW=SIZE-144, barH=28;
-    // background
-    ctx.fillStyle='rgba(255,255,255,0.06)';
-    roundRect(ctx, barX, barY, barW, barH, 8);
-    ctx.fill();
-    // zone segments
-    var curX=barX;
+    var cx=barX;
     zOrder.forEach(function(z){
-      var t=zoneTime[z]; if(t===0) return;
+      var t=zoneTime[z]; if(!t) return;
       var w=(t/totalZT)*barW;
       ctx.fillStyle=zColors[z];
-      ctx.fillRect(curX, barY, w, barH);
-      curX+=w;
+      ctx.fillRect(cx,barY,w,barH);
+      cx+=w;
     });
-    // rounded mask
+    // mask arredondado
     ctx.globalCompositeOperation='destination-in';
-    roundRect(ctx, barX, barY, barW, barH, 8);
-    ctx.fill();
+    roundRect(ctx,barX,barY,barW,barH,10); ctx.fill();
     ctx.globalCompositeOperation='source-over';
-
-    // Zone labels below bar
-    curX=barX; var labelY=barY+barH+32;
+    // labels de zona
+    cx=barX;
     zOrder.forEach(function(z){
-      var t=zoneTime[z]; if(t===0) return;
+      var t=zoneTime[z]; if(!t) return;
       var w=(t/totalZT)*barW;
-      if(w>50){
+      if(w>55){
         ctx.fillStyle=zColors[z];
-        ctx.font='700 22px "Barlow Condensed", Arial';
+        ctx.font='bold 22px "Barlow Condensed", Arial';
         ctx.textAlign='center';
-        ctx.fillText(z.toUpperCase(), curX+w/2, labelY);
+        ctx.fillText(z.toUpperCase(), cx+w/2, barY+barH+28);
       }
-      curX+=w;
+      cx+=w;
     });
     ctx.textAlign='left';
-
-    // "DISTRIBUIÇÃO DE ZONAS" label
-    ctx.fillStyle='rgba(255,255,255,0.22)';
-    ctx.font='600 20px "Barlow Condensed", Arial';
-    ctx.letterSpacing='3px';
-    ctx.fillText('DISTRIBUIÇÃO DE ZONAS', 72, barY-16);
-    ctx.letterSpacing='0px';
   }
 
-  // ── Bottom brand strip ──
+  // ── Rodapé ──
   ctx.fillStyle='rgba(255,255,255,0.06)';
-  ctx.fillRect(0, SIZE-60, SIZE, 60);
-  ctx.fillStyle='rgba(255,255,255,0.25)';
-  ctx.font='600 22px "Barlow Condensed", Arial';
+  ctx.fillRect(0,SIZE-56,SIZE,56);
+  ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.font='600 24px "Barlow Condensed", Arial';
   ctx.textAlign='center';
-  ctx.fillText('Treinado com ProRider  ·  prorider.app', SIZE/2, SIZE-22);
+  ctx.fillText('Treinado com ProRider  ·  prorider.app', SIZE/2, SIZE-18);
   ctx.textAlign='left';
-
-  // ── Show overlay ──
-  overlay.style.display='flex';
 
   // ── Native share button ──
   var nsbtn=document.getElementById('btnNativeShare');
-  if(nsbtn) nsbtn.style.display=(navigator.share&&navigator.canShare)?'block':'none';
+  if(nsbtn) nsbtn.style.display=(navigator.share)?'block':'none';
 }
 
 function roundRect(ctx, x, y, w, h, r){
