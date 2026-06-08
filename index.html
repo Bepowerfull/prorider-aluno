@@ -81,6 +81,15 @@ img{display:block;max-width:100%}
 .gsess-badge{display:inline-block;padding:3px 9px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:6px}
 .gsess-card-ring{position:absolute;top:12px;right:14px}
 .gsess-card-filter{position:absolute;bottom:12px;right:14px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:1px}
+/* Category cards */
+.cat-card{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:0;overflow:hidden;cursor:pointer;margin-bottom:10px;transition:background .15s}
+.cat-card:active{background:rgba(255,255,255,.08)}
+.cat-card-left{display:flex;align-items:center;gap:14px;padding:16px 14px;flex:1;}
+.cat-card-icon{font-size:26px;line-height:1;width:32px;text-align:center}
+.cat-card-info{display:flex;flex-direction:column;gap:2px}
+.cat-card-name{font-size:15px;font-weight:700;color:#fff}
+.cat-card-count{font-size:11px;color:rgba(255,255,255,.35)}
+.cat-card-right{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 14px 14px 6px}
 
 /*                                   
    DETALHE DA AULA
@@ -468,8 +477,24 @@ input[type=file]{display:none}
 
   <div class="home-sec" style="margin-top:16px;padding-bottom:16px;">
     <div class="home-sec-title">Guided Sessions</div>
-    <div id="aulasList"></div>
+    <div id="catList"></div>
   </div>
+</div>
+
+<!-- ══════════════════════════════════
+     CATEGORIA — lista de aulas do estilo
+══════════════════════════════════ -->
+<div class="screen" id="sCategory" style="padding-bottom:66px;background:linear-gradient(160deg,#0a0812 0%,#110808 60%,#080a14 100%);overflow-y:auto;">
+  <!-- Header -->
+  <div style="padding:20px 20px 10px;display:flex;align-items:center;gap:14px;flex-shrink:0;">
+    <button onclick="go('sHome')" style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
+    <div style="flex:1;">
+      <div id="catTitle" style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;line-height:1;">Categoria</div>
+      <div id="catSub" style="font-size:12px;color:rgba(255,255,255,.35);margin-top:2px;"></div>
+    </div>
+  </div>
+  <!-- Lista -->
+  <div id="catAulasList" style="padding:0 16px 16px;display:flex;flex-direction:column;gap:10px;"></div>
 </div>
 
 <!-- ══════════════════════════════════
@@ -479,7 +504,7 @@ input[type=file]{display:none}
   <div class="det-hero">
     <div class="det-hero-img" id="detHeroImg">&#x1F6B4;</div>
     <div class="det-hero-over"></div>
-    <div class="det-back" onclick="go('sHome')">←</div>
+    <div class="det-back" onclick="go(window._detailFrom||'sHome')">←</div>
     <div class="det-name" id="detName">–</div>
     <div id="detBadge" style="position:absolute;top:14px;right:14px;padding:5px 12px;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;"></div>
   </div>
@@ -2226,16 +2251,103 @@ function bldSave(){
 }
 
 // \u2550\u2550 HOME \u2014 popular lista de aulas \u2550\u2550
+// ── Categorias de aulas ─────────────────────────────────────────
+var CAT_DEFS = [
+  { id:'endurance',  label:'Endurance Builder',   icon:'🚴',  color:'#295fe8', badge:'Easy'     },
+  { id:'hiit',       label:'HIIT Threshold',       icon:'⚡',  color:'#d7c414', badge:'Medium'   },
+  { id:'vo2',        label:'VO2 Max',               icon:'🔥',  color:'#d62d2d', badge:'Hard'     },
+  { id:'sprint',     label:'Sprint Neuromuscular',  icon:'💥',  color:'#9b30ff', badge:'Advanced' },
+  { id:'custom',     label:'Custom',                icon:'⚙️', color:'#ea860c', badge:'Custom'   }
+];
+
+function getAulaCat(a){
+  var n=a.nome||'';
+  if(n.indexOf('Endurance')>-1) return 'endurance';
+  if(n.indexOf('HIIT')>-1)      return 'hiit';
+  if(n.indexOf('VO2')>-1)       return 'vo2';
+  if(n.indexOf('Sprint')>-1)    return 'sprint';
+  if(n.indexOf('Fartlek')>-1)   return 'endurance';
+  return 'custom';
+}
+
 function buildHome(){
-  var list=document.getElementById('aulasList');
+  // ── Categoria cards ──────────────────────────────────────
+  var list=document.getElementById('catList');
+  if(list){
+    list.innerHTML='';
+    // Conta aulas por categoria (excluindo FTP Tests)
+    var counts={};
+    CAT_DEFS.forEach(function(c){ counts[c.id]=0; });
+    aulas.forEach(function(a){
+      if(a.badge==='Test') return; // FTP Tests ficam na seção própria
+      var cat=getAulaCat(a);
+      if(counts[cat]!==undefined) counts[cat]++;
+    });
+
+    CAT_DEFS.forEach(function(c){
+      var n=counts[c.id]||0;
+      if(n===0) return; // não mostrar categoria vazia
+      var div=document.createElement('div');
+      div.className='cat-card';
+      div.setAttribute('onclick','openCategory("'+c.id+'")');
+      div.innerHTML=
+        '<div class="cat-card-left" style="border-left:4px solid '+c.color+';">'
+          +'<div class="cat-card-icon">'+c.icon+'</div>'
+          +'<div class="cat-card-info">'
+            +'<div class="cat-card-name">'+c.label+'</div>'
+            +'<div class="cat-card-count">'+n+' aula'+(n>1?'s':'')+'</div>'
+          +'</div>'
+        +'</div>'
+        +'<div class="cat-card-right">'
+          +'<span class="gsess-badge" style="background:'+c.color+'22;border:1px solid '+c.color+'55;color:'+c.color+'">'+c.badge+'</span>'
+          +'<span style="color:rgba(255,255,255,.25);font-size:18px;margin-top:4px;">›</span>'
+        +'</div>';
+      list.appendChild(div);
+    });
+  }
+
+  // ── Histórico ────────────────────────────────────────────
+  var hl=document.getElementById('histList');
+  if(hl){
+    hl.innerHTML='';
+    for(var j=0;j<historico.length;j++){
+      var h=historico[j];
+      hl.innerHTML+='<div class="hist-row"><div class="hist-dot" style="background:'+zC[h.z]+'"></div><div class="hist-info"><div class="hist-name">'+h.nome+'</div><div class="hist-meta">'+h.data+'</div></div><div class="hist-dur">'+h.dur+'</div></div>';
+    }
+  }
+}
+
+// ── Abre tela de categoria ───────────────────────────────────────
+function openCategory(catId){
+  var cat=null;
+  for(var i=0;i<CAT_DEFS.length;i++){ if(CAT_DEFS[i].id===catId){cat=CAT_DEFS[i];break;} }
+  if(!cat) return;
+  // Preenche header
+  var el=document.getElementById('catTitle');
+  if(el) el.textContent=cat.label;
+  var es=document.getElementById('catSub');
+  if(es){
+    var n=0; aulas.forEach(function(a){ if(a.badge!=='Test'&&getAulaCat(a)===catId) n++; });
+    es.textContent=n+' aula'+(n>1?'s':'');
+  }
+  // Cor do header
+  var btn=document.querySelector('#sCategory button');
+  if(btn) btn.style.color=cat.color;
+  // Constrói lista
+  buildCategory(catId);
+  go('sCategory');
+}
+
+function buildCategory(catId){
+  var list=document.getElementById('catAulasList');
   if(!list) return;
   list.innerHTML='';
-  for(var i=0;i<4;i++){
-    var a=aulas[i];
+  aulas.forEach(function(a,idx){
+    if(a.badge==='Test') return;
+    if(getAulaCat(a)!==catId) return;
     var div=document.createElement('div');
     div.className='gsess-card';
-    // onclick no atributo do div, nao como propriedade JS
-    div.setAttribute('onclick','openDetail('+i+')');
+    div.setAttribute('onclick','openDetail('+idx+',"sCategory")');
     div.innerHTML=
       '<div class="gsess-card-over"></div>'
       +'<div class="gsess-card-body">'
@@ -2248,16 +2360,7 @@ function buildHome(){
       +'</div>'
       +'<div class="gsess-card-ring"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="16" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="3"/><circle cx="22" cy="22" r="16" fill="none" stroke="'+a.badgeColor+'" stroke-width="3" stroke-dasharray="30 70" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg></div>';
     list.appendChild(div);
-  }
-  // historico
-  var hl=document.getElementById('histList');
-  if(hl){
-    hl.innerHTML='';
-    for(var j=0;j<historico.length;j++){
-      var h=historico[j];
-      hl.innerHTML+='<div class="hist-row"><div class="hist-dot" style="background:'+zC[h.z]+'"></div><div class="hist-info"><div class="hist-name">'+h.nome+'</div><div class="hist-meta">'+h.data+'</div></div><div class="hist-dur">'+h.dur+'</div></div>';
-    }
-  }
+  });
 }
 
 function buildMiniBlocks(a){
@@ -2271,11 +2374,12 @@ function buildMiniBlocks(a){
 }
 
 
-function openDetail(idx){
+function openDetail(idx, from){
   // Aceita tanto índice (número) quanto objeto (para FTP tests)
   var a;
   if(typeof idx==='object'){a=idx;}else{curAulaIdx=idx;a=aulas[idx];cAula=null;}
   if(!a) return;
+  window._detailFrom = from || 'sHome';
   go('sDetail');
   var elName=document.getElementById('detName');
   if(elName) elName.textContent=a.nome;
