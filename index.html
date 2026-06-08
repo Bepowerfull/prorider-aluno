@@ -1146,7 +1146,7 @@ input[type=file]{display:none}
 
 // ---- QR SCAN ----
 var wsConn=null;
-var SERVER_URL='wss://prorider-server-production.up.railway.app';
+var SERVER_URL='wss://prorider-server-production-5784.up.railway.app';
 // Gráfico da aula recebido do professor
 var aulaGrafico=[], aulaBlocoIdx=0, aulaGraficoNome='';
 
@@ -3187,7 +3187,7 @@ function processarQRCode(raw){
 
 
 // ── HTTP Keepalive — evita Railway dormir ──
-var SERVER_HTTP='https://prorider-server-production.up.railway.app';
+var SERVER_HTTP='https://prorider-server-production-5784.up.railway.app';
 (function(){
   fetch(SERVER_HTTP+'/ping',{method:'GET',cache:'no-store'}).catch(function(){});
   setInterval(function(){fetch(SERVER_HTTP+'/ping',{method:'GET',cache:'no-store'}).catch(function(){});},30000);
