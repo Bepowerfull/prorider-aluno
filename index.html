@@ -1058,7 +1058,29 @@ input[type=file]{display:none}
   <div style="display:flex;align-items:center;gap:16px;padding:14px 18px 0;"><svg id="resDonut" width="110" height="110" viewBox="0 0 100 100" style="flex-shrink:0;"></svg><div id="resZoneList" style="flex:1;display:flex;flex-direction:column;gap:5px;"></div></div>
   <div style="padding:18px 18px;display:flex;flex-direction:column;gap:10px;">
     <button onclick="saveAndGoHistory()" style="width:100%;padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#ea860c,#d62d2d);font-size:17px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">SALVAR ATIVIDADE</button>
+    <button onclick="shareCard()" style="width:100%;padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);font-size:17px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">📸 COMPARTILHAR RESULTADO</button>
     <button onclick="go('sHome')" style="width:100%;padding:13px;border-radius:30px;background:transparent;border:1px solid rgba(255,255,255,.14);font-size:14px;font-weight:700;color:rgba(255,255,255,.4);cursor:pointer;">Voltar ao inicio</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     SHARE CARD preview overlay
+══════════════════════════════════ -->
+<div id="shareOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9000;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:20px 16px 40px;">
+  <div style="width:100%;max-width:420px;">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#fff;">Compartilhar</div>
+      <button onclick="document.getElementById('shareOverlay').style.display='none'" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;">×</button>
+    </div>
+    <!-- Card preview -->
+    <canvas id="shareCanvas" style="width:100%;border-radius:16px;display:block;"></canvas>
+    <!-- Buttons -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+      <button onclick="downloadCard()" style="width:100%;padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">⬇️ SALVAR IMAGEM</button>
+      <button onclick="nativeShare()" id="btnNativeShare" style="display:none;width:100%;padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#ea860c,#d62d2d);font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">📤 COMPARTILHAR</button>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.25);text-align:center;margin-top:12px;">Salve a imagem e publique no Instagram Stories ou Feed</div>
   </div>
 </div>
 
@@ -3230,6 +3252,229 @@ function btConnectHR(server, device){
 })();
 buildHome();
 function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, "+new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2),dur:fmHMS(totS),z:cAula&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:"z2"};historico.unshift(entry);if(historico.length>10)historico.pop();buildHome();goTab("sHome","navActivity");}
+
+// ── Share Card ───────────────────────────────────────────────────
+function shareCard(){
+  var overlay=document.getElementById('shareOverlay');
+  var canvas=document.getElementById('shareCanvas');
+  if(!overlay||!canvas) return;
+
+  var SIZE=1080;
+  canvas.width=SIZE; canvas.height=SIZE;
+  var ctx=canvas.getContext('2d');
+
+  // ── Background gradient ──
+  var bg=ctx.createLinearGradient(0,0,SIZE,SIZE);
+  bg.addColorStop(0,'#0a0812');
+  bg.addColorStop(0.5,'#110a08');
+  bg.addColorStop(1,'#08080e');
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,SIZE,SIZE);
+
+  // ── Subtle radial glow top-left ──
+  var glow=ctx.createRadialGradient(200,200,0,200,200,600);
+  glow.addColorStop(0,'rgba(234,134,12,0.12)');
+  glow.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=glow;
+  ctx.fillRect(0,0,SIZE,SIZE);
+
+  // ── Divider lines (subtle grid feel) ──
+  ctx.strokeStyle='rgba(255,255,255,0.04)';
+  ctx.lineWidth=1;
+  for(var y=120;y<SIZE;y+=120){ ctx.beginPath();ctx.moveTo(60,y);ctx.lineTo(SIZE-60,y);ctx.stroke(); }
+
+  // ── Bolt icon (top-left) ──
+  ctx.save();
+  ctx.translate(72, 72);
+  ctx.scale(1.8, 1.8);
+  var boltGrad=ctx.createLinearGradient(0,0,0,56);
+  boltGrad.addColorStop(0,'#ffe033');
+  boltGrad.addColorStop(0.45,'#ea860c');
+  boltGrad.addColorStop(1,'#d62d2d');
+  ctx.fillStyle=boltGrad;
+  ctx.beginPath();
+  // bolt path (scaled from viewBox 0 0 44 56)
+  ctx.moveTo(30,4); ctx.lineTo(10,30); ctx.lineTo(20,30); ctx.lineTo(14,52); ctx.lineTo(34,26); ctx.lineTo(24,26); ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // ── "PRORIDER" brand name ──
+  ctx.fillStyle='rgba(255,255,255,0.9)';
+  ctx.font='700 52px "Bebas Neue", Arial';
+  ctx.letterSpacing='8px';
+  ctx.fillText('PRORIDER', 185, 122);
+
+  // ── Subtle top-right tag ──
+  ctx.fillStyle='rgba(255,255,255,0.18)';
+  ctx.font='600 28px "Barlow Condensed", Arial';
+  ctx.textAlign='right';
+  ctx.fillText('prorider.app', SIZE-72, 122);
+  ctx.textAlign='left';
+
+  // ── Aula nome ──
+  var nome=(cAula?cAula.nome:'Treino').toUpperCase();
+  ctx.fillStyle='rgba(255,255,255,0.95)';
+  ctx.font='900 '+( nome.length>18 ? '88' : nome.length>12 ? '104' : '120')+'px "Bebas Neue", Arial';
+  // Wrap long name
+  var words=nome.split(' ');
+  var line1='', line2='';
+  for(var w=0;w<words.length;w++){
+    if((line1+words[w]).length<=12) line1+=(line1?' ':'')+words[w];
+    else line2+=(line2?' ':'')+words[w];
+  }
+  if(!line2){ ctx.fillText(line1||nome, 72, 380); }
+  else {
+    ctx.fillText(line1, 72, 340);
+    ctx.fillStyle='rgba(255,255,255,0.75)';
+    ctx.font='900 88px "Bebas Neue", Arial';
+    ctx.fillText(line2, 72, 430);
+  }
+
+  // ── Badge (difficulty) ──
+  if(cAula&&cAula.badge){
+    var bColor=cAula.badgeColor||'#ea860c';
+    ctx.fillStyle=bColor+'44';
+    roundRect(ctx, 72, 460, 180, 52, 14);
+    ctx.fill();
+    ctx.strokeStyle=bColor+'88';
+    ctx.lineWidth=1.5;
+    roundRect(ctx, 72, 460, 180, 52, 14);
+    ctx.stroke();
+    ctx.fillStyle=bColor;
+    ctx.font='700 26px "Barlow Condensed", Arial';
+    ctx.textAlign='center';
+    ctx.fillText(cAula.badge.toUpperCase(), 162, 492);
+    ctx.textAlign='left';
+  }
+
+  // ── Stats grid ──
+  var stats=[
+    {label:'DURAÇÃO',   value: fmHMS(totS)},
+    {label:'CALORIAS',  value: Math.round(totS*.06)+' kcal'},
+    {label:'RPM MÉD',   value: (cntRpm>0?Math.round(sumRpm/cntRpm):0)+' rpm'},
+    {label:'WATTS MÉD', value: (cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):0)+' W'}
+  ];
+  var gx=72, gy=560, gw=(SIZE-144)/2, gh=170;
+  stats.forEach(function(s,i){
+    var cx=gx+(i%2)*gw, cy=gy+Math.floor(i/2)*gh;
+    // card bg
+    ctx.fillStyle='rgba(255,255,255,0.05)';
+    roundRect(ctx, cx, cy, gw-16, gh-16, 20);
+    ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.07)';
+    ctx.lineWidth=1;
+    roundRect(ctx, cx, cy, gw-16, gh-16, 20);
+    ctx.stroke();
+    // value
+    ctx.fillStyle='#ffffff';
+    ctx.font='700 '+( s.value.length>7?'52':'64')+'px "Bebas Neue", Arial';
+    ctx.textAlign='center';
+    ctx.fillText(s.value, cx+(gw-16)/2, cy+90);
+    // label
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    ctx.font='700 22px "Barlow Condensed", Arial';
+    ctx.fillText(s.label, cx+(gw-16)/2, cy+125);
+    ctx.textAlign='left';
+  });
+
+  // ── Zone distribution bar ──
+  var zOrder=['z1','z2','z3','z4','z5','z6','z7'];
+  var zColors={z1:'#888888',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
+  var totalZT=0;
+  zOrder.forEach(function(z){ totalZT+=zoneTime[z]; });
+  if(totalZT>0){
+    var barX=72, barY=928, barW=SIZE-144, barH=28;
+    // background
+    ctx.fillStyle='rgba(255,255,255,0.06)';
+    roundRect(ctx, barX, barY, barW, barH, 8);
+    ctx.fill();
+    // zone segments
+    var curX=barX;
+    zOrder.forEach(function(z){
+      var t=zoneTime[z]; if(t===0) return;
+      var w=(t/totalZT)*barW;
+      ctx.fillStyle=zColors[z];
+      ctx.fillRect(curX, barY, w, barH);
+      curX+=w;
+    });
+    // rounded mask
+    ctx.globalCompositeOperation='destination-in';
+    roundRect(ctx, barX, barY, barW, barH, 8);
+    ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+
+    // Zone labels below bar
+    curX=barX; var labelY=barY+barH+32;
+    zOrder.forEach(function(z){
+      var t=zoneTime[z]; if(t===0) return;
+      var w=(t/totalZT)*barW;
+      if(w>50){
+        ctx.fillStyle=zColors[z];
+        ctx.font='700 22px "Barlow Condensed", Arial';
+        ctx.textAlign='center';
+        ctx.fillText(z.toUpperCase(), curX+w/2, labelY);
+      }
+      curX+=w;
+    });
+    ctx.textAlign='left';
+
+    // "DISTRIBUIÇÃO DE ZONAS" label
+    ctx.fillStyle='rgba(255,255,255,0.22)';
+    ctx.font='600 20px "Barlow Condensed", Arial';
+    ctx.letterSpacing='3px';
+    ctx.fillText('DISTRIBUIÇÃO DE ZONAS', 72, barY-16);
+    ctx.letterSpacing='0px';
+  }
+
+  // ── Bottom brand strip ──
+  ctx.fillStyle='rgba(255,255,255,0.06)';
+  ctx.fillRect(0, SIZE-60, SIZE, 60);
+  ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.font='600 22px "Barlow Condensed", Arial';
+  ctx.textAlign='center';
+  ctx.fillText('Treinado com ProRider  ·  prorider.app', SIZE/2, SIZE-22);
+  ctx.textAlign='left';
+
+  // ── Show overlay ──
+  overlay.style.display='flex';
+
+  // ── Native share button ──
+  var nsbtn=document.getElementById('btnNativeShare');
+  if(nsbtn) nsbtn.style.display=(navigator.share&&navigator.canShare)?'block':'none';
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+function downloadCard(){
+  var canvas=document.getElementById('shareCanvas');
+  if(!canvas) return;
+  var link=document.createElement('a');
+  var nome=(cAula?cAula.nome:'treino').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+  link.download='prorider-'+nome+'.png';
+  link.href=canvas.toDataURL('image/png');
+  link.click();
+}
+
+function nativeShare(){
+  var canvas=document.getElementById('shareCanvas');
+  if(!canvas||!navigator.share) return;
+  canvas.toBlob(function(blob){
+    var file=new File([blob],'prorider-resultado.png',{type:'image/png'});
+    navigator.share({ title:'Resultado ProRider', text:'Treino concluído! 🔥', files:[file] }).catch(function(){});
+  },'image/png');
+}
 // ── Scanner de câmera real ─────────────────────────────────
 var qrStream = null;
 var qrScanInterval = null;
