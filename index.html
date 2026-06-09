@@ -3315,49 +3315,37 @@ function _drawShareCard(canvas){
 
   // ── Background ──
   if(_cardBgImage){
-    // ── Foto personalizada como fundo ──
-    // Centraliza e cobre o canvas (object-fit: cover)
+    // ── Foto: object-fit cover centralizado ──
     var iw=_cardBgImage.width, ih=_cardBgImage.height;
     var scale=Math.max(SIZE/iw, SIZE/ih);
     var dw=iw*scale, dh=ih*scale;
     var dx=(SIZE-dw)/2, dy=(SIZE-dh)/2;
     ctx.drawImage(_cardBgImage, dx, dy, dw, dh);
 
-    // Overlay escuro degradê — garante leitura dos textos
-    // Pesado em cima e em baixo, mais suave no meio
+    // Overlay: escuro em cima (topo com logo/nome) e embaixo (stats),
+    // transparente no centro para a foto respirar
     var ov=ctx.createLinearGradient(0,0,0,SIZE);
-    ov.addColorStop(0,   'rgba(0,0,0,0.82)');
-    ov.addColorStop(0.3, 'rgba(0,0,0,0.55)');
-    ov.addColorStop(0.6, 'rgba(0,0,0,0.45)');
-    ov.addColorStop(1,   'rgba(0,0,0,0.88)');
+    ov.addColorStop(0,    'rgba(0,0,0,0.90)'); // topo escuro
+    ov.addColorStop(0.28, 'rgba(0,0,0,0.60)');
+    ov.addColorStop(0.42, 'rgba(0,0,0,0.15)'); // centro limpo
+    ov.addColorStop(0.58, 'rgba(0,0,0,0.15)'); // centro limpo
+    ov.addColorStop(0.72, 'rgba(0,0,0,0.75)');
+    ov.addColorStop(1,    'rgba(0,0,0,0.95)'); // rodapé escuro
     ctx.fillStyle=ov;
-    ctx.fillRect(0,0,SIZE,SIZE);
-
-    // Leve virada de cor da aula nas bordas
-    var acEdge=ctx.createRadialGradient(0,0,0,0,0,SIZE*0.7);
-    acEdge.addColorStop(0,accentColor+'22');
-    acEdge.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=acEdge;
     ctx.fillRect(0,0,SIZE,SIZE);
   } else {
     // ── Fundo padrão escuro ──
     ctx.fillStyle='#0f0e17';
     ctx.fillRect(0,0,SIZE,SIZE);
-
-    // Acento laranja/vermelho no canto superior direito
     var glow1=ctx.createRadialGradient(SIZE,0,0,SIZE,0,700);
     glow1.addColorStop(0,'rgba(214,45,45,0.35)');
     glow1.addColorStop(0.5,'rgba(234,134,12,0.15)');
     glow1.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=glow1;
-    ctx.fillRect(0,0,SIZE,SIZE);
-
-    // Acento azul no canto inferior esquerdo
+    ctx.fillStyle=glow1; ctx.fillRect(0,0,SIZE,SIZE);
     var glow2=ctx.createRadialGradient(0,SIZE,0,0,SIZE,600);
     glow2.addColorStop(0,'rgba(41,95,232,0.2)');
     glow2.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=glow2;
-    ctx.fillRect(0,0,SIZE,SIZE);
+    ctx.fillStyle=glow2; ctx.fillRect(0,0,SIZE,SIZE);
   }
 
   // ── Faixa lateral esquerda (acento de cor da aula) ──
@@ -3393,67 +3381,73 @@ function _drawShareCard(canvas){
   ctx.fillText('prorider.app', SIZE-72,130);
   ctx.textAlign='left';
 
-  // ── Separador ──
-  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  // ── Separador topo ──
+  ctx.strokeStyle='rgba(255,255,255,0.10)';
   ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(72,160); ctx.lineTo(SIZE-72,160); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(72,155); ctx.lineTo(SIZE-72,155); ctx.stroke();
 
-  // ── Nome da aula ──
+  // ── Nome da aula (topo, compacto) ──
   var nome=(cAula?cAula.nome:'Treino Concluído').toUpperCase();
   var words=nome.split(' ');
-  // Quebra em 2 linhas: primeira até 12 chars
   var l1='', l2='';
   words.forEach(function(w){ if((l1+' '+w).trim().length<=14) l1=(l1+' '+w).trim(); else l2=(l2+' '+w).trim(); });
-  var fs1=l2?108:120;
   ctx.fillStyle='#ffffff';
-  ctx.font='bold '+fs1+'px "Bebas Neue", Impact, Arial';
-  ctx.fillText(l1||nome, 72, l2?290:330);
+  ctx.font='bold '+(l2?'100':'112')+'px "Bebas Neue", Impact, Arial';
+  ctx.fillText(l1||nome, 72, l2?265:280);
   if(l2){
-    ctx.fillStyle='rgba(255,255,255,0.7)';
-    ctx.font='bold 88px "Bebas Neue", Impact, Arial';
-    ctx.fillText(l2, 72, 390);
+    ctx.fillStyle='rgba(255,255,255,0.75)';
+    ctx.font='bold 82px "Bebas Neue", Impact, Arial';
+    ctx.fillText(l2, 72, 358);
   }
 
-  // ── Badge ──
-  var badgeY=l2?420:370;
+  // ── Badge (logo abaixo do nome) ──
+  var badgeY=(l2?375:300);
   if(cAula&&cAula.badge){
-    ctx.fillStyle=accentColor+'33';
-    roundRect(ctx,72,badgeY,200,56,12); ctx.fill();
-    ctx.strokeStyle=accentColor+'99'; ctx.lineWidth=2;
-    roundRect(ctx,72,badgeY,200,56,12); ctx.stroke();
+    var badgeTxt=(cAula.badge+' · '+cAula.dur+' MIN').toUpperCase();
+    var badgeW=badgeTxt.length*14+32;
+    ctx.fillStyle=accentColor+'40';
+    roundRect(ctx,72,badgeY,badgeW,50,10); ctx.fill();
+    ctx.strokeStyle=accentColor+'99'; ctx.lineWidth=1.5;
+    roundRect(ctx,72,badgeY,badgeW,50,10); ctx.stroke();
     ctx.fillStyle=accentColor;
-    ctx.font='bold 28px "Barlow Condensed", Arial';
+    ctx.font='bold 26px "Barlow Condensed", Arial';
     ctx.textAlign='center';
-    ctx.fillText((cAula.badge+' · '+cAula.dur+' MIN').toUpperCase(),172,badgeY+37);
+    ctx.fillText(badgeTxt, 72+badgeW/2, badgeY+34);
     ctx.textAlign='left';
   }
 
-  // ── Stats (4 caixas 2×2) ──
+  // ════════════════════════════════════════
+  // ZONA DE FOTO: [430 – 650] totalmente limpa
+  // ════════════════════════════════════════
+
+  // ── Stats: 4 caixas em linha no rodapé ──
   var stats=[
-    {label:'DURAÇÃO',    value:fmHMS(totS),                                      color:'#ffffff'},
-    {label:'CALORIAS',   value:Math.round(totS*.06)+' kcal',                     color:'#ea860c'},
-    {label:'RPM MÉD',    value:(cntRpm>0?Math.round(sumRpm/cntRpm):'-')+' rpm',  color:'#295fe8'},
-    {label:'WATTS MÉD',  value:(cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):'-')+' W', color:'#5db13d'}
+    {label:'DURAÇÃO',   value:fmHMS(totS),                                          color:'#ffffff'},
+    {label:'CALORIAS',  value:Math.round(totS*.06)+' kcal',                         color:'#ea860c'},
+    {label:'RPM MÉD',   value:(cntRpm>0?Math.round(sumRpm/cntRpm):'-')+' rpm',      color:'#295fe8'},
+    {label:'WATTS MÉD', value:(cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):'-')+' W',  color:'#5db13d'}
   ];
-  var gx=72,gy=530,gcols=2,gcw=(SIZE-144-20)/gcols,gch=160;
+  var statY=660, statH=130, statGap=12;
+  var statW=(SIZE-144-(statGap*3))/4;
   stats.forEach(function(s,i){
-    var col=i%gcols, row=Math.floor(i/gcols);
-    var bx=gx+col*(gcw+20), by=gy+row*(gch+16);
-    // fundo
-    ctx.fillStyle='rgba(255,255,255,0.06)';
-    roundRect(ctx,bx,by,gcw,gch,18); ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1;
-    roundRect(ctx,bx,by,gcw,gch,18); ctx.stroke();
+    var bx=72+i*(statW+statGap);
+    ctx.fillStyle='rgba(0,0,0,0.55)';
+    roundRect(ctx,bx,statY,statW,statH,14); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1;
+    roundRect(ctx,bx,statY,statW,statH,14); ctx.stroke();
+    // borda colorida no topo do card
+    ctx.fillStyle=s.color;
+    roundRect(ctx,bx,statY,statW,4,2); ctx.fill();
     // valor
     var vlen=String(s.value).length;
     ctx.fillStyle=s.color;
-    ctx.font='bold '+(vlen>8?'52':vlen>5?'62':'72')+'px "Bebas Neue", Impact, Arial';
+    ctx.font='bold '+(vlen>7?'38':vlen>4?'46':'54')+'px "Bebas Neue", Impact, Arial';
     ctx.textAlign='center';
-    ctx.fillText(s.value, bx+gcw/2, by+90);
+    ctx.fillText(s.value, bx+statW/2, statY+72);
     // label
-    ctx.fillStyle='rgba(255,255,255,0.35)';
-    ctx.font='600 22px "Barlow Condensed", Arial';
-    ctx.fillText(s.label, bx+gcw/2, by+125);
+    ctx.fillStyle='rgba(255,255,255,0.38)';
+    ctx.font='600 17px "Barlow Condensed", Arial';
+    ctx.fillText(s.label, bx+statW/2, statY+100);
     ctx.textAlign='left';
   });
 
@@ -3461,14 +3455,14 @@ function _drawShareCard(canvas){
   var zOrder=['z1','z2','z3','z4','z5','z6','z7'];
   var zColors={z1:'#666666',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
   var totalZT=0; zOrder.forEach(function(z){ totalZT+=zoneTime[z]; });
-  var barX=72, barY=900, barW=SIZE-144, barH=32;
+  var barX=72, barY=826, barW=SIZE-144, barH=28;
   // label
-  ctx.fillStyle='rgba(255,255,255,0.3)';
-  ctx.font='600 22px "Barlow Condensed", Arial';
-  ctx.fillText('DISTRIBUIÇÃO DE ZONAS', barX, barY-14);
+  ctx.fillStyle='rgba(255,255,255,0.28)';
+  ctx.font='600 20px "Barlow Condensed", Arial';
+  ctx.fillText('DISTRIBUIÇÃO DE ZONAS', barX, barY-12);
   // fundo
-  ctx.fillStyle='rgba(255,255,255,0.07)';
-  roundRect(ctx,barX,barY,barW,barH,10); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.06)';
+  roundRect(ctx,barX,barY,barW,barH,8); ctx.fill();
   if(totalZT>0){
     // Usa clip() para arredondar — NÃO usa globalCompositeOperation
     ctx.save();
@@ -3490,9 +3484,9 @@ function _drawShareCard(canvas){
       var w=(t/totalZT)*barW;
       if(w>55){
         ctx.fillStyle=zColors[z];
-        ctx.font='bold 22px "Barlow Condensed", Arial';
+        ctx.font='bold 20px "Barlow Condensed", Arial';
         ctx.textAlign='center';
-        ctx.fillText(z.toUpperCase(), cx+w/2, barY+barH+28);
+        ctx.fillText(z.toUpperCase(), cx+w/2, barY+barH+24);
       }
       cx+=w;
     });
