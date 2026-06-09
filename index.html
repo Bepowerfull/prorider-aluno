@@ -1757,7 +1757,7 @@ function openFreeRide(){
 // ---- FIM QR + FREE RIDE ----
 
 // ---- ACTIVITY SCREEN ----
-function buildActivity(){
+function _renderActivity(rows){
   var list=document.getElementById('actList');
   var empty=document.getElementById('actEmpty');
   var totAulas=document.getElementById('actTotalAulas');
@@ -1765,57 +1765,82 @@ function buildActivity(){
   var totKcal=document.getElementById('actTotalKcal');
   if(!list) return;
   list.innerHTML='';
-  if(historico.length===0){
+  if(!rows||rows.length===0){
     if(empty) empty.style.display='block';
     if(totAulas) totAulas.textContent='0';
-    if(totMin) totMin.textContent='0';
-    if(totKcal) totKcal.textContent='0';
+    if(totMin)   totMin.textContent='0';
+    if(totKcal)  totKcal.textContent='0';
     return;
   }
   if(empty) empty.style.display='none';
-  // Calcular totais
-  var totalMin=0,totalKcal=0;
-  for(var i=0;i<historico.length;i++){
-    var h=historico[i];
-    var dur=h.totS||0;
-    totalMin+=Math.round(dur/60);
-    totalKcal+=Math.round(dur*.06);
+  var totalMin=0, totalKcal=0;
+  for(var i=0;i<rows.length;i++){
+    var h=rows[i];
+    var durSec = h.duracao_sec || h.totS || 0;
+    totalMin  += Math.round(durSec/60);
+    totalKcal += Math.round(durSec*.06);
   }
-  if(totAulas) totAulas.textContent=historico.length;
-  if(totMin) totMin.textContent=totalMin;
-  if(totKcal) totKcal.textContent=totalKcal;
-  // Cards de atividade
-  for(var i=0;i<historico.length;i++){
-    var h=historico[i];
+  if(totAulas) totAulas.textContent=rows.length;
+  if(totMin)   totMin.textContent=totalMin;
+  if(totKcal)  totKcal.textContent=totalKcal;
+  for(var i=0;i<rows.length;i++){
+    var h=rows[i];
+    var durSec=h.duracao_sec||h.totS||0;
+    var kcal=Math.round(durSec*.06);
+    var dist=(durSec*.003).toFixed(1);
+    var mins=Math.floor(durSec/60), secs=durSec%60;
+    var durStr=h.dur||(mins+'min'+(secs>0?' '+secs+'s':''));
+    // Data formatada
+    var dataStr=h.data||'–';
+    if(h.completed_at){
+      var d=new Date(h.completed_at);
+      var hoje=new Date();
+      var diff=Math.floor((hoje-d)/86400000);
+      if(diff===0) dataStr='Hoje, '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+      else if(diff===1) dataStr='Ontem';
+      else dataStr=diff+' dias atrás';
+    }
+    var zona=h.zona_predominante||h.z||'z2';
+    var nome=h.aula_nome||h.nome||'Aula';
+    var pts=h.pontos?(' · +'+h.pontos+'pts'):'';
     var card=document.createElement('div');
     card.style.cssText='background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:16px;margin-bottom:10px;';
-    // Header do card
-    var dur=h.totS||0;
-    var kcal=Math.round(dur*.06);
-    var dist=(dur*.003).toFixed(1);
     card.innerHTML=
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
-      +'<div>'
-      +'<div style="font-weight:700;font-size:16px;color:#fff;">'+h.nome+'</div>'
-      +'<div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:2px;">'+h.data+'</div>'
+      +'<div style="min-width:0;flex:1;">'
+      +'<div style="font-weight:700;font-size:16px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nome+'</div>'
+      +'<div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:2px;">'+dataStr+pts+'</div>'
       +'</div>'
-      +'<div style="width:10px;height:10px;border-radius:50%;background:'+(zC[h.z]||'#888')+';flex-shrink:0;"></div>'
+      +'<div style="width:10px;height:10px;border-radius:50%;background:'+(zC[zona]||'#888')+';flex-shrink:0;margin-left:10px;"></div>'
       +'</div>'
       +'<div style="display:flex;gap:16px;">'
-      +'<div style="text-align:center;">'
-      +'<div style="font-size:20px;font-weight:900;color:#fff;">'+h.dur+'</div>'
-      +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">DURACAO</div>'
-      +'</div>'
-      +'<div style="text-align:center;">'
-      +'<div style="font-size:20px;font-weight:900;color:#fff;">'+kcal+'</div>'
-      +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">KCAL</div>'
-      +'</div>'
-      +'<div style="text-align:center;">'
-      +'<div style="font-size:20px;font-weight:900;color:#fff;">'+dist+'</div>'
-      +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">KM</div>'
-      +'</div>'
+      +'<div style="text-align:center;"><div style="font-size:20px;font-weight:900;color:#fff;">'+durStr+'</div>'
+      +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">DURAÇÃO</div></div>'
+      +'<div style="text-align:center;"><div style="font-size:20px;font-weight:900;color:#fff;">'+kcal+'</div>'
+      +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">KCAL</div></div>'
+      +'<div style="text-align:center;"><div style="font-size:20px;font-weight:900;color:#fff;">'+dist+'</div>'
+      +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);">KM</div></div>'
       +'</div>';
     list.appendChild(card);
+  }
+}
+
+function buildActivity(){
+  var list=document.getElementById('actList');
+  if(!list) return;
+  // Se logado → buscar histórico real do servidor
+  if(prToken){
+    list.innerHTML='<div style="text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:14px;">Carregando...</div>';
+    fetch(SERVER_HTTP+'/aula/historico',{headers:{'Authorization':'Bearer '+prToken}})
+      .then(function(r){ return r.json(); })
+      .then(function(rows){
+        if(Array.isArray(rows)) _renderActivity(rows);
+        else _renderActivity([]);
+      })
+      .catch(function(){ _renderActivity(historico); });
+  } else {
+    // Não logado → mostrar histórico local (sessão atual)
+    _renderActivity(historico);
   }
 }
 // ---- FIM ACTIVITY ----
@@ -1873,7 +1898,22 @@ function profModalSave(){
   } else if(profEditField==='ftp'){
     var el=document.getElementById('ftpDisplay'); if(el) el.textContent=val+' W';
     profData.ftp=val;
-  } else if(profEditField==='sapatilha'){
+  }
+  // Sincronizar com servidor se logado (nome, peso, ftp)
+  if(prToken && ['nome','peso','ftp'].indexOf(profEditField)>-1){
+    var payload={};
+    if(profEditField==='nome') payload.name=val;
+    if(profEditField==='peso') payload.peso=parseFloat(val);
+    if(profEditField==='ftp')  payload.ftp=parseInt(val);
+    fetch(SERVER_HTTP+'/user/profile',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+prToken},
+      body:JSON.stringify(payload)
+    }).then(function(r){ return r.json(); })
+      .then(function(res){ if(res.user){ prUser=Object.assign(prUser||{},res.user); } })
+      .catch(function(){});
+  }
+  if(profEditField==='sapatilha'){
     profData.sapatilha=val;
     localStorage.setItem('pr_sapatilha',val);
     var el=document.getElementById('profSapatilha'); if(el) el.textContent=val;
@@ -2025,15 +2065,12 @@ function obDoRegister(){
   var mainBtn=document.getElementById('obRegBtn');
   if(mainBtn) mainBtn.textContent='Criando conta...';
 
+  // Servidor aceita name/password (campos corretos)
   var body={
-    nome:obData.nome,
+    name:obData.nome,
     email:obData.email,
-    senha:obData.senha,
+    password:obData.senha,
     peso:obData.peso,
-    altura:obData.altura,
-    idade:obData.idade,
-    nivel:obData.nivel,
-    freq:obData.freq,
     ftp:obData.ftp
   };
 
@@ -2059,15 +2096,16 @@ function obDoRegister(){
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(body)
   })
-  .then(function(r){ return r.json(); })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,d:d}; }); })
   .then(function(res){
-    if(res.d && res.d.token){
+    if(res.ok && res.d.token){
+      // Registro OK — salvar token e usuário
       prToken=res.d.token;
       prUser=res.d.user;
       localStorage.setItem('pr_token',prToken);
       updateProfileUI();
       _proceed();
-    } else if(res.erro && res.erro.indexOf('já existe')>-1){
+    } else if(!res.ok && res.d.error && res.d.error.indexOf('cadastrado')>-1){
       // E-mail já cadastrado
       _reEnableBtns();
       obShowErr('E-mail já cadastrado. Faça login na tela principal.');
@@ -3833,12 +3871,12 @@ function lvlPct(pts){
 })();
 
 function updateProfileUI(){
-  // Card de usuário
   var card=document.getElementById('profUserCard');
   var btnLogin=document.getElementById('profLoginBtn');
   if(prUser){
     if(card) card.style.display='block';
     if(btnLogin) btnLogin.style.display='none';
+    // Card topo
     var n=document.getElementById('profUserName'); if(n) n.textContent=prUser.name||'–';
     var e=document.getElementById('profUserEmail'); if(e) e.textContent=prUser.email||'–';
     var pts=prUser.points||0;
@@ -3846,6 +3884,16 @@ function updateProfileUI(){
     var lv=document.getElementById('profLevel'); if(lv) lv.textContent=LVL_NAMES[li]||'Iniciante';
     var pp=document.getElementById('profPts'); if(pp) pp.textContent=pts+' pts';
     var bar=document.getElementById('profLevelBar'); if(bar) bar.style.width=lvlPct(pts)+'%';
+    // Dados pessoais — preencher com dados do servidor
+    var pn=document.getElementById('profNome');  if(pn&&prUser.name)  pn.textContent=prUser.name;
+    var pe=document.getElementById('profEmail'); if(pe&&prUser.email) pe.textContent=prUser.email;
+    if(prUser.peso){
+      var pp2=document.getElementById('profPeso'); if(pp2) pp2.textContent=prUser.peso+' kg';
+    }
+    if(prUser.ftp){
+      var pf=document.getElementById('ftpDisplay'); if(pf) pf.textContent=prUser.ftp+' W';
+      profData.ftp=String(prUser.ftp);
+    }
   } else {
     if(card) card.style.display='none';
     if(btnLogin) btnLogin.style.display='block';
