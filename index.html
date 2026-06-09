@@ -3400,6 +3400,10 @@ function _drawShareCard(canvas){
   ctx.fillStyle='rgba(255,255,255,0.07)';
   roundRect(ctx,barX,barY,barW,barH,10); ctx.fill();
   if(totalZT>0){
+    // Usa clip() para arredondar — NÃO usa globalCompositeOperation
+    ctx.save();
+    roundRect(ctx,barX,barY,barW,barH,10);
+    ctx.clip();
     var cx=barX;
     zOrder.forEach(function(z){
       var t=zoneTime[z]; if(!t) return;
@@ -3408,11 +3412,8 @@ function _drawShareCard(canvas){
       ctx.fillRect(cx,barY,w,barH);
       cx+=w;
     });
-    // mask arredondado
-    ctx.globalCompositeOperation='destination-in';
-    roundRect(ctx,barX,barY,barW,barH,10); ctx.fill();
-    ctx.globalCompositeOperation='source-over';
-    // labels de zona
+    ctx.restore();
+    // labels de zona (fora do clip)
     cx=barX;
     zOrder.forEach(function(z){
       var t=zoneTime[z]; if(!t) return;
