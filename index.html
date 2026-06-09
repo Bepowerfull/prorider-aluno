@@ -806,6 +806,10 @@ input[type=file]{display:none}
       <!-- GAUGE WRAP -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 10px 0;min-height:0;overflow:hidden;cursor:pointer;-webkit-user-select:none;user-select:none" onclick="cycleGaugeMode()">
 
+        <!-- CANVAS: trilha de zonas (fundo) com fronteiras de pixel exatas -->
+        <div style="position:relative;width:100%;max-width:380px;display:flex;justify-content:center;">
+          <canvas id="gaugeCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></canvas>
+
         <!-- SVG COM TEXTOS INTERNOS -->
         <svg id="gaugeSvg" width="100%" viewBox="0 0 360 215" xmlns="http://www.w3.org/2000/svg" style="max-width:380px;overflow:visible;display:block;">
 
@@ -859,33 +863,7 @@ input[type=file]{display:none}
             </linearGradient>
           </defs>
 
-          <!--
-            Trilha de fundo: 7 segmentos de arco com cor sólida por zona (dim)
-            Centro: (180,200) r=170
-            Pontos de fronteira (fração do arco):
-              f=0.00 → (10,  200)
-              f=0.06 → (13,  168)   z1 6%
-              f=0.24 → (56,   84)   z2 18%
-              f=0.43 → (143,  34)   z3 19%
-              f=0.62 → (243,  42)   z4 19%
-              f=0.81 → (321, 104)   z5 19%
-              f=0.93 → (346, 163)   z6 12%
-              f=1.00 → (350, 200)   z7  7%
-          -->
-          <!-- Z1 cinza -->
-          <path d="M 10 200 A 170 170 0 0 1 13 168"  fill="none" stroke="#888888" stroke-width="26" stroke-linecap="butt" stroke-opacity="0.18"/>
-          <!-- Z2 azul -->
-          <path d="M 13 168 A 170 170 0 0 1 56 84"   fill="none" stroke="#295fe8" stroke-width="26" stroke-linecap="butt" stroke-opacity="0.22"/>
-          <!-- Z3 verde -->
-          <path d="M 56 84 A 170 170 0 0 1 143 34"   fill="none" stroke="#5db13d" stroke-width="26" stroke-linecap="butt" stroke-opacity="0.22"/>
-          <!-- Z4 amarelo -->
-          <path d="M 143 34 A 170 170 0 0 1 243 42"  fill="none" stroke="#d7c414" stroke-width="26" stroke-linecap="butt" stroke-opacity="0.22"/>
-          <!-- Z5 laranja -->
-          <path d="M 243 42 A 170 170 0 0 1 321 104" fill="none" stroke="#ea860c" stroke-width="26" stroke-linecap="butt" stroke-opacity="0.22"/>
-          <!-- Z6 vermelho -->
-          <path d="M 321 104 A 170 170 0 0 1 346 163" fill="none" stroke="#d62d2d" stroke-width="26" stroke-linecap="butt" stroke-opacity="0.22"/>
-          <!-- Z7 roxo -->
-          <path d="M 346 163 A 170 170 0 0 1 350 200" fill="none" stroke="#9b30ff" stroke-width="26" stroke-linecap="butt" stroke-opacity="0.22"/>
+          <!-- Trilha de fundo: desenhada via canvas (drawGaugeTrack) para fronteiras pixel-perfeitas -->
 
           <!-- Barra de progresso: mesmos 7 segmentos, cores cheias, animados via stroke-dasharray -->
           <!-- Z1 cinza cheio -->
@@ -947,7 +925,7 @@ input[type=file]{display:none}
           <!-- label 150+ no final do arco -->
           <text x="356" y="213" text-anchor="end" font-family="Barlow Condensed" font-size="11" fill="rgba(255,255,255,.28)" id="gMaxLbl">150+</text>
         </svg>
-
+        </div><!-- /canvas wrapper -->
 
         <!-- RPM / WATTS / BPM -->
         <div style="display:flex;width:100%;max-width:360px;margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:6px;flex-shrink:0;">
@@ -2671,6 +2649,52 @@ function _zoneFromPx(px){
   for(var i=0;i<_zBreaks.length;i++) if(px<=_zBreaks[i]) return i+1;
   return 7;
 }
+
+// ── Canvas: trilha de zonas com fronteiras pixel-perfeitas ──
+// Arco semicircular: centro (180,200) r=170
+// Canvas angle: 0=direita, π/2=baixo, π=esquerda, 3π/2=cima
+// Arc vai de π (esquerda) passando pelo TOPO (3π/2) até 2π=0 (direita)
+// Para fração f: ângulo = π + f*π
+function drawGaugeTrack(){
+  var canvas=document.getElementById('gaugeCanvas');
+  if(!canvas||!canvas.getContext) return;
+  var ctx=canvas.getContext('2d');
+  var W=360,H=215;
+  // HiDPI: aumenta resolução interna sem alterar tamanho CSS responsivo
+  var dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  // Não sobrescrever style.width — deixa CSS width:100% cuidar da responsividade
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  var cx=180,cy=200,r=170,lw=26;
+  var zones=[
+    {f1:0.00,f2:0.06,color:'#888888',dim:0.20},
+    {f1:0.06,f2:0.24,color:'#295fe8',dim:0.28},
+    {f1:0.24,f2:0.43,color:'#5db13d',dim:0.28},
+    {f1:0.43,f2:0.62,color:'#d7c414',dim:0.28},
+    {f1:0.62,f2:0.81,color:'#ea860c',dim:0.28},
+    {f1:0.81,f2:0.93,color:'#d62d2d',dim:0.28},
+    {f1:0.93,f2:1.00,color:'#9b30ff',dim:0.28},
+  ];
+  // Separador de 1px entre zonas (gap angular)
+  var gapAngle=0.003; // radianos (~0.17°) — cria linha escura entre zonas
+  zones.forEach(function(z){
+    var a1=Math.PI+z.f1*Math.PI+gapAngle/2;
+    var a2=Math.PI+z.f2*Math.PI-gapAngle/2;
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,a1,a2,false); // false = clockwise (top arc)
+    ctx.strokeStyle=z.color;
+    ctx.globalAlpha=z.dim;
+    ctx.lineWidth=lw;
+    ctx.lineCap='butt';
+    ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+}
+// Chamado no início e quando a tela sLive fica visível
+document.addEventListener('DOMContentLoaded',function(){
+  drawGaugeTrack();
+});
 var tX=0;
 var cdTimer=null;
 
@@ -3365,6 +3389,7 @@ function startLive(){
   _fillBar(0);
   // Navega PRIMEIRO para não travar na tela GO! se algo falhar depois
   go('sLive');
+  try{ drawGaugeTrack(); }catch(e){}
   try{ setPage(0); }catch(e){ console.error('setPage',e); }
   try{ buildGraph(); }catch(e){ console.error('buildGraph',e); }
   try{ updUpNext(); }catch(e){ console.error('updUpNext',e); }
