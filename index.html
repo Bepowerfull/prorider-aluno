@@ -823,18 +823,39 @@ input[type=file]{display:none}
           -->
           <defs>
             <linearGradient id="zoneGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <!-- Zonas Coggan & Allen — stops = ftpMid/150*100 -->
-              <!-- z1 mid=27% → 18% arco | z2 mid=66% → 44% | z3 mid=83% → 55.3% -->
-              <!-- z4 mid=98% → 65.3% | z5 mid=113% → 75.3% | z6 mid=130% → 86.7% | z7 mid=148% → 98.7% -->
-              <stop offset="0%"    stop-color="#888888" stop-opacity="0.3"/>
-              <stop offset="18%"   stop-color="#888888"/>
-              <stop offset="44%"   stop-color="#295fe8"/>
-              <stop offset="55.3%" stop-color="#5db13d"/>
-              <stop offset="65.3%" stop-color="#d7c414"/>
-              <stop offset="75.3%" stop-color="#ea860c"/>
-              <stop offset="86.7%" stop-color="#d62d2d"/>
-              <stop offset="98.7%" stop-color="#9b30ff"/>
-              <stop offset="100%"  stop-color="#9b30ff" stop-opacity="0.7"/>
+              <!--
+                Distribuição por zona (arco total = 100%):
+                z1 cinza:   0 →  6%  ( 6%) — recuperação, pequena
+                z2 azul:    6 → 24%  (18%) — endurance
+                z3 verde:  24 → 43%  (19%) — tempo
+                z4 amarelo: 43 → 62% (19%) — threshold
+                z5 laranja: 62 → 81% (19%) — VO2 max
+                z6 vermelho:81 → 93% (12%) — anaeróbico
+                z7 roxo:   93 →100%  ( 7%) — neuromuscular, pequena
+              -->
+              <!-- z1 cinza — pequeno, suave -->
+              <stop offset="0%"   stop-color="#888888" stop-opacity="0.2"/>
+              <stop offset="5%"   stop-color="#888888" stop-opacity="0.85"/>
+              <stop offset="6%"   stop-color="#888888" stop-opacity="0.85"/>
+              <!-- z2 azul -->
+              <stop offset="6%"   stop-color="#295fe8"/>
+              <stop offset="24%"  stop-color="#295fe8"/>
+              <!-- z3 verde -->
+              <stop offset="24%"  stop-color="#5db13d"/>
+              <stop offset="43%"  stop-color="#5db13d"/>
+              <!-- z4 amarelo -->
+              <stop offset="43%"  stop-color="#d7c414"/>
+              <stop offset="62%"  stop-color="#d7c414"/>
+              <!-- z5 laranja -->
+              <stop offset="62%"  stop-color="#ea860c"/>
+              <stop offset="81%"  stop-color="#ea860c"/>
+              <!-- z6 vermelho -->
+              <stop offset="81%"  stop-color="#d62d2d"/>
+              <stop offset="93%"  stop-color="#d62d2d"/>
+              <!-- z7 roxo — pequeno, suave -->
+              <stop offset="93%"  stop-color="#9b30ff"/>
+              <stop offset="99%"  stop-color="#9b30ff" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="#9b30ff" stop-opacity="0.3"/>
             </linearGradient>
             <filter id="fillGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           </defs>
@@ -2520,8 +2541,9 @@ var gaugeMode=0; // 0=FTP%, 1=RPM, 2=W/kg
 var botTY=0, drawerOpen=false;
 
 // ── Gauge barra contínua ──
-// Total arco = 534px. Zonas: z1=55 z2=70 z3=75 z4=90 z5=95 z6=95 z7=54
-var _zBreaks=[55,125,200,290,385,480,534]; // px acumulados por zona
+// Total arco = 534px. z1(6%) z2(18%) z3(19%) z4(19%) z5(19%) z6(12%) z7(7%)
+// z1=32 z2=96 z3=102 z4=101 z5=101 z6=64 z7=38
+var _zBreaks=[32,128,230,331,432,496,534]; // px acumulados por zona
 function _fillBar(ftpPct){
   var filled=Math.max(2,Math.min(534,(ftpPct/150)*534));
   var el=document.getElementById('zFill');
