@@ -806,85 +806,43 @@ input[type=file]{display:none}
       <!-- GAUGE WRAP -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 10px 0;min-height:0;overflow:hidden;cursor:pointer;-webkit-user-select:none;user-select:none" onclick="cycleGaugeMode()">
 
-        <!-- CANVAS: trilha de zonas (fundo) com fronteiras de pixel exatas -->
-        <div style="position:relative;width:100%;max-width:380px;display:flex;justify-content:center;">
-          <canvas id="gaugeCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></canvas>
-
         <!-- SVG COM TEXTOS INTERNOS -->
         <svg id="gaugeSvg" width="100%" viewBox="0 0 360 215" xmlns="http://www.w3.org/2000/svg" style="max-width:380px;overflow:visible;display:block;">
-
-          <!-- fundo removido -->
-
-          <!-- BARRA CONTÍNUA — zona z4/z5/z6 maior, z7 menor
-               Z1 cinza:    55px (10%)
-               Z2 azul:     70px (13%)
-               Z3 verde:    75px (14%)
-               Z4 amarelo:  90px (17%) ← destaque
-               Z5 laranja:  95px (18%) ← destaque
-               Z6 vermelho: 95px (18%) ← destaque
-               Z7 roxo:     54px (10%) ← pequeno
-               Total = 534px
-          -->
           <defs>
+            <!--
+              Gradiente suave arco-íris — transições contínuas entre zonas
+              Cinza (z1): apenas 0→4% — quase invisível
+              Azul  (z2): 4→22%
+              Verde (z3): 22→40%
+              Amarelo (z4): 40→59%
+              Laranja (z5): 59→78%
+              Vermelho (z6): 78→93%
+              Roxo (z7): 93→100% — pequeno
+            -->
             <linearGradient id="zoneGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <!--
-                Distribuição por zona (arco total = 100%):
-                z1 cinza:   0 →  6%  ( 6%) — recuperação, pequena
-                z2 azul:    6 → 24%  (18%) — endurance
-                z3 verde:  24 → 43%  (19%) — tempo
-                z4 amarelo: 43 → 62% (19%) — threshold
-                z5 laranja: 62 → 81% (19%) — VO2 max
-                z6 vermelho:81 → 93% (12%) — anaeróbico
-                z7 roxo:   93 →100%  ( 7%) — neuromuscular, pequena
-              -->
-              <!-- z1 cinza — pequeno, suave -->
-              <stop offset="0%"   stop-color="#888888" stop-opacity="0.2"/>
-              <stop offset="5%"   stop-color="#888888" stop-opacity="0.85"/>
-              <stop offset="6%"   stop-color="#888888" stop-opacity="0.85"/>
-              <!-- z2 azul -->
-              <stop offset="6%"   stop-color="#295fe8"/>
-              <stop offset="24%"  stop-color="#295fe8"/>
-              <!-- z3 verde -->
-              <stop offset="24%"  stop-color="#5db13d"/>
-              <stop offset="43%"  stop-color="#5db13d"/>
-              <!-- z4 amarelo -->
-              <stop offset="43%"  stop-color="#d7c414"/>
-              <stop offset="62%"  stop-color="#d7c414"/>
-              <!-- z5 laranja -->
-              <stop offset="62%"  stop-color="#ea860c"/>
-              <stop offset="81%"  stop-color="#ea860c"/>
-              <!-- z6 vermelho -->
-              <stop offset="81%"  stop-color="#d62d2d"/>
+              <stop offset="0%"   stop-color="#888888" stop-opacity="0.15"/>
+              <stop offset="4%"   stop-color="#888888" stop-opacity="0.55"/>
+              <stop offset="8%"   stop-color="#295fe8"/>
+              <stop offset="22%"  stop-color="#295fe8"/>
+              <stop offset="38%"  stop-color="#5db13d"/>
+              <stop offset="55%"  stop-color="#d7c414"/>
+              <stop offset="72%"  stop-color="#ea860c"/>
+              <stop offset="86%"  stop-color="#d62d2d"/>
               <stop offset="93%"  stop-color="#d62d2d"/>
-              <!-- z7 roxo — pequeno, suave -->
-              <stop offset="93%"  stop-color="#9b30ff"/>
-              <stop offset="99%"  stop-color="#9b30ff" stop-opacity="0.6"/>
-              <stop offset="100%" stop-color="#9b30ff" stop-opacity="0.3"/>
+              <stop offset="96%"  stop-color="#9b30ff"/>
+              <stop offset="100%" stop-color="#9b30ff" stop-opacity="0.25"/>
             </linearGradient>
+            <filter id="arcGlow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           </defs>
 
-          <!-- Trilha de fundo: desenhada via canvas (drawGaugeTrack) para fronteiras pixel-perfeitas -->
+          <!-- Trilha escura de fundo -->
+          <path d="M 10 200 A 170 170 0 0 1 350 200" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="26" stroke-linecap="butt"/>
 
-          <!-- Barra de progresso: mesmos 7 segmentos, cores cheias, animados via stroke-dasharray -->
-          <!-- Z1 cinza cheio -->
-          <path class="zSeg" id="zSeg1" d="M 10 200 A 170 170 0 0 1 13 168"   fill="none" stroke="#888888" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 34"   style="transition:stroke-dasharray .3s ease"/>
-          <!-- Z2 azul cheio -->
-          <path class="zSeg" id="zSeg2" d="M 13 168 A 170 170 0 0 1 56 84"    fill="none" stroke="#295fe8" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 98"   style="transition:stroke-dasharray .3s ease"/>
-          <!-- Z3 verde cheio -->
-          <path class="zSeg" id="zSeg3" d="M 56 84 A 170 170 0 0 1 143 34"    fill="none" stroke="#5db13d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 104"  style="transition:stroke-dasharray .3s ease"/>
-          <!-- Z4 amarelo cheio -->
-          <path class="zSeg" id="zSeg4" d="M 143 34 A 170 170 0 0 1 243 42"   fill="none" stroke="#d7c414" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 102"  style="transition:stroke-dasharray .3s ease"/>
-          <!-- Z5 laranja cheio -->
-          <path class="zSeg" id="zSeg5" d="M 243 42 A 170 170 0 0 1 321 104"  fill="none" stroke="#ea860c" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 102"  style="transition:stroke-dasharray .3s ease"/>
-          <!-- Z6 vermelho cheio -->
-          <path class="zSeg" id="zSeg6" d="M 321 104 A 170 170 0 0 1 346 163" fill="none" stroke="#d62d2d" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 66"   style="transition:stroke-dasharray .3s ease"/>
-          <!-- Z7 roxo cheio -->
-          <path class="zSeg" id="zSeg7" d="M 346 163 A 170 170 0 0 1 350 200" fill="none" stroke="#9b30ff" stroke-width="26" stroke-linecap="butt" stroke-dasharray="0 40"   style="transition:stroke-dasharray .3s ease"/>
-
-          <!-- zFill mantido invisível (compatibilidade com _fillBar) -->
+          <!-- Arco de zonas — gradiente contínuo suave, animado via stroke-dasharray -->
           <path id="zFill" d="M 10 200 A 170 170 0 0 1 350 200" fill="none"
-                stroke="transparent" stroke-width="1"
-                stroke-dasharray="0 534" style="display:none"/>
+                stroke="url(#zoneGrad)" stroke-width="26" stroke-linecap="butt"
+                stroke-dasharray="2 532"
+                style="transition:stroke-dasharray .35s ease"/>
 
           <!-- PONTEIRO = RAIO PRORIDER -->
           <!-- O raio aponta para cima por padrao, rotaciona em torno de 180,200 -->
@@ -925,7 +883,6 @@ input[type=file]{display:none}
           <!-- label 150+ no final do arco -->
           <text x="356" y="213" text-anchor="end" font-family="Barlow Condensed" font-size="11" fill="rgba(255,255,255,.28)" id="gMaxLbl">150+</text>
         </svg>
-        </div><!-- /canvas wrapper -->
 
         <!-- RPM / WATTS / BPM -->
         <div style="display:flex;width:100%;max-width:360px;margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:6px;flex-shrink:0;">
@@ -2620,81 +2577,23 @@ var scanT={}, connected={bike:false,hr:false};
 var gaugeMode=0; // 0=FTP%, 1=RPM, 2=W/kg
 var botTY=0, drawerOpen=false;
 
-// ── Gauge barra por segmento de zona ──
-// Total arco = 534px. 7 segmentos de arco sólidos.
-// Comprimentos: z1=32 z2=96 z3=102 z4=101 z5=101 z6=64 z7=38
-var _zLens=[32,96,102,101,101,64,38];       // comprimento de cada segmento
-var _zBreaks=[32,128,230,331,432,496,534];  // px acumulados por zona
+// ── Gauge barra contínua — gradiente suave arco-íris ──
+// Total arco = 534px
+var _zBreaks=[32,128,230,331,432,496,534];
 function _fillBar(ftpPct){
-  _fillBarPx(Math.max(2,Math.min(534,(ftpPct/150)*534)));
+  var filled=Math.max(2,Math.min(534,(ftpPct/150)*534));
+  var el=document.getElementById('zFill');
+  if(el) el.setAttribute('stroke-dasharray',filled+' '+(534-filled));
 }
 function _fillBarPx(px){
-  var rem=Math.max(0,Math.min(534,px));
-  for(var i=0;i<7;i++){
-    var seg=document.getElementById('zSeg'+(i+1));
-    if(!seg) continue;
-    var len=_zLens[i];
-    if(rem<=0){
-      seg.setAttribute('stroke-dasharray','0 '+(len+2));
-    } else if(rem>=len){
-      seg.setAttribute('stroke-dasharray',len+' 0');
-      rem-=len;
-    } else {
-      seg.setAttribute('stroke-dasharray',rem+' '+(len-rem+2));
-      rem=0;
-    }
-  }
+  var filled=Math.max(2,Math.min(534,px));
+  var el=document.getElementById('zFill');
+  if(el) el.setAttribute('stroke-dasharray',filled+' '+(534-filled));
 }
 function _zoneFromPx(px){
   for(var i=0;i<_zBreaks.length;i++) if(px<=_zBreaks[i]) return i+1;
   return 7;
 }
-
-// ── Canvas: trilha de zonas com fronteiras pixel-perfeitas ──
-// Arco semicircular: centro (180,200) r=170
-// Canvas angle: 0=direita, π/2=baixo, π=esquerda, 3π/2=cima
-// Arc vai de π (esquerda) passando pelo TOPO (3π/2) até 2π=0 (direita)
-// Para fração f: ângulo = π + f*π
-function drawGaugeTrack(){
-  var canvas=document.getElementById('gaugeCanvas');
-  if(!canvas||!canvas.getContext) return;
-  var ctx=canvas.getContext('2d');
-  var W=360,H=215;
-  // HiDPI: aumenta resolução interna sem alterar tamanho CSS responsivo
-  var dpr=window.devicePixelRatio||1;
-  canvas.width=W*dpr; canvas.height=H*dpr;
-  // Não sobrescrever style.width — deixa CSS width:100% cuidar da responsividade
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,W,H);
-  var cx=180,cy=200,r=170,lw=26;
-  var zones=[
-    {f1:0.00,f2:0.06,color:'#888888',dim:0.20},
-    {f1:0.06,f2:0.24,color:'#295fe8',dim:0.28},
-    {f1:0.24,f2:0.43,color:'#5db13d',dim:0.28},
-    {f1:0.43,f2:0.62,color:'#d7c414',dim:0.28},
-    {f1:0.62,f2:0.81,color:'#ea860c',dim:0.28},
-    {f1:0.81,f2:0.93,color:'#d62d2d',dim:0.28},
-    {f1:0.93,f2:1.00,color:'#9b30ff',dim:0.28},
-  ];
-  // Separador de 1px entre zonas (gap angular)
-  var gapAngle=0.003; // radianos (~0.17°) — cria linha escura entre zonas
-  zones.forEach(function(z){
-    var a1=Math.PI+z.f1*Math.PI+gapAngle/2;
-    var a2=Math.PI+z.f2*Math.PI-gapAngle/2;
-    ctx.beginPath();
-    ctx.arc(cx,cy,r,a1,a2,false); // false = clockwise (top arc)
-    ctx.strokeStyle=z.color;
-    ctx.globalAlpha=z.dim;
-    ctx.lineWidth=lw;
-    ctx.lineCap='butt';
-    ctx.stroke();
-  });
-  ctx.globalAlpha=1;
-}
-// Chamado no início e quando a tela sLive fica visível
-document.addEventListener('DOMContentLoaded',function(){
-  drawGaugeTrack();
-});
 var tX=0;
 var cdTimer=null;
 
@@ -3389,7 +3288,6 @@ function startLive(){
   _fillBar(0);
   // Navega PRIMEIRO para não travar na tela GO! se algo falhar depois
   go('sLive');
-  try{ drawGaugeTrack(); }catch(e){}
   try{ setPage(0); }catch(e){ console.error('setPage',e); }
   try{ buildGraph(); }catch(e){ console.error('buildGraph',e); }
   try{ updUpNext(); }catch(e){ console.error('updUpNext',e); }
