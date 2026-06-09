@@ -1714,6 +1714,9 @@ function obGoStep(n){
   if(lbl) lbl.textContent=n+' / '+obTotalSteps;
   var back=document.getElementById('obBack');
   if(back) back.style.display=n>1?'block':'none';
+  // No step 6 os botões de ação substituem o PRÓXIMO
+  var nextWrap=document.getElementById('obNextWrap');
+  if(nextWrap) nextWrap.style.display=(n===6)?'none':'block';
   var nw=document.getElementById('obNextWrap');
   if(nw) nw.style.display=n===obTotalSteps?'none':'block';
   obValidateStep();
@@ -1726,28 +1729,46 @@ function obNext(){
     obData.nome=v;
   } else if(obStep===2){
     var e=document.getElementById('obEmail').value.trim();
-    if(!e){obShake('obEmail');return;}
+    var s=document.getElementById('obSenha').value;
+    if(!e||e.indexOf('@')<0){obShake('obEmail');obShowErr('E-mail inválido');return;}
+    if(!s||s.length<6){obShake('obSenha');obShowErr('Senha deve ter ao menos 6 caracteres');return;}
     obData.email=e;
-    obData.senha=document.getElementById('obSenha').value;
+    obData.senha=s;
   } else if(obStep===3){
     var p=parseFloat(document.getElementById('obPeso').value)||0;
     var a=parseFloat(document.getElementById('obAltura').value)||0;
     var id=parseFloat(document.getElementById('obIdade').value)||0;
-    if(!p||!a||!id){return;}
+    if(!p||!a||!id){obShowErr('Preencha peso, altura e idade');return;}
     obData.peso=p; obData.altura=a; obData.idade=id;
   } else if(obStep===4){
-    if(!obData.nivel) return;
+    if(!obData.nivel){obShowErr('Selecione seu nível');return;}
   } else if(obStep===5){
-    if(!obData.freq) return;
+    if(!obData.freq){obShowErr('Selecione sua frequência');return;}
     obCalcFtp();
     obGoStep(6);
     return;
   }
   obGoStep(obStep+1);
+  obValidateStep();
 }
 
 function obPrev(){
-  if(obStep>1) obGoStep(obStep-1);
+  if(obStep===6){
+    // Voltando do FTP: recalcular não é necessário, mas garantir estado
+    obGoStep(5);
+    obValidateStep();
+    return;
+  }
+  if(obStep>1){ obGoStep(obStep-1); obValidateStep(); }
+}
+
+function obShowErr(msg){
+  var el=document.getElementById('obErr');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.opacity='1';
+  clearTimeout(obShowErr._t);
+  obShowErr._t=setTimeout(function(){el.style.opacity='0';},2500);
 }
 
 function obSelectNivel(nivel,btn){
@@ -1785,30 +1806,107 @@ function obCalcFtp(){
 function obSaveProfile(){
   var nEl=document.getElementById('profNome'); if(nEl) nEl.textContent=obData.nome;
   var eEl=document.getElementById('profEmail'); if(eEl) eEl.textContent=obData.email;
-  var pEl=document.getElementById('profPeso'); if(pEl) pEl.textContent=obData.peso;
+  var pEl=document.getElementById('profPeso'); if(pEl) pEl.textContent=obData.peso+' kg';
   var fEl=document.getElementById('ftpDisplay'); if(fEl) fEl.textContent=obData.ftp+' W';
 }
 
-function obSaveAndHome(){
-  obSaveProfile();
-  go('sHome');
-}
+// Ação depois do registro no servidor
+var _obAfterReg='home'; // 'home' | 'test'
 
-function obSaveAndTest(){
-  obSaveProfile();
-  goFtpTest('ftp5');
+function obSaveAndHome(){ _obAfterReg='home'; obDoRegister(); }
+function obSaveAndTest(){ _obAfterReg='test'; obDoRegister(); }
+
+function obDoRegister(){
+  // Desabilitar todos os botões do step 6 durante o fetch
+  var btns6=['obRegBtn','obTestBtn','obSkipBtn'];
+  for(var b=0;b<btns6.length;b++){
+    var bEl=document.getElementById(btns6[b]);
+    if(bEl){ bEl.disabled=true; bEl.style.opacity='0.5'; }
+  }
+  var mainBtn=document.getElementById('obRegBtn');
+  if(mainBtn) mainBtn.textContent='Criando conta...';
+
+  var body={
+    nome:obData.nome,
+    email:obData.email,
+    senha:obData.senha,
+    peso:obData.peso,
+    altura:obData.altura,
+    idade:obData.idade,
+    nivel:obData.nivel,
+    freq:obData.freq,
+    ftp:obData.ftp
+  };
+
+  function _proceed(){
+    obSaveProfile();
+    if(_obAfterReg==='test'){
+      goFtpTest('ftp5');
+    } else {
+      go('sHome');
+    }
+  }
+
+  function _reEnableBtns(){
+    for(var b=0;b<btns6.length;b++){
+      var bEl=document.getElementById(btns6[b]);
+      if(bEl){ bEl.disabled=false; bEl.style.opacity='1'; }
+    }
+    if(mainBtn) mainBtn.textContent='COMECAR COM ESTE FTP';
+  }
+
+  fetch(SERVER_HTTP+'/user/register',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(res){
+    if(res.d && res.d.token){
+      prToken=res.d.token;
+      prUser=res.d.user;
+      localStorage.setItem('pr_token',prToken);
+      updateProfileUI();
+      _proceed();
+    } else if(res.erro && res.erro.indexOf('já existe')>-1){
+      // E-mail já cadastrado
+      _reEnableBtns();
+      obShowErr('E-mail já cadastrado. Faça login na tela principal.');
+    } else {
+      // Outro erro do servidor — continuar offline
+      console.warn('Registro sem token, continuando local:', res);
+      _proceed();
+    }
+  })
+  .catch(function(err){
+    // Falha de rede — continuar offline
+    console.warn('Registro offline, continuando localmente:',err);
+    _proceed();
+  });
 }
 
 function obValidateStep(){
   var btn=document.getElementById('obNextBtn');
   if(!btn) return;
   var ok=false;
-  if(obStep===1) ok=true;
-  else if(obStep===2) ok=true;
-  else if(obStep===3) ok=true;
-  else if(obStep===4) ok=!!obData.nivel;
-  else if(obStep===5) ok=!!obData.freq;
+  if(obStep===1){
+    var v=document.getElementById('obNome'); ok=!!(v&&v.value.trim());
+  } else if(obStep===2){
+    var e=document.getElementById('obEmail');
+    var s=document.getElementById('obSenha');
+    ok=!!(e&&e.value.indexOf('@')>0&&s&&s.value.length>=6);
+  } else if(obStep===3){
+    var p=document.getElementById('obPeso');
+    var a=document.getElementById('obAltura');
+    var id=document.getElementById('obIdade');
+    ok=!!(p&&parseFloat(p.value)>0&&a&&parseFloat(a.value)>0&&id&&parseFloat(id.value)>0);
+  } else if(obStep===4){
+    ok=!!obData.nivel;
+  } else if(obStep===5){
+    ok=!!obData.freq;
+  }
   btn.style.opacity=ok?'1':'0.4';
+  btn.style.pointerEvents=ok?'auto':'none';
 }
 
 function obShake(id){
@@ -4099,16 +4197,17 @@ var SERVER_HTTP='https://prorider-server-production-5784.up.railway.app';
       <div style="font-size:36px;margin-bottom:16px;">&#128075;</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:#fff;margin-bottom:8px;">Qual seu nome?</div>
       <div style="font-size:14px;color:rgba(255,255,255,.4);margin-bottom:32px;">Como vamos te chamar durante os treinos</div>
-      <input id="obNome" type="text" placeholder="Seu nome" maxlength="30" style="width:100%;padding:16px 18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:17px;text-align:center;outline:none;-webkit-appearance:none;"/>
+      <input id="obNome" type="text" placeholder="Seu nome" maxlength="30" oninput="obValidateStep()" style="width:100%;padding:16px 18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:17px;text-align:center;outline:none;-webkit-appearance:none;"/>
     </div>
 
-    <!-- STEP 2: Email -->
+    <!-- STEP 2: Email + Senha -->
     <div id="obStep2" class="ob-step" style="display:none;">
       <div style="font-size:36px;margin-bottom:16px;">&#128140;</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:#fff;margin-bottom:8px;">Seu e-mail</div>
-      <div style="font-size:14px;color:rgba(255,255,255,.4);margin-bottom:32px;">Para recuperar sua conta</div>
-      <input id="obEmail" type="email" placeholder="email@exemplo.com" style="width:100%;padding:16px 18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:16px;text-align:center;outline:none;-webkit-appearance:none;margin-bottom:12px;"/>
-      <input id="obSenha" type="password" placeholder="Senha" style="width:100%;padding:16px 18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:16px;text-align:center;outline:none;-webkit-appearance:none;"/>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:#fff;margin-bottom:8px;">Sua conta</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.4);margin-bottom:24px;">E-mail e senha para acessar seus treinos</div>
+      <input id="obEmail" type="email" placeholder="email@exemplo.com" oninput="obValidateStep()" style="width:100%;padding:16px 18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:16px;text-align:center;outline:none;-webkit-appearance:none;margin-bottom:12px;box-sizing:border-box;"/>
+      <input id="obSenha" type="password" placeholder="Senha (mín. 6 caracteres)" oninput="obValidateStep()" style="width:100%;padding:16px 18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:16px;text-align:center;outline:none;-webkit-appearance:none;box-sizing:border-box;"/>
+      <div style="font-size:11px;color:rgba(255,255,255,.25);margin-top:10px;text-align:center;">Seus dados ficam protegidos e nunca são compartilhados</div>
     </div>
 
     <!-- STEP 3: Dados fisicos -->
@@ -4119,16 +4218,16 @@ var SERVER_HTTP='https://prorider-server-production-5784.up.railway.app';
       <div style="display:flex;gap:12px;width:100%;margin-bottom:12px;">
         <div style="flex:1;">
           <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:8px;">PESO (kg)</div>
-          <input id="obPeso" type="number" placeholder="70" min="30" max="200" style="width:100%;padding:16px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;-webkit-appearance:none;"/>
+          <input id="obPeso" type="number" placeholder="70" min="30" max="200" oninput="obValidateStep()" style="width:100%;padding:16px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;-webkit-appearance:none;box-sizing:border-box;"/>
         </div>
         <div style="flex:1;">
           <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:8px;">ALTURA (cm)</div>
-          <input id="obAltura" type="number" placeholder="170" min="130" max="220" style="width:100%;padding:16px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;-webkit-appearance:none;"/>
+          <input id="obAltura" type="number" placeholder="170" min="130" max="220" oninput="obValidateStep()" style="width:100%;padding:16px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;-webkit-appearance:none;box-sizing:border-box;"/>
         </div>
       </div>
       <div style="width:100%;">
         <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:8px;">IDADE</div>
-        <input id="obIdade" type="number" placeholder="30" min="10" max="90" style="width:100%;padding:16px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;-webkit-appearance:none;"/>
+        <input id="obIdade" type="number" placeholder="30" min="10" max="90" oninput="obValidateStep()" style="width:100%;padding:16px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;-webkit-appearance:none;box-sizing:border-box;"/>
       </div>
     </div>
 
@@ -4181,17 +4280,20 @@ var SERVER_HTTP='https://prorider-server-production-5784.up.railway.app';
       </div>
       <!-- Opcoes -->
       <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
-        <button onclick="obSaveAndHome()" style="padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#ea860c,#d62d2d);font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">COMECAR COM ESTE FTP</button>
-        <button onclick="obSaveAndTest()" style="padding:14px;border-radius:30px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:14px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;">Quero fazer o teste agora</button>
-        <button onclick="obSaveAndHome()" style="padding:10px;border-radius:30px;background:transparent;border:none;font-size:13px;color:rgba(255,255,255,.3);cursor:pointer;">Pular por agora</button>
+        <button id="obRegBtn" onclick="obSaveAndHome()" style="padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#ea860c,#d62d2d);font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">COMECAR COM ESTE FTP</button>
+        <button id="obTestBtn" onclick="obSaveAndTest()" style="padding:14px;border-radius:30px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:14px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;">Quero fazer o teste de FTP agora</button>
+        <button id="obSkipBtn" onclick="obSaveAndHome()" style="padding:10px;border-radius:30px;background:transparent;border:none;font-size:13px;color:rgba(255,255,255,.3);cursor:pointer;">Usar estimativa e ajustar depois</button>
       </div>
     </div>
 
   </div>
 
+  <!-- Mensagem de erro -->
+  <div id="obErr" style="position:absolute;bottom:100px;left:28px;right:28px;text-align:center;font-size:13px;font-weight:700;color:#d62d2d;opacity:0;transition:opacity .3s;pointer-events:none;"></div>
+
   <!-- Botao PROXIMO -->
   <div style="position:absolute;bottom:28px;left:28px;right:28px;" id="obNextWrap">
-    <button onclick="obNext()" id="obNextBtn" style="width:100%;padding:16px;border-radius:30px;border:none;background:linear-gradient(135deg,#ea860c,#d62d2d);font-size:17px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;opacity:.4;transition:opacity .2s;">PROXIMO</button>
+    <button onclick="obNext()" id="obNextBtn" style="width:100%;padding:16px;border-radius:30px;border:none;background:linear-gradient(135deg,#ea860c,#d62d2d);font-size:17px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;opacity:.4;pointer-events:none;transition:opacity .2s;">PRÓXIMO</button>
   </div>
 
 </div>
