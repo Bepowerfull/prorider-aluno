@@ -2672,7 +2672,7 @@ function tick(){
   document.getElementById('ltTot').textContent=fmMS(totS);
   if(zoneTime[b.z]!==undefined) zoneTime[b.z]++;
   var curRpm=dRpm||0;
-  if(curRpm>0){sumRpm+=curRpm;cntRpm++;if(curRpm>maxRpm)maxRpm=curRpm;}
+  if(curRpm>0){sumRpm+=curRpm;cntRpm++;if(curRpm>maxRpm)maxRpm=Math.round(curRpm);}
   if(isFtpTest&&b.teste){
     ftpTestWatts.push(curRpm>0?Math.round(curRpm*1.8):0);
   }
@@ -2743,7 +2743,7 @@ function tick(){
   document.getElementById('p2Rpm').textContent=rpm;
   document.getElementById('p2Spd').textContent=(rpm*.35).toFixed(1);
   document.getElementById('p2AR').textContent=Math.round(sumRpm/cntRpm);
-  document.getElementById('p2MR').textContent=maxRpm;
+  document.getElementById('p2MR').textContent=Math.round(maxRpm);
   document.getElementById('p2Dist').textContent=(totS*.003).toFixed(1);
   document.getElementById('p2Kc').textContent=Math.round(totS*.06);
   document.getElementById('p2KH').textContent=Math.round(.06*3600);
@@ -2868,7 +2868,7 @@ function showResultsReal(){
   var distEl=document.getElementById('resDist'); if(distEl) distEl.textContent=(totS*.003).toFixed(1);
   var avgFEl=document.getElementById('resAvgFtp'); if(avgFEl) avgFEl.textContent=cntFtp>0?Math.round(sumFtp/cntFtp):0;
   var avgREl=document.getElementById('resAvgRpm'); if(avgREl) avgREl.textContent=cntRpm>0?Math.round(sumRpm/cntRpm):0;
-  var maxREl=document.getElementById('resMaxRpm'); if(maxREl) maxREl.textContent=maxRpm;
+  var maxREl=document.getElementById('resMaxRpm'); if(maxREl) maxREl.textContent=Math.round(maxRpm);
   var wEl=document.getElementById('resWatts'); if(wEl) wEl.textContent=cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):0;
   buildResChart(); go('sResults');
 }
