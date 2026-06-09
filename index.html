@@ -3306,200 +3306,174 @@ function shareCard(){
 }
 
 function _drawShareCard(canvas){
-  var SIZE=1080;
-  canvas.width=SIZE; canvas.height=SIZE;
+  var W=1080, H=1920;
+  canvas.width=W; canvas.height=H;
   var ctx=canvas.getContext('2d');
 
   // ── Cor de acento da aula (usada no bg e nos elementos) ──
   var accentColor=(cAula&&cAula.badgeColor)||'#ea860c';
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // LAYOUT 9:16  (1080 × 1920)
+  // Topo  [0–520]:   logo + nome + badge
+  // Meio  [520–1380]: foto respira
+  // Baixo [1380–1920]: stats + zona + footer
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
   // ── Background ──
   if(_cardBgImage){
-    // ── Foto: object-fit cover centralizado ──
     var iw=_cardBgImage.width, ih=_cardBgImage.height;
-    var scale=Math.max(SIZE/iw, SIZE/ih);
+    var scale=Math.max(W/iw, H/ih);
     var dw=iw*scale, dh=ih*scale;
-    var dx=(SIZE-dw)/2, dy=(SIZE-dh)/2;
-    ctx.drawImage(_cardBgImage, dx, dy, dw, dh);
-
-    // Overlay: escuro em cima (topo com logo/nome) e embaixo (stats),
-    // transparente no centro para a foto respirar
-    var ov=ctx.createLinearGradient(0,0,0,SIZE);
-    ov.addColorStop(0,    'rgba(0,0,0,0.90)'); // topo escuro
-    ov.addColorStop(0.28, 'rgba(0,0,0,0.60)');
-    ov.addColorStop(0.42, 'rgba(0,0,0,0.15)'); // centro limpo
-    ov.addColorStop(0.58, 'rgba(0,0,0,0.15)'); // centro limpo
-    ov.addColorStop(0.72, 'rgba(0,0,0,0.75)');
-    ov.addColorStop(1,    'rgba(0,0,0,0.95)'); // rodapé escuro
-    ctx.fillStyle=ov;
-    ctx.fillRect(0,0,SIZE,SIZE);
+    ctx.drawImage(_cardBgImage,(W-dw)/2,(H-dh)/2,dw,dh);
+    // Overlay: escuro no topo e rodapé, transparente no centro
+    var ov=ctx.createLinearGradient(0,0,0,H);
+    ov.addColorStop(0,    'rgba(0,0,0,0.92)');
+    ov.addColorStop(0.22, 'rgba(0,0,0,0.65)');
+    ov.addColorStop(0.30, 'rgba(0,0,0,0.10)');
+    ov.addColorStop(0.70, 'rgba(0,0,0,0.10)');
+    ov.addColorStop(0.78, 'rgba(0,0,0,0.70)');
+    ov.addColorStop(1,    'rgba(0,0,0,0.95)');
+    ctx.fillStyle=ov; ctx.fillRect(0,0,W,H);
   } else {
-    // ── Fundo padrão escuro ──
-    ctx.fillStyle='#0f0e17';
-    ctx.fillRect(0,0,SIZE,SIZE);
-    var glow1=ctx.createRadialGradient(SIZE,0,0,SIZE,0,700);
-    glow1.addColorStop(0,'rgba(214,45,45,0.35)');
-    glow1.addColorStop(0.5,'rgba(234,134,12,0.15)');
-    glow1.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=glow1; ctx.fillRect(0,0,SIZE,SIZE);
-    var glow2=ctx.createRadialGradient(0,SIZE,0,0,SIZE,600);
-    glow2.addColorStop(0,'rgba(41,95,232,0.2)');
-    glow2.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=glow2; ctx.fillRect(0,0,SIZE,SIZE);
+    ctx.fillStyle='#0f0e17'; ctx.fillRect(0,0,W,H);
+    var g1=ctx.createRadialGradient(W,0,0,W,0,900);
+    g1.addColorStop(0,'rgba(214,45,45,0.4)'); g1.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g1; ctx.fillRect(0,0,W,H);
+    var g2=ctx.createRadialGradient(0,H,0,0,H,800);
+    g2.addColorStop(0,'rgba(41,95,232,0.25)'); g2.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g2; ctx.fillRect(0,0,W,H);
   }
 
-  // ── Faixa lateral esquerda (acento de cor da aula) ──
-  var accentGrad=ctx.createLinearGradient(0,0,0,SIZE);
-  accentGrad.addColorStop(0,accentColor);
-  accentGrad.addColorStop(1,accentColor+'44');
-  ctx.fillStyle=accentGrad;
-  ctx.fillRect(0,0,8,SIZE);
+  // ── Faixa lateral esquerda ──
+  var ag=ctx.createLinearGradient(0,0,0,H);
+  ag.addColorStop(0,accentColor); ag.addColorStop(1,accentColor+'33');
+  ctx.fillStyle=ag; ctx.fillRect(0,0,10,H);
 
-  // ── Bolt icon ──
+  var PAD=80;
+
+  // ── Bolt + PRORIDER (topo) ──
   ctx.save();
-  ctx.translate(72,65);
-  ctx.scale(2.0,2.0);
-  var boltGrad=ctx.createLinearGradient(0,0,0,56);
-  boltGrad.addColorStop(0,'#ffe033');
-  boltGrad.addColorStop(0.45,'#ea860c');
-  boltGrad.addColorStop(1,'#d62d2d');
-  ctx.fillStyle=boltGrad;
+  ctx.translate(PAD,70); ctx.scale(2.2,2.2);
+  var bg2=ctx.createLinearGradient(0,0,0,56);
+  bg2.addColorStop(0,'#ffe033'); bg2.addColorStop(0.45,'#ea860c'); bg2.addColorStop(1,'#d62d2d');
+  ctx.fillStyle=bg2;
   ctx.beginPath();
   ctx.moveTo(30,4);ctx.lineTo(10,30);ctx.lineTo(20,30);ctx.lineTo(14,52);ctx.lineTo(34,26);ctx.lineTo(24,26);ctx.closePath();
-  ctx.fill();
-  ctx.restore();
+  ctx.fill(); ctx.restore();
 
-  // ── PRORIDER wordmark ──
   ctx.fillStyle='#ffffff';
-  ctx.font='bold 58px "Bebas Neue", Impact, Arial';
-  ctx.fillText('PRORIDER', 195,130);
+  ctx.font='bold 64px "Bebas Neue", Impact, Arial';
+  ctx.fillText('PRORIDER', PAD+115, 148);
 
-  // ── prorider.app (top right) ──
-  ctx.fillStyle='rgba(255,255,255,0.3)';
-  ctx.font='500 26px "Barlow Condensed", Arial';
+  ctx.fillStyle='rgba(255,255,255,0.28)';
+  ctx.font='500 30px "Barlow Condensed", Arial';
   ctx.textAlign='right';
-  ctx.fillText('prorider.app', SIZE-72,130);
+  ctx.fillText('prorider.app', W-PAD, 148);
   ctx.textAlign='left';
 
-  // ── Separador topo ──
-  ctx.strokeStyle='rgba(255,255,255,0.10)';
-  ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(72,155); ctx.lineTo(SIZE-72,155); ctx.stroke();
+  // separador
+  ctx.strokeStyle='rgba(255,255,255,0.10)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(PAD,176); ctx.lineTo(W-PAD,176); ctx.stroke();
 
-  // ── Nome da aula (topo, compacto) ──
+  // ── Nome da aula ──
   var nome=(cAula?cAula.nome:'Treino Concluído').toUpperCase();
-  var words=nome.split(' ');
-  var l1='', l2='';
-  words.forEach(function(w){ if((l1+' '+w).trim().length<=14) l1=(l1+' '+w).trim(); else l2=(l2+' '+w).trim(); });
+  var words=nome.split(' '), l1='', l2='';
+  words.forEach(function(w){ if((l1+' '+w).trim().length<=13) l1=(l1+' '+w).trim(); else l2=(l2+' '+w).trim(); });
   ctx.fillStyle='#ffffff';
-  ctx.font='bold '+(l2?'100':'112')+'px "Bebas Neue", Impact, Arial';
-  ctx.fillText(l1||nome, 72, l2?265:280);
+  ctx.font='bold '+(l2?'116':'130')+'px "Bebas Neue", Impact, Arial';
+  ctx.fillText(l1||nome, PAD, l2?310:340);
   if(l2){
-    ctx.fillStyle='rgba(255,255,255,0.75)';
-    ctx.font='bold 82px "Bebas Neue", Impact, Arial';
-    ctx.fillText(l2, 72, 358);
+    ctx.fillStyle='rgba(255,255,255,0.72)';
+    ctx.font='bold 96px "Bebas Neue", Impact, Arial';
+    ctx.fillText(l2, PAD, 420);
   }
 
-  // ── Badge (logo abaixo do nome) ──
-  var badgeY=(l2?375:300);
+  // ── Badge ──
+  var badgeY=l2?448:368;
   if(cAula&&cAula.badge){
-    var badgeTxt=(cAula.badge+' · '+cAula.dur+' MIN').toUpperCase();
-    var badgeW=badgeTxt.length*14+32;
-    ctx.fillStyle=accentColor+'40';
-    roundRect(ctx,72,badgeY,badgeW,50,10); ctx.fill();
-    ctx.strokeStyle=accentColor+'99'; ctx.lineWidth=1.5;
-    roundRect(ctx,72,badgeY,badgeW,50,10); ctx.stroke();
+    var btxt=(cAula.badge+' · '+cAula.dur+' MIN').toUpperCase();
+    var bw=btxt.length*15+36;
+    ctx.fillStyle=accentColor+'38'; roundRect(ctx,PAD,badgeY,bw,56,12); ctx.fill();
+    ctx.strokeStyle=accentColor+'99'; ctx.lineWidth=2;
+    roundRect(ctx,PAD,badgeY,bw,56,12); ctx.stroke();
     ctx.fillStyle=accentColor;
-    ctx.font='bold 26px "Barlow Condensed", Arial';
+    ctx.font='bold 30px "Barlow Condensed", Arial';
     ctx.textAlign='center';
-    ctx.fillText(badgeTxt, 72+badgeW/2, badgeY+34);
+    ctx.fillText(btxt, PAD+bw/2, badgeY+38);
     ctx.textAlign='left';
   }
 
-  // ════════════════════════════════════════
-  // ZONA DE FOTO: [430 – 650] totalmente limpa
-  // ════════════════════════════════════════
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ZONA DA FOTO [520–1380] — área limpa
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  // ── Stats: 4 caixas em linha no rodapé ──
+  // ── Stats: 2 linhas × 2 cols no rodapé ──
   var stats=[
-    {label:'DURAÇÃO',   value:fmHMS(totS),                                          color:'#ffffff'},
-    {label:'CALORIAS',  value:Math.round(totS*.06)+' kcal',                         color:'#ea860c'},
-    {label:'RPM MÉD',   value:(cntRpm>0?Math.round(sumRpm/cntRpm):'-')+' rpm',      color:'#295fe8'},
-    {label:'WATTS MÉD', value:(cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):'-')+' W',  color:'#5db13d'}
+    {label:'DURAÇÃO',   value:fmHMS(totS),                                         color:'#ffffff'},
+    {label:'CALORIAS',  value:Math.round(totS*.06)+' kcal',                        color:'#ea860c'},
+    {label:'RPM MÉD',   value:(cntRpm>0?Math.round(sumRpm/cntRpm):'-')+' rpm',     color:'#295fe8'},
+    {label:'WATTS MÉD', value:(cntFtp>0?Math.round((sumFtp/cntFtp)*1.3):'-')+' W', color:'#5db13d'}
   ];
-  var statY=660, statH=130, statGap=12;
-  var statW=(SIZE-144-(statGap*3))/4;
+  var sY=1390, sH=160, sGap=16, sCols=2;
+  var sW=(W-PAD*2-(sGap*(sCols-1)))/sCols;
   stats.forEach(function(s,i){
-    var bx=72+i*(statW+statGap);
-    ctx.fillStyle='rgba(0,0,0,0.55)';
-    roundRect(ctx,bx,statY,statW,statH,14); ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1;
-    roundRect(ctx,bx,statY,statW,statH,14); ctx.stroke();
-    // borda colorida no topo do card
+    var col=i%sCols, row=Math.floor(i/sCols);
+    var bx=PAD+col*(sW+sGap), by=sY+row*(sH+sGap);
+    ctx.fillStyle='rgba(0,0,0,0.60)';
+    roundRect(ctx,bx,by,sW,sH,18); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.10)'; ctx.lineWidth=1;
+    roundRect(ctx,bx,by,sW,sH,18); ctx.stroke();
+    // tira colorida no topo
     ctx.fillStyle=s.color;
-    roundRect(ctx,bx,statY,statW,4,2); ctx.fill();
+    roundRect(ctx,bx,by,sW,5,2); ctx.fill();
     // valor
-    var vlen=String(s.value).length;
+    var vl=String(s.value).length;
     ctx.fillStyle=s.color;
-    ctx.font='bold '+(vlen>7?'38':vlen>4?'46':'54')+'px "Bebas Neue", Impact, Arial';
+    ctx.font='bold '+(vl>8?'52':vl>5?'62':'72')+'px "Bebas Neue", Impact, Arial';
     ctx.textAlign='center';
-    ctx.fillText(s.value, bx+statW/2, statY+72);
-    // label
-    ctx.fillStyle='rgba(255,255,255,0.38)';
-    ctx.font='600 17px "Barlow Condensed", Arial';
-    ctx.fillText(s.label, bx+statW/2, statY+100);
+    ctx.fillText(s.value, bx+sW/2, by+100);
+    ctx.fillStyle='rgba(255,255,255,0.35)';
+    ctx.font='600 22px "Barlow Condensed", Arial';
+    ctx.fillText(s.label, bx+sW/2, by+132);
     ctx.textAlign='left';
   });
 
   // ── Zona bar ──
   var zOrder=['z1','z2','z3','z4','z5','z6','z7'];
-  var zColors={z1:'#666666',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
+  var zColors={z1:'#666',z2:'#295fe8',z3:'#5db13d',z4:'#d7c414',z5:'#ea860c',z6:'#d62d2d',z7:'#9b30ff'};
   var totalZT=0; zOrder.forEach(function(z){ totalZT+=zoneTime[z]; });
-  var barX=72, barY=826, barW=SIZE-144, barH=28;
-  // label
-  ctx.fillStyle='rgba(255,255,255,0.28)';
-  ctx.font='600 20px "Barlow Condensed", Arial';
-  ctx.fillText('DISTRIBUIÇÃO DE ZONAS', barX, barY-12);
-  // fundo
+  var barX=PAD, barY=1762, barW=W-PAD*2, barH=34;
+  ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.font='600 22px "Barlow Condensed", Arial';
+  ctx.fillText('DISTRIBUIÇÃO DE ZONAS', barX, barY-14);
   ctx.fillStyle='rgba(255,255,255,0.06)';
-  roundRect(ctx,barX,barY,barW,barH,8); ctx.fill();
+  roundRect(ctx,barX,barY,barW,barH,10); ctx.fill();
   if(totalZT>0){
-    // Usa clip() para arredondar — NÃO usa globalCompositeOperation
-    ctx.save();
-    roundRect(ctx,barX,barY,barW,barH,10);
-    ctx.clip();
+    ctx.save(); roundRect(ctx,barX,barY,barW,barH,10); ctx.clip();
     var cx=barX;
     zOrder.forEach(function(z){
       var t=zoneTime[z]; if(!t) return;
-      var w=(t/totalZT)*barW;
-      ctx.fillStyle=zColors[z];
-      ctx.fillRect(cx,barY,w,barH);
-      cx+=w;
+      var sw=(t/totalZT)*barW;
+      ctx.fillStyle=zColors[z]; ctx.fillRect(cx,barY,sw,barH); cx+=sw;
     });
     ctx.restore();
-    // labels de zona (fora do clip)
     cx=barX;
     zOrder.forEach(function(z){
       var t=zoneTime[z]; if(!t) return;
-      var w=(t/totalZT)*barW;
-      if(w>55){
-        ctx.fillStyle=zColors[z];
-        ctx.font='bold 20px "Barlow Condensed", Arial';
-        ctx.textAlign='center';
-        ctx.fillText(z.toUpperCase(), cx+w/2, barY+barH+24);
-      }
-      cx+=w;
+      var sw=(t/totalZT)*barW;
+      if(sw>60){ ctx.fillStyle=zColors[z]; ctx.font='bold 22px "Barlow Condensed",Arial'; ctx.textAlign='center'; ctx.fillText(z.toUpperCase(),cx+sw/2,barY+barH+26); }
+      cx+=sw;
     });
     ctx.textAlign='left';
   }
 
   // ── Rodapé ──
-  ctx.fillStyle='rgba(255,255,255,0.06)';
-  ctx.fillRect(0,SIZE-56,SIZE,56);
-  ctx.fillStyle='rgba(255,255,255,0.35)';
-  ctx.font='600 24px "Barlow Condensed", Arial';
+  ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(0,H-68,W,68);
+  ctx.fillStyle='rgba(255,255,255,0.32)';
+  ctx.font='600 26px "Barlow Condensed", Arial';
   ctx.textAlign='center';
-  ctx.fillText('Treinado com ProRider  ·  prorider.app', SIZE/2, SIZE-18);
+  ctx.fillText('Treinado com ProRider  ·  prorider.app', W/2, H-22);
   ctx.textAlign='left';
 
   // ── Native share button ──
