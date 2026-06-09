@@ -350,9 +350,10 @@ input[type=file]{display:none}
     <div class="sp-bar"></div>
     <div class="sp-tag">cycling performance</div>
     <div class="sp-form">
-      <input class="sp-input" type="email" placeholder="E-mail">
-      <input class="sp-input" type="password" placeholder="Senha">
-      <button class="sp-btn-main" onclick="go('sHome')">Entrar</button>
+      <input class="sp-input" id="spEmail" type="email" placeholder="E-mail" autocomplete="email">
+      <input class="sp-input" id="spPass" type="password" placeholder="Senha" autocomplete="current-password">
+      <div id="spErr" style="display:none;font-size:12px;color:#ff6b6b;text-align:center;margin-bottom:6px;"></div>
+      <button class="sp-btn-main" id="spBtn" onclick="spLogin()">Entrar</button>
       <div class="sp-btns-row">
         <button class="sp-btn-sec" onclick="go('sOnboard')">Criar conta</button>
         <button class="sp-btn-sec" onclick="go('sHome')">Sem login</button>
@@ -2427,12 +2428,8 @@ var aulas = [
    ]}
 ];
 
-// hist\u00F3rico fake
-var historico = [
-  {nome:"Endurance Builder #1",data:"Hoje, 09:30",dur:"45 min",z:"z2"},
-  {nome:"HIIT Threshold #3",data:"Ontem, 18:00",dur:"50 min",z:"z5"},
-  {nome:"VO2 Max Intervals",data:"3 dias atr\u00E1s",dur:"40 min",z:"z6"}
-];
+// hist\u00F3rico local (sess\u00E3o atual \u2014 apenas para alunos n\u00E3o logados)
+var historico = [];
 
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 // ZONAS DE POT\u00caNCIA \u2014 Coggan & Allen (Training and Racing with a Power Meter)
@@ -2924,13 +2921,42 @@ function buildHome(){
     });
   }
 
-  // ── Histórico ────────────────────────────────────────────
+  // ── Histórico recente no perfil ──────────────────────────
   var hl=document.getElementById('histList');
   if(hl){
     hl.innerHTML='';
-    for(var j=0;j<historico.length;j++){
-      var h=historico[j];
-      hl.innerHTML+='<div class="hist-row"><div class="hist-dot" style="background:'+zC[h.z]+'"></div><div class="hist-info"><div class="hist-name">'+h.nome+'</div><div class="hist-meta">'+h.data+'</div></div><div class="hist-dur">'+h.dur+'</div></div>';
+    if(prToken){
+      // Logado → busca últimas 5 do servidor
+      hl.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.3);padding:8px 0;">Carregando...</div>';
+      fetch(SERVER_HTTP+'/aula/historico',{headers:{'Authorization':'Bearer '+prToken}})
+        .then(function(r){ return r.json(); })
+        .then(function(rows){
+          hl.innerHTML='';
+          var list=Array.isArray(rows)?rows.slice(0,5):[];
+          if(!list.length){ hl.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.3);padding:8px 0;">Nenhuma aula ainda</div>'; return; }
+          list.forEach(function(h){
+            var zona=h.zona_predominante||'z2';
+            var nome=h.aula_nome||'Aula';
+            var dataStr='–';
+            if(h.completed_at){
+              var d=new Date(h.completed_at);
+              var diff=Math.floor((new Date()-d)/86400000);
+              if(diff===0) dataStr='Hoje';
+              else if(diff===1) dataStr='Ontem';
+              else dataStr=diff+' dias atrás';
+            }
+            var mins=Math.floor((h.duracao_sec||0)/60);
+            hl.innerHTML+='<div class="hist-row"><div class="hist-dot" style="background:'+(zC[zona]||'#888')+'"></div><div class="hist-info"><div class="hist-name">'+nome+'</div><div class="hist-meta">'+dataStr+'</div></div><div class="hist-dur">'+mins+'min</div></div>';
+          });
+        }).catch(function(){ hl.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.3);padding:8px 0;">Sem conexão</div>'; });
+    } else {
+      // Não logado → histórico local da sessão
+      if(!historico.length){ hl.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.3);padding:8px 0;">Nenhuma aula nesta sessão</div>'; }
+      else {
+        historico.slice(0,5).forEach(function(h){
+          hl.innerHTML+='<div class="hist-row"><div class="hist-dot" style="background:'+(zC[h.z]||'#888')+'"></div><div class="hist-info"><div class="hist-name">'+h.nome+'</div><div class="hist-meta">'+h.data+'</div></div><div class="hist-dur">'+h.dur+'</div></div>';
+        });
+      }
     }
   }
 }
@@ -3617,11 +3643,36 @@ function loadMp3(inp){
 function p3Toggle(){ if(!audio) return; if(aPlay){audio.pause();document.getElementById('p3Pb').textContent='\u25B6';}else{audio.play();document.getElementById('p3Pb').textContent='\u23F8';} aPlay=!aPlay; }
 function p3Skip(s){ if(audio) audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+s)); }
 
-// \u2500\u2500 profile \u2500\u2500
-function connectSpotify(){
-  document.getElementById('spotifyConnBtn').textContent='\u2713 Spotify Conectado';
-  document.getElementById('spotifyConnBtn').style.background='rgba(29,185,84,.25)';
+// \u2500\u2500 Splash login \u2500\u2500
+function spLogin(){
+  var email=(document.getElementById('spEmail')||{}).value||'';
+  var pass=(document.getElementById('spPass')||{}).value||'';
+  var errEl=document.getElementById('spErr');
+  var btn=document.getElementById('spBtn');
+  if(!email||!pass){ if(errEl){errEl.textContent='Preencha e-mail e senha.';errEl.style.display='block';} return; }
+  if(errEl) errEl.style.display='none';
+  btn.disabled=true; btn.textContent='Entrando...';
+  fetch(SERVER_HTTP+'/user/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})})
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,d:d}; }); })
+    .then(function(res){
+      btn.disabled=false; btn.textContent='Entrar';
+      if(!res.ok){ if(errEl){errEl.textContent=res.d.error||'E-mail ou senha incorretos';errEl.style.display='block';} return; }
+      prToken=res.d.token; prUser=res.d.user;
+      localStorage.setItem('pr_token',prToken);
+      updateProfileUI();
+      go('sHome');
+      _toast('\u2713 Bem-vindo, '+(prUser.name||'')+'!','#5db13d');
+    })
+    .catch(function(){
+      btn.disabled=false; btn.textContent='Entrar';
+      if(errEl){errEl.textContent='Sem conex\u00e3o com o servidor.';errEl.style.display='block';}
+    });
 }
+
+// \u2500\u2500 Conex\u00f5es (em breve \u2014 fun\u00e7\u00f5es placeholder) \u2500\u2500
+function connectSpotify(){ _toast('Spotify \u2014 Em breve!','#1DB954'); }
+function connectStrava(){ _toast('Strava \u2014 Em breve!','#FC4C02'); }
+function connectGarmin(){ _toast('Garmin \u2014 Em breve!','#007CC3'); }
 
 // \u2500\u2500 utilit\u00E1rios \u2500\u2500
 function go2(id){ go(id); }
@@ -3837,7 +3888,22 @@ function btConnectHR(server, device){
   }catch(e){ console.warn('pr_customs load error',e); }
 })();
 buildHome();
-function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, "+new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2),dur:fmHMS(totS),z:cAula&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:"z2"};historico.unshift(entry);if(historico.length>10)historico.pop();buildHome();goTab("sHome","navActivity");}
+function saveAndGoHistory(){
+  // Adiciona ao histórico local (usado só quando não logado)
+  if(!prToken){
+    var entry={
+      nome:cAula?cAula.nome:'Aula',
+      data:'Hoje, '+new Date().getHours()+':'+('0'+new Date().getMinutes()).slice(-2),
+      dur:fmHMS(totS),
+      totS:totS,
+      z:cAula&&cAula.blocos&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:'z2'
+    };
+    historico.unshift(entry);
+    if(historico.length>10) historico.pop();
+  }
+  buildHome();
+  goTab('sActivity','navActivity'); // ← vai para Activity, não sHome
+}
 
 // ════════════════════════════════════════════════════════════
 //  AUTH — Login / Cadastro / Logout
