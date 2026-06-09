@@ -1272,10 +1272,20 @@ input[type=file]{display:none}
         <span class="prof-field-val" id="profPeso">–</span>
         <span class="prof-field-edit" onclick="profEdit('peso')">Editar</span>
       </div>
-      <div class="prof-field" style="border-bottom:none" id="pfFtp">
+      <div class="prof-field" id="pfFtp">
         <span class="prof-field-lbl">FTP atual</span>
         <span class="prof-field-val" id="ftpDisplay">130 W</span>
         <span class="prof-field-edit" onclick="profEdit('ftp')">Editar</span>
+      </div>
+      <div class="prof-field" id="pfSapatilha">
+        <span class="prof-field-lbl">Sapatilha</span>
+        <span class="prof-field-val" id="profSapatilha">–</span>
+        <span class="prof-field-edit" onclick="profEdit('sapatilha')">Editar</span>
+      </div>
+      <div class="prof-field" style="border-bottom:none" id="pfUniforme">
+        <span class="prof-field-lbl">Uniforme</span>
+        <span class="prof-field-val" id="profUniforme">–</span>
+        <span class="prof-field-edit" onclick="profEdit('uniforme')">Editar</span>
       </div>
     </div>
   </div>
@@ -1613,17 +1623,19 @@ function buildActivity(){
 
 // ---- PROFILE EDIT ----
 var profEditField='';
-var profData={nome:'',email:'',peso:'',ftp:'130'};
+var profData={nome:'',email:'',peso:'',ftp:'130',sapatilha:localStorage.getItem('pr_sapatilha')||'',uniforme:localStorage.getItem('pr_uniforme')||''};
 
 function profEdit(field){
   profEditField=field;
-  var labels={nome:'Nome',email:'E-mail',peso:'Peso (kg)',ftp:'FTP (Watts)'};
-  var types={nome:'text',email:'email',peso:'number',ftp:'number'};
+  var labels={nome:'Nome',email:'E-mail',peso:'Peso (kg)',ftp:'FTP (Watts)',sapatilha:'Nº Sapatilha (EU)',uniforme:'Uniforme (PP/P/M/G/GG/XGG)'};
+  var types={nome:'text',email:'email',peso:'number',ftp:'number',sapatilha:'number',uniforme:'text'};
   var current={
-    nome:document.getElementById('profNome')?document.getElementById('profNome').textContent.replace('-',''):'',
-    email:document.getElementById('profEmail')?document.getElementById('profEmail').textContent.replace('-',''):'',
-    peso:document.getElementById('profPeso')?document.getElementById('profPeso').textContent.replace(' kg','').replace('-',''):'',
-    ftp:document.getElementById('ftpDisplay')?document.getElementById('ftpDisplay').textContent.replace(' W',''):''
+    nome:document.getElementById('profNome')?document.getElementById('profNome').textContent.replace('–','').replace('-','').trim():'',
+    email:document.getElementById('profEmail')?document.getElementById('profEmail').textContent.replace('–','').replace('-','').trim():'',
+    peso:document.getElementById('profPeso')?document.getElementById('profPeso').textContent.replace(' kg','').replace('–','').replace('-','').trim():'',
+    ftp:document.getElementById('ftpDisplay')?document.getElementById('ftpDisplay').textContent.replace(' W','').trim():'',
+    sapatilha:profData.sapatilha||'',
+    uniforme:profData.uniforme||''
   };
   var lbl=document.getElementById('profModalLbl');
   if(lbl) lbl.textContent=labels[field]||field;
@@ -1632,6 +1644,8 @@ function profEdit(field){
     inp.type=types[field]||'text';
     inp.value=current[field]||'';
     inp.placeholder=labels[field]||'';
+    inp.min=(field==='sapatilha')?'34':'';
+    inp.max=(field==='sapatilha')?'50':'';
   }
   var modal=document.getElementById('profModal');
   if(modal){ modal.style.display='flex'; }
@@ -1660,8 +1674,25 @@ function profModalSave(){
   } else if(profEditField==='ftp'){
     var el=document.getElementById('ftpDisplay'); if(el) el.textContent=val+' W';
     profData.ftp=val;
+  } else if(profEditField==='sapatilha'){
+    profData.sapatilha=val;
+    localStorage.setItem('pr_sapatilha',val);
+    var el=document.getElementById('profSapatilha'); if(el) el.textContent=val;
+  } else if(profEditField==='uniforme'){
+    var uVal=val.toUpperCase();
+    profData.uniforme=uVal;
+    localStorage.setItem('pr_uniforme',uVal);
+    var el=document.getElementById('profUniforme'); if(el) el.textContent=uVal;
   }
   profModalCancel();
+}
+
+function profLoadLocalFields(){
+  var sap=localStorage.getItem('pr_sapatilha')||'';
+  var uni=localStorage.getItem('pr_uniforme')||'';
+  var elS=document.getElementById('profSapatilha'); if(elS) elS.textContent=sap||'–';
+  var elU=document.getElementById('profUniforme'); if(elU) elU.textContent=uni||'–';
+  profData.sapatilha=sap; profData.uniforme=uni;
 }
 // ---- FIM PROFILE EDIT ----
 
@@ -2006,6 +2037,58 @@ var aulas = [
     {z:"z1",ftp:"0-55",rpm:"70-78",dur:10,pos:"Seated"},
     // Cooldown — 5 min
     {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
+   ]},
+
+  // ── FARTLEK ──────────────────────────────────────────────────
+  {nome:"Fartlek Aeróbico",icon:"🌊",dur:50,
+   desc:"Fartlek significa 'jogo de velocidade' em sueco. Nesta versão aeróbica, você vai alternando livremente entre Zona 2 e Zona 3, com ocasionais subidas até a Zona 4. Não há intervalos fixos — o ritmo muda organicamente, como em uma pedalada real. Desenvolve resistência aeróbica e inteligência de ritmo ao mesmo tempo.",
+   badge:"Easy",badgeColor:"#295fe8",
+   blocos:[
+    // Aquecimento — 5+3+2 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-80",dur:5,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:3,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-90",dur:2,pos:"Seated"},
+    // Main — Fartlek aeróbico 35 min
+    {z:"z2",ftp:"56-75",rpm:"82-88",dur:5,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:3,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:4,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"70-78",dur:3,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"82-88",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:2,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:4,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:3,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:4,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"70-78",dur:3,pos:"Standing"},
+    {z:"z4",ftp:"91-105",rpm:"85-90",dur:2,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:3,pos:"Seated"}
+   ]},
+
+  {nome:"Fartlek de Intensidade",icon:"🌊",dur:50,
+   desc:"Versão mais intensa do Fartlek, misturando Zona 3, 4 e 5 em blocos orgânicos de duração variada. Alguns blocos são em pé, outros sentados, cadência alta ou baixa — a variação constante é proposital. Essa imprevisibilidade faz o corpo recrutar diferentes sistemas de energia e mantém a mente completamente engajada.",
+   badge:"Medium",badgeColor:"#d7c414",
+   blocos:[
+    // Aquecimento — 3+3+2+1+1 = 10 min
+    {z:"z1",ftp:"0-55",rpm:"70-80",dur:3,pos:"Seated"},
+    {z:"z2",ftp:"56-75",rpm:"80-88",dur:3,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-90",dur:2,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:1,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:1,pos:"Seated"},
+    // Main — Fartlek intenso 35 min
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:4,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:2,pos:"Standing"},
+    {z:"z3",ftp:"76-90",rpm:"85-90",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"70-78",dur:3,pos:"Standing"},
+    {z:"z2",ftp:"56-75",rpm:"80-86",dur:2,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"90-95",dur:2,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:4,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:3,pos:"Seated"},
+    {z:"z5",ftp:"106-120",rpm:"68-74",dur:2,pos:"Standing"},
+    {z:"z3",ftp:"76-90",rpm:"85-90",dur:3,pos:"Seated"},
+    {z:"z4",ftp:"91-105",rpm:"87-92",dur:4,pos:"Seated"},
+    {z:"z3",ftp:"76-90",rpm:"85-92",dur:3,pos:"Seated"},
+    // Cooldown — 5 min
+    {z:"z1",ftp:"0-55",rpm:"60-80",dur:5,pos:"Seated"}
    ]}
 ];
 
@@ -2177,6 +2260,7 @@ function goTab(id,tabId){
   for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
   document.getElementById(tabId).classList.add('active');
   if(id==='sActivity') buildActivity();
+  if(id==='sProfile') profLoadLocalFields();
 }
 
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
@@ -2445,6 +2529,7 @@ var CAT_DEFS = [
   { id:'hiit',       label:'HIIT Threshold',       icon:'⚡',  color:'#d7c414', badge:'Medium'   },
   { id:'vo2',        label:'VO2 Max',               icon:'🔥',  color:'#d62d2d', badge:'Hard'     },
   { id:'sprint',     label:'Sprint Neuromuscular',  icon:'💥',  color:'#9b30ff', badge:'Advanced' },
+  { id:'fartlek',    label:'Fartlek',               icon:'🌊',  color:'#00b4a6', badge:'Mixed'    },
   { id:'custom',     label:'Custom',                icon:'⚙️', color:'#ea860c', badge:'Custom'   }
 ];
 
@@ -2454,7 +2539,7 @@ function getAulaCat(a){
   if(n.indexOf('HIIT')>-1)      return 'hiit';
   if(n.indexOf('VO2')>-1)       return 'vo2';
   if(n.indexOf('Sprint')>-1)    return 'sprint';
-  if(n.indexOf('Fartlek')>-1)   return 'endurance';
+  if(n.indexOf('Fartlek')>-1)   return 'fartlek';
   return 'custom';
 }
 
