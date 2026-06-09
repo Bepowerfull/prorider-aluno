@@ -4739,13 +4739,22 @@ function pararCamera(){
 
 function processarQRCode(raw){
   var status = document.getElementById('qrStatus');
-  // ── Formato novo: prorider://sessao?token=XXXX (ProRider Jim) ──
-  var sessaoMatch = raw.match(/prorider:\/\/sessao\?token=([a-f0-9]+)/i);
+  // ── Formato novo: prorider://sessao?token=XXXX[&local=IP:PORTA] ──
+  var sessaoMatch = raw.match(/prorider:\/\/sessao\?(.+)/i);
   if(sessaoMatch){
-    var token = sessaoMatch[1];
-    if(status){ status.textContent='Sessão ao vivo encontrada...'; status.style.color='#ea860c'; }
-    entrarSessaoAoVivo(token);
-    return;
+    var params = new URLSearchParams(sessaoMatch[1]);
+    var token = params.get('token');
+    var localAddr = params.get('local'); // ex: "192.168.1.10:3001" ou null
+    if(token){
+      if(status){
+        status.textContent = localAddr
+          ? 'Tentando rede local... (' + localAddr + ')'
+          : 'Sessão ao vivo encontrada...';
+        status.style.color='#ea860c';
+      }
+      entrarSessaoAoVivo(token, localAddr);
+      return;
+    }
   }
   // ── Formato legado: PR-XXXX-XXXX ou código direto ──
   var match = raw.match(/PR-[A-Z0-9]{4}-[A-Z0-9]{4}/);
@@ -4757,7 +4766,8 @@ function processarQRCode(raw){
 }
 
 // Entra em sessão ao vivo criada pelo ProRider Jim
-async function entrarSessaoAoVivo(token){
+// QR payload: prorider://sessao?token=XXXX[&local=192.168.1.10:3001]
+async function entrarSessaoAoVivo(token, localAddr){
   var statusEl = document.getElementById('qrStatus');
   var prToken = localStorage.getItem('pr_token') || localStorage.getItem('pr_gestor_token');
   if(!prToken){
@@ -4775,14 +4785,55 @@ async function entrarSessaoAoVivo(token){
       if(statusEl){ statusEl.textContent = d.error || 'Erro ao entrar na sessão.'; statusEl.style.color='#d62d2d'; }
       return;
     }
-    // Sessão registrada no banco — agora conecta via WebSocket usando o token como código da sala
     if(statusEl){ statusEl.textContent='Conectando à aula: '+d.nome_aula+' (bike #'+d.bike_num+')'; statusEl.style.color='#5db13d'; }
     var input = document.getElementById('qrCodeInput');
     if(input) input.value = token;
+
+    // ── Tenta conexão local primeiro (mesma rede / roteador da sala) ──
+    // O QR pode incluir &local=IP:PORTA gerado pelo mini PC
+    if(localAddr){
+      var wsLocal = 'ws://'+localAddr;
+      try{
+        await _tentarConexaoWS(wsLocal, token, d);
+        return; // conectou localmente, não precisa servidor
+      }catch(e){
+        if(statusEl){ statusEl.textContent='Local indisponível, conectando via servidor...'; statusEl.style.color='#ea860c'; }
+      }
+    }
+    // ── Fallback: servidor remoto ──
     connectQR(token);
   }catch(e){
     if(statusEl){ statusEl.textContent='Erro de conexão. Tente novamente.'; statusEl.style.color='#d62d2d'; }
   }
+}
+
+// Tenta uma conexão WebSocket com timeout de 3s
+function _tentarConexaoWS(wsUrl, token, dadosSessao){
+  return new Promise(function(resolve, reject){
+    var ws = new WebSocket(wsUrl);
+    var timeout = setTimeout(function(){ ws.close(); reject(new Error('timeout')); }, 3000);
+    ws.onopen = function(){
+      clearTimeout(timeout);
+      var nome = document.getElementById('profNome');
+      var nomeVal = (nome&&nome.textContent.trim()&&nome.textContent.trim()!=='—')
+        ? nome.textContent.trim() : (localStorage.getItem('pr_nome')||'Aluno');
+      ws.send(JSON.stringify({tipo:'entrar_sala', codigo:token, nome:nomeVal, bike:dadosSessao.bike_num||null}));
+    };
+    ws.onmessage = function(e){
+      var data = JSON.parse(e.data);
+      if(data.tipo==='conectado' || data.tipo==='entrou_sala'){
+        // Substituir wsConn pelo local
+        if(wsConn && wsConn !== ws) try{ wsConn.close(); }catch(e){}
+        wsConn = ws;
+        pararCamera();
+        setTimeout(function(){ go('sLive'); var sl=document.getElementById('sLive'); if(sl) sl.scrollTop=0; }, 300);
+        resolve(ws);
+      }
+      if(data.tipo==='erro'){ ws.close(); reject(new Error(data.msg)); }
+    };
+    ws.onerror = function(){ clearTimeout(timeout); reject(new Error('ws error')); };
+    ws.onclose = function(e){ if(!e.wasClean) reject(new Error('closed')); };
+  });
 }
 
 
