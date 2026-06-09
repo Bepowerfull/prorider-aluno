@@ -2013,19 +2013,37 @@ function profModalSave(){
     var el=document.getElementById('ftpDisplay'); if(el) el.textContent=val+' W';
     profData.ftp=val;
   }
-  // Sincronizar com servidor se logado (nome, peso, ftp)
-  if(prToken && ['nome','peso','ftp'].indexOf(profEditField)>-1){
+  // Sincronizar com servidor se logado
+  if(prToken && ['nome','email','peso','ftp'].indexOf(profEditField)>-1){
     var payload={};
-    if(profEditField==='nome') payload.name=val;
-    if(profEditField==='peso') payload.peso=parseFloat(val);
-    if(profEditField==='ftp')  payload.ftp=parseInt(val);
+    if(profEditField==='nome')  payload.name=val;
+    if(profEditField==='email') payload.email=val;
+    if(profEditField==='peso')  payload.peso=parseFloat(val);
+    if(profEditField==='ftp')   payload.ftp=parseInt(val);
+    var btnSave=document.querySelector('#profModal button[onclick="profModalSave()"]');
+    if(btnSave) btnSave.textContent='Salvando...';
     fetch(SERVER_HTTP+'/user/profile',{
       method:'PUT',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+prToken},
       body:JSON.stringify(payload)
     }).then(function(r){ return r.json(); })
-      .then(function(res){ if(res.user){ prUser=Object.assign(prUser||{},res.user); } })
-      .catch(function(){});
+      .then(function(res){
+        if(res.user){
+          prUser=Object.assign(prUser||{},res.user);
+          // Atualiza token local se email mudou
+          if(profEditField==='email'){
+            var newTok=res.token||prToken;
+            localStorage.setItem('pr_token',newTok);
+            prToken=newTok;
+          }
+          showToast('✅ '+(profEditField==='nome'?'Nome':profEditField==='email'?'E-mail':profEditField==='peso'?'Peso':'FTP')+' atualizado!');
+        }
+        if(btnSave) btnSave.textContent='Salvar';
+      })
+      .catch(function(){
+        showToast('Erro ao salvar. Tente novamente.','#d62d2d');
+        if(btnSave) btnSave.textContent='Salvar';
+      });
   }
   if(profEditField==='sapatilha'){
     profData.sapatilha=val;
