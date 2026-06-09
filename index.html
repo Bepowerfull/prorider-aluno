@@ -1507,6 +1507,61 @@ input[type=file]{display:none}
 </div>
 
 <!-- ══════════════════════════════════
+     AGENDA SCREEN
+══════════════════════════════════ -->
+<div class="screen" id="sAgenda" style="background:#0d0d0f;overflow-y:auto;padding-bottom:80px;">
+  <div style="padding:24px 18px 16px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:4px;color:rgba(255,255,255,.3);text-transform:uppercase;">ProRider</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:3px;color:#fff;line-height:1;margin-top:4px;">AGENDAR AULA</div>
+  </div>
+
+  <!-- Minhas reservas -->
+  <div style="padding:0 18px 20px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:12px;">Minhas reservas</div>
+    <div id="minhasReservas"></div>
+  </div>
+
+  <!-- Busca por cidade -->
+  <div style="padding:0 18px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:10px;">Buscar academia</div>
+    <div style="position:relative;margin-bottom:14px;">
+      <input id="agCidadeInput" placeholder="Digite a cidade..." oninput="filtrarAcademias(this.value)"
+        style="width:100%;padding:12px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#fff;font-size:14px;outline:none;">
+    </div>
+    <div id="agAcademias"></div>
+  </div>
+
+  <!-- Grade de aulas da academia selecionada -->
+  <div id="agGradeWrap" style="display:none;padding:0 18px;margin-top:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <button onclick="voltarAcademias()" style="background:rgba(255,255,255,.06);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;">← Voltar</button>
+      <div>
+        <div style="font-size:15px;font-weight:700" id="agNomeAcad">—</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4)" id="agCidadeAcad">—</div>
+      </div>
+    </div>
+    <div id="agGrade"></div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR RESERVA -->
+<div id="reservaConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;align-items:flex-end;justify-content:center;">
+  <div style="background:#16161a;border-radius:20px 20px 0 0;width:100%;max-width:440px;padding:24px 20px 36px;">
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px;" id="rcNome">—</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;" id="rcSub">—</div>
+    <div style="background:#1e1e24;border-radius:12px;padding:16px;margin-bottom:20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;gap:8px;">
+        <div><div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#ea860c;" id="rcHora">—</div><div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1px;">HORÁRIO</div></div>
+        <div><div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#295fe8;" id="rcDur">—</div><div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1px;">DURAÇÃO</div></div>
+        <div><div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#5db13d;" id="rcVagas">—</div><div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1px;">VAGAS</div></div>
+      </div>
+    </div>
+    <button id="rcBtn" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#ea860c,#d62d2d);color:#fff;font-size:16px;font-weight:700;cursor:pointer;" onclick="confirmarReserva()">RESERVAR VAGA</button>
+    <button onclick="closeReservaModal()" style="width:100%;padding:12px;border-radius:12px;border:none;background:transparent;color:rgba(255,255,255,.4);font-size:14px;cursor:pointer;margin-top:8px;">Cancelar</button>
+  </div>
+</div>
+
+<!--
      DESAFIOS SCREEN
 ══════════════════════════════════ -->
 <div class="screen" id="sDesafios" style="background:#0a0812;overflow-y:auto;padding-bottom:80px;">
@@ -1586,9 +1641,9 @@ input[type=file]{display:none}
     </div>
     <div style="font-size:8px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:2px;">Ride</div>
   </div>
-  <div class="nav-tab" id="navDesafios" onclick="goTab('sDesafios','navDesafios')">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-    Desafios
+  <div class="nav-tab" id="navAgenda" onclick="goTab('sAgenda','navAgenda');loadAgenda()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Agenda
   </div>
   <div class="nav-tab" id="navProfile" onclick="goTab('sProfile','navProfile')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -2644,6 +2699,212 @@ function go(id){
   if(bNav) bNav.style.display=showNav?'flex':'none';
 
 }
+// ═══════════════════════════════════════════════
+// AGENDA — buscar aula, reservar, minhas reservas
+// ═══════════════════════════════════════════════
+var SERVER_HTTP = typeof SERVER_HTTP !== 'undefined' ? SERVER_HTTP : 'https://prorider-server-production-5784.up.railway.app';
+var _agTodasAcademias = [];
+var _agAcadSelecionada = null;
+var _rcPendente = null; // reserva pendente de confirmação
+
+async function loadAgenda() {
+  await Promise.all([ loadMinhasReservas(), loadAcademias() ]);
+}
+
+async function loadMinhasReservas() {
+  const tok = localStorage.getItem('pr_token') || '';
+  if (!tok) return;
+  try {
+    const r = await fetch(SERVER_HTTP + '/aluno/reservas', { headers:{'Authorization':'Bearer '+tok} });
+    const lista = await r.json();
+    const el = document.getElementById('minhasReservas');
+    if (!Array.isArray(lista) || !lista.length) {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px;">Nenhuma reserva futura.</div>';
+      return;
+    }
+    const DIAS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    el.innerHTML = lista.map(r => {
+      const d = new Date(r.data_aula+'T00:00');
+      return `<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;margin-bottom:8px;">
+        <div style="text-align:center;min-width:40px;">
+          <div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1px;">${DIAS[d.getDay()]}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;line-height:1;color:#ea860c;">${d.getDate()}</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;">${r.aula_nome}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);">${r.hora?.slice(0,5)} · ${r.academia_nome||r.nome_fantasia||''} · ${r.cidade||''}</div>
+        </div>
+        <button onclick="cancelarReserva(${r.id})" style="background:rgba(214,45,45,.12);border:1px solid rgba(214,45,45,.2);color:#d62d2d;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer;">Cancelar</button>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadAcademias() {
+  try {
+    const r = await fetch(SERVER_HTTP + '/agenda/cidades');
+    _agTodasAcademias = await r.json();
+    renderAcademias(_agTodasAcademias);
+  } catch(e) {
+    document.getElementById('agAcademias').innerHTML = '<div style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:16px;">Nenhuma academia disponível.</div>';
+  }
+}
+
+function filtrarAcademias(q) {
+  const f = q.toLowerCase();
+  renderAcademias(_agTodasAcademias.filter(a =>
+    (a.cidade||'').toLowerCase().includes(f) ||
+    (a.nome||'').toLowerCase().includes(f) ||
+    (a.nome_fantasia||'').toLowerCase().includes(f)
+  ));
+}
+
+function renderAcademias(lista) {
+  const el = document.getElementById('agAcademias');
+  if (!lista.length) {
+    el.innerHTML = '<div style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:16px;">Nenhuma academia encontrada.</div>';
+    return;
+  }
+  // agrupar por cidade
+  const byCidade = {};
+  lista.forEach(a => { const c = a.cidade||'Outros'; if(!byCidade[c]) byCidade[c]=[]; byCidade[c].push(a); });
+  el.innerHTML = Object.entries(byCidade).map(([cidade, acs]) => `
+    <div style="margin-bottom:16px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:8px;">📍 ${cidade}</div>
+      ${acs.map(a => `
+        <div onclick="abrirGradeAcademia('${a.codigo}')" style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer;">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,rgba(234,134,12,.3),rgba(214,45,45,.3));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">⚡</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;">${a.nome_fantasia||a.nome}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);">${a.cidade}</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+async function abrirGradeAcademia(licId) {
+  _agAcadSelecionada = licId;
+  document.getElementById('agAcademias').style.display = 'none';
+  document.getElementById('agCidadeInput').parentElement.style.display = 'none';
+  document.getElementById('agGradeWrap').style.display = 'block';
+  document.getElementById('agGrade').innerHTML = '<div style="text-align:center;padding:24px;color:rgba(255,255,255,.3);">Carregando...</div>';
+  try {
+    const r = await fetch(SERVER_HTTP + '/agenda/grade/' + licId);
+    const d = await r.json();
+    document.getElementById('agNomeAcad').textContent = d.academia?.nome_fantasia || d.academia?.nome || licId;
+    document.getElementById('agCidadeAcad').textContent = d.academia?.cidade || '';
+    renderGradeAluno(d.aulas || []);
+  } catch(e) {
+    document.getElementById('agGrade').innerHTML = '<div style="text-align:center;padding:24px;color:rgba(255,255,255,.3);">Erro ao carregar grade.</div>';
+  }
+}
+
+function voltarAcademias() {
+  _agAcadSelecionada = null;
+  document.getElementById('agGradeWrap').style.display = 'none';
+  document.getElementById('agAcademias').style.display = 'block';
+  document.getElementById('agCidadeInput').parentElement.style.display = 'block';
+}
+
+var DIAS_FULL_AG = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function renderGradeAluno(aulas) {
+  const el = document.getElementById('agGrade');
+  if (!aulas.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:rgba(255,255,255,.3);">Nenhuma aula na grade ainda.</div>';
+    return;
+  }
+  // calcular próxima data para cada dia_semana
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  function proxData(dia) {
+    const d = new Date(hoje);
+    const diff = (dia - d.getDay() + 7) % 7 || 7;
+    d.setDate(d.getDate() + diff);
+    return d;
+  }
+  const byDay = {};
+  aulas.forEach(a => { const d = a.dia_semana; if(!byDay[d]) byDay[d]=[]; byDay[d].push(a); });
+  const order = [1,2,3,4,5,6,0];
+  el.innerHTML = order.filter(d => byDay[d]).map(d => {
+    const prox = proxData(d);
+    const dateStr = prox.toISOString().split('T')[0];
+    const dataBR = prox.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+    return `<div style="margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:8px;">${DIAS_FULL_AG[d]} · ${dataBR}</div>
+      ${byDay[d].map(a => {
+        const vagas = parseInt(a.vagas_max||20);
+        const res = parseInt(a.reservas||0);
+        const livres = vagas - res;
+        const lotado = livres <= 0;
+        const corVaga = lotado ? '#d62d2d' : livres <= 3 ? '#ea860c' : '#5db13d';
+        return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+            <div>
+              <div style="font-size:15px;font-weight:700;">${a.nome}</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;">👨‍🏫 ${a.professor_nome||'—'} · ${a.duracao_min}min${a.sala?' · '+a.sala:''}</div>
+            </div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:#ea860c;">${a.hora.slice(0,5)}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12px;font-weight:700;color:${corVaga};">${lotado ? '🔴 Lotado' : livres<=3 ? '🟡 '+livres+' vagas' : '🟢 '+livres+' vagas'}</div>
+            <button onclick="abrirReservaModal(${a.id},'${a.nome}','${a.hora.slice(0,5)}','${dateStr}',${a.duracao_min},${livres})"
+              ${lotado?'disabled':''}
+              style="padding:8px 18px;border-radius:10px;border:none;background:${lotado?'rgba(255,255,255,.06)':'linear-gradient(135deg,#ea860c,#d62d2d)'};color:${lotado?'rgba(255,255,255,.3)':'#fff'};font-size:13px;font-weight:700;cursor:${lotado?'default':'pointer'};">
+              ${lotado ? 'Lotado' : 'Reservar'}
+            </button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function abrirReservaModal(agendaId, nome, hora, data, dur, vagas) {
+  _rcPendente = { agenda_id: agendaId, data_aula: data };
+  document.getElementById('rcNome').textContent = nome;
+  const d = new Date(data+'T00:00');
+  document.getElementById('rcSub').textContent = d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  document.getElementById('rcHora').textContent = hora;
+  document.getElementById('rcDur').textContent = dur+'min';
+  document.getElementById('rcVagas').textContent = vagas;
+  document.getElementById('reservaConfirmModal').style.display = 'flex';
+}
+
+function closeReservaModal() {
+  document.getElementById('reservaConfirmModal').style.display = 'none';
+  _rcPendente = null;
+}
+
+async function confirmarReserva() {
+  if (!_rcPendente) return;
+  const tok = localStorage.getItem('pr_token') || '';
+  if (!tok) { showToast('Faça login primeiro.'); closeReservaModal(); return; }
+  document.getElementById('rcBtn').textContent = 'Reservando...';
+  try {
+    const r = await fetch(SERVER_HTTP + '/aluno/reservar', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
+      body: JSON.stringify(_rcPendente)
+    });
+    const d = await r.json();
+    closeReservaModal();
+    if (r.ok) {
+      showToast('✅ Reserva confirmada!');
+      await loadMinhasReservas();
+      if (_agAcadSelecionada) abrirGradeAcademia(_agAcadSelecionada);
+    } else {
+      showToast(d.error || 'Erro ao reservar.', '#d62d2d');
+    }
+  } catch(e) { showToast('Erro de conexão.', '#d62d2d'); }
+  document.getElementById('rcBtn').textContent = 'RESERVAR VAGA';
+}
+
+async function cancelarReserva(id) {
+  const tok = localStorage.getItem('pr_token') || '';
+  if (!tok) return;
+  const r = await fetch(SERVER_HTTP + '/aluno/reservar/'+id, { method:'DELETE', headers:{'Authorization':'Bearer '+tok} });
+  if (r.ok) { showToast('Reserva cancelada.'); loadMinhasReservas(); }
+}
+
 function goTab(id,tabId){
   go(id);
   var tabs=document.querySelectorAll('.nav-tab');
