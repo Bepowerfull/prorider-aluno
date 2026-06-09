@@ -1077,6 +1077,13 @@ input[type=file]{display:none}
     <canvas id="shareCanvas" style="width:100%;border-radius:16px;display:block;"></canvas>
     <!-- Buttons -->
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+      <!-- Foto de fundo -->
+      <label style="width:100%;display:block;">
+        <input type="file" id="cardBgInput" accept="image/*" style="display:none;" onchange="applyBgPhoto(this)"/>
+        <div style="width:100%;box-sizing:border-box;padding:15px;border-radius:30px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);font-size:15px;font-weight:900;letter-spacing:1px;color:rgba(255,255,255,.7);cursor:pointer;text-align:center;">📷 USAR FOTO DE FUNDO</div>
+      </label>
+      <!-- Remove foto -->
+      <button id="btnRemoveBg" onclick="removeBgPhoto()" style="display:none;width:100%;padding:12px;border-radius:30px;border:1px solid rgba(214,45,45,.4);background:rgba(214,45,45,.1);font-size:13px;font-weight:700;color:rgba(214,45,45,.8);cursor:pointer;">✕ Remover foto</button>
       <button onclick="downloadCard()" style="width:100%;padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">⬇️ SALVAR IMAGEM</button>
       <button onclick="nativeShare()" id="btnNativeShare" style="display:none;width:100%;padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#ea860c,#d62d2d);font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">📤 COMPARTILHAR</button>
     </div>
@@ -3254,6 +3261,40 @@ buildHome();
 function saveAndGoHistory(){var entry={nome:cAula?cAula.nome:"Aula",data:"Hoje, "+new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2),dur:fmHMS(totS),z:cAula&&cAula.blocos.length>0?cAula.blocos[Math.floor(cAula.blocos.length/2)].z:"z2"};historico.unshift(entry);if(historico.length>10)historico.pop();buildHome();goTab("sHome","navActivity");}
 
 // ── Share Card ───────────────────────────────────────────────────
+var _cardBgImage=null; // imagem de fundo personalizada
+
+function applyBgPhoto(input){
+  if(!input.files||!input.files[0]) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      _cardBgImage=img;
+      // Redesenha com a foto
+      var canvas=document.getElementById('shareCanvas');
+      var ready=document.fonts?document.fonts.ready:Promise.resolve();
+      ready.then(function(){ _drawShareCard(canvas); });
+      // Mostra botão de remover
+      var btn=document.getElementById('btnRemoveBg');
+      if(btn) btn.style.display='block';
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function removeBgPhoto(){
+  _cardBgImage=null;
+  var input=document.getElementById('cardBgInput');
+  if(input) input.value='';
+  var btn=document.getElementById('btnRemoveBg');
+  if(btn) btn.style.display='none';
+  // Redesenha sem foto
+  var canvas=document.getElementById('shareCanvas');
+  var ready=document.fonts?document.fonts.ready:Promise.resolve();
+  ready.then(function(){ _drawShareCard(canvas); });
+}
+
 function shareCard(){
   var overlay=document.getElementById('shareOverlay');
   var canvas=document.getElementById('shareCanvas');
@@ -3269,28 +3310,57 @@ function _drawShareCard(canvas){
   canvas.width=SIZE; canvas.height=SIZE;
   var ctx=canvas.getContext('2d');
 
+  // ── Cor de acento da aula (usada no bg e nos elementos) ──
+  var accentColor=(cAula&&cAula.badgeColor)||'#ea860c';
+
   // ── Background ──
-  // Fundo principal escuro-azulado
-  ctx.fillStyle='#0f0e17';
-  ctx.fillRect(0,0,SIZE,SIZE);
+  if(_cardBgImage){
+    // ── Foto personalizada como fundo ──
+    // Centraliza e cobre o canvas (object-fit: cover)
+    var iw=_cardBgImage.width, ih=_cardBgImage.height;
+    var scale=Math.max(SIZE/iw, SIZE/ih);
+    var dw=iw*scale, dh=ih*scale;
+    var dx=(SIZE-dw)/2, dy=(SIZE-dh)/2;
+    ctx.drawImage(_cardBgImage, dx, dy, dw, dh);
 
-  // Acento laranja/vermelho no canto superior direito
-  var glow1=ctx.createRadialGradient(SIZE,0,0,SIZE,0,700);
-  glow1.addColorStop(0,'rgba(214,45,45,0.35)');
-  glow1.addColorStop(0.5,'rgba(234,134,12,0.15)');
-  glow1.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=glow1;
-  ctx.fillRect(0,0,SIZE,SIZE);
+    // Overlay escuro degradê — garante leitura dos textos
+    // Pesado em cima e em baixo, mais suave no meio
+    var ov=ctx.createLinearGradient(0,0,0,SIZE);
+    ov.addColorStop(0,   'rgba(0,0,0,0.82)');
+    ov.addColorStop(0.3, 'rgba(0,0,0,0.55)');
+    ov.addColorStop(0.6, 'rgba(0,0,0,0.45)');
+    ov.addColorStop(1,   'rgba(0,0,0,0.88)');
+    ctx.fillStyle=ov;
+    ctx.fillRect(0,0,SIZE,SIZE);
 
-  // Acento azul no canto inferior esquerdo
-  var glow2=ctx.createRadialGradient(0,SIZE,0,0,SIZE,600);
-  glow2.addColorStop(0,'rgba(41,95,232,0.2)');
-  glow2.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=glow2;
-  ctx.fillRect(0,0,SIZE,SIZE);
+    // Leve virada de cor da aula nas bordas
+    var acEdge=ctx.createRadialGradient(0,0,0,0,0,SIZE*0.7);
+    acEdge.addColorStop(0,accentColor+'22');
+    acEdge.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=acEdge;
+    ctx.fillRect(0,0,SIZE,SIZE);
+  } else {
+    // ── Fundo padrão escuro ──
+    ctx.fillStyle='#0f0e17';
+    ctx.fillRect(0,0,SIZE,SIZE);
+
+    // Acento laranja/vermelho no canto superior direito
+    var glow1=ctx.createRadialGradient(SIZE,0,0,SIZE,0,700);
+    glow1.addColorStop(0,'rgba(214,45,45,0.35)');
+    glow1.addColorStop(0.5,'rgba(234,134,12,0.15)');
+    glow1.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=glow1;
+    ctx.fillRect(0,0,SIZE,SIZE);
+
+    // Acento azul no canto inferior esquerdo
+    var glow2=ctx.createRadialGradient(0,SIZE,0,0,SIZE,600);
+    glow2.addColorStop(0,'rgba(41,95,232,0.2)');
+    glow2.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=glow2;
+    ctx.fillRect(0,0,SIZE,SIZE);
+  }
 
   // ── Faixa lateral esquerda (acento de cor da aula) ──
-  var accentColor=(cAula&&cAula.badgeColor)||'#ea860c';
   var accentGrad=ctx.createLinearGradient(0,0,0,SIZE);
   accentGrad.addColorStop(0,accentColor);
   accentGrad.addColorStop(1,accentColor+'44');
