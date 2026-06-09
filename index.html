@@ -4738,14 +4738,51 @@ function pararCamera(){
 }
 
 function processarQRCode(raw){
-  // Aceita formato PR-XXXX-XXXX ou URL com código
+  var status = document.getElementById('qrStatus');
+  // ── Formato novo: prorider://sessao?token=XXXX (ProRider Jim) ──
+  var sessaoMatch = raw.match(/prorider:\/\/sessao\?token=([a-f0-9]+)/i);
+  if(sessaoMatch){
+    var token = sessaoMatch[1];
+    if(status){ status.textContent='Sessão ao vivo encontrada...'; status.style.color='#ea860c'; }
+    entrarSessaoAoVivo(token);
+    return;
+  }
+  // ── Formato legado: PR-XXXX-XXXX ou código direto ──
   var match = raw.match(/PR-[A-Z0-9]{4}-[A-Z0-9]{4}/);
   var code  = match ? match[0] : raw.trim().toUpperCase();
   var input = document.getElementById('qrCodeInput');
   if(input) input.value = code;
-  var status = document.getElementById('qrStatus');
   if(status){ status.textContent = 'QR lido: '+code; status.style.color='#5db13d'; }
   connectQR(code);
+}
+
+// Entra em sessão ao vivo criada pelo ProRider Jim
+async function entrarSessaoAoVivo(token){
+  var statusEl = document.getElementById('qrStatus');
+  var prToken = localStorage.getItem('pr_token') || localStorage.getItem('pr_gestor_token');
+  if(!prToken){
+    if(statusEl){ statusEl.textContent='Faça login no app antes de escanear o QR.'; statusEl.style.color='#d62d2d'; }
+    return;
+  }
+  try{
+    var r = await fetch(SERVER_HTTP+'/sessao/entrar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+prToken},
+      body:JSON.stringify({token:token})
+    });
+    var d = await r.json();
+    if(!r.ok){
+      if(statusEl){ statusEl.textContent = d.error || 'Erro ao entrar na sessão.'; statusEl.style.color='#d62d2d'; }
+      return;
+    }
+    // Sessão registrada no banco — agora conecta via WebSocket usando o token como código da sala
+    if(statusEl){ statusEl.textContent='Conectando à aula: '+d.nome_aula+' (bike #'+d.bike_num+')'; statusEl.style.color='#5db13d'; }
+    var input = document.getElementById('qrCodeInput');
+    if(input) input.value = token;
+    connectQR(token);
+  }catch(e){
+    if(statusEl){ statusEl.textContent='Erro de conexão. Tente novamente.'; statusEl.style.color='#d62d2d'; }
+  }
 }
 
 
