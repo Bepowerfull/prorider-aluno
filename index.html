@@ -4434,6 +4434,7 @@ function lvlPct(pts){
 
 // Rota pós-login baseada no role
 function rotearPorRole(user) {
+  showToast('🔑 Role: ' + (user&&user.role||'none'));
   if (user && (user.role||'').toLowerCase() === 'professor') {
     _phInited = false;
     phCheckRole();
