@@ -353,11 +353,21 @@ input[type=file]{display:none}
       <input class="sp-input" id="spEmail" type="email" placeholder="E-mail" autocomplete="email">
       <input class="sp-input" id="spPass" type="password" placeholder="Senha" autocomplete="current-password">
       <div id="spErr" style="display:none;font-size:12px;color:#ff6b6b;text-align:center;margin-bottom:6px;"></div>
-      <button class="sp-btn-main" id="spBtn" onclick="spLogin()">Entrar</button>
+      <button class="sp-btn-main" id="spBtn" onclick="spLogin()">ENTRAR</button>
       <div class="sp-btns-row">
-        <button class="sp-btn-sec" onclick="go('sOnboard')">Criar conta</button>
-        <button class="sp-btn-sec" onclick="go('sHome')">Sem login</button>
+        <button class="sp-btn-sec" onclick="lgTab('reg');go('sLogin')">Criar conta</button>
+        <button class="sp-btn-sec" onclick="spEsqueci()">Esqueci senha</button>
       </div>
+      <!-- Separador -->
+      <div style="display:flex;align-items:center;gap:10px;margin:4px 0;">
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+        <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.18);">OU</span>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+      </div>
+      <!-- Entrar sem login — botão principal do guest -->
+      <button onclick="entrarSemLogin()" style="width:100%;padding:15px;border-radius:30px;background:transparent;border:1.5px solid rgba(255,255,255,.18);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.5);cursor:pointer;">
+        ⚡ ENTRAR SEM LOGIN
+      </button>
     </div>
     <div class="sp-zones"></div>
   </div>
@@ -1507,6 +1517,79 @@ input[type=file]{display:none}
 </div>
 
 <!-- ══════════════════════════════════
+     PROFESSOR HOME
+══════════════════════════════════ -->
+<div class="screen" id="sProfHome" style="background:#0b0a10;overflow-y:auto;padding-bottom:80px;">
+  <!-- Header -->
+  <div style="padding:24px 18px 0;display:flex;align-items:flex-start;justify-content:space-between;">
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:4px;color:rgba(155,48,255,.6);text-transform:uppercase;">Professor</div>
+      <div id="phNome" style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:#fff;line-height:1;margin-top:2px;">—</div>
+    </div>
+    <div style="text-align:right;padding-top:4px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:2px;">HOJE</div>
+      <div id="phData" style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);"></div>
+    </div>
+  </div>
+
+  <!-- Ação rápida: Entrar na aula -->
+  <div style="padding:20px 18px 0;display:flex;gap:10px;">
+    <button onclick="go('sScan')" style="flex:2;padding:16px;border-radius:16px;border:none;background:linear-gradient(135deg,#ea860c,#d62d2d);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      SCAN QR DA AULA
+    </button>
+    <button onclick="phAulaLivre()" style="flex:1;padding:16px;border-radius:16px;border:1px solid rgba(155,48,255,.4);background:rgba(155,48,255,.12);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:900;letter-spacing:1px;color:#c084fc;cursor:pointer;">
+      ⚡ AULA<br>LIVRE
+    </button>
+  </div>
+
+  <!-- Agenda do dia -->
+  <div style="padding:20px 18px 0;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:12px;">Agenda de hoje</div>
+    <div id="phAgendaList" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="text-align:center;padding:20px;color:rgba(255,255,255,.2);font-size:13px;">Carregando...</div>
+    </div>
+  </div>
+
+  <!-- FTP Tests -->
+  <div style="padding:20px 18px 0;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:12px;">Testes de FTP</div>
+    <div style="display:flex;gap:10px;">
+      <div onclick="phOpenFTP('ramp')" style="flex:1;border-radius:16px;background:linear-gradient(135deg,#0a1a2e,#1a0a2e);border:1px solid rgba(41,95,232,.3);padding:16px;cursor:pointer;text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">⚡</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;">RAMP TEST</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;">~20 min · Progressivo</div>
+        <div style="margin-top:10px;background:rgba(41,95,232,.2);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#295fe8;letter-spacing:1px;">RECOMENDADO</div>
+      </div>
+      <div onclick="phOpenFTP('ftp20')" style="flex:1;border-radius:16px;background:linear-gradient(135deg,#1a0a0a,#2a1020);border:1px solid rgba(234,134,12,.3);padding:16px;cursor:pointer;text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">🔥</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;">TESTE 20MIN</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;">20 min · Esforço máximo</div>
+        <div style="margin-top:10px;background:rgba(234,134,12,.15);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#ea860c;letter-spacing:1px;">CLÁSSICO</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal aula livre -->
+  <div id="phModalLivre" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;align-items:flex-end;justify-content:center;">
+    <div style="background:#131020;border-radius:24px 24px 0 0;padding:28px 24px;width:100%;max-width:480px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;margin-bottom:4px;">AULA LIVRE</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;">Iniciar sessão livre sem agenda — bikes conectam por Bluetooth</div>
+      <div style="display:flex;gap:10px;">
+        <input id="phLivreNome" placeholder="Nome da aula (ex: Spinning Livre)" maxlength="50"
+          style="flex:1;padding:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;font-size:14px;outline:none;">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button onclick="document.getElementById('phModalLivre').style.display='none'"
+          style="flex:1;padding:14px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>
+        <button onclick="phConfirmarLivre()"
+          style="flex:2;padding:14px;border-radius:12px;background:linear-gradient(135deg,#9b30ff,#295fe8);border:none;color:#fff;font-size:14px;font-weight:900;letter-spacing:1px;cursor:pointer;">⚡ INICIAR AULA LIVRE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
      AGENDA SCREEN
 ══════════════════════════════════ -->
 <div class="screen" id="sAgenda" style="background:#0d0d0f;overflow-y:auto;padding-bottom:80px;">
@@ -1565,58 +1648,118 @@ input[type=file]{display:none}
      DESAFIOS SCREEN
 ══════════════════════════════════ -->
 <div class="screen" id="sDesafios" style="background:#0a0812;overflow-y:auto;padding-bottom:80px;">
-  <div style="padding:24px 18px 8px;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:4px;color:rgba(255,255,255,.3);text-transform:uppercase;">Em breve</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:3px;color:#fff;line-height:1;margin-top:4px;">DESAFIOS</div>
-    <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:6px;">Compita, evolua e conquiste selos exclusivos.</div>
+  <div style="padding:24px 18px 8px;display:flex;align-items:flex-end;justify-content:space-between;">
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:4px;color:rgba(155,48,255,.6);text-transform:uppercase;">ProRider</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:3px;color:#fff;line-height:1;margin-top:4px;">DESAFIOS</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:6px;">Compita, evolua e conquiste selos.</div>
+    </div>
+    <button onclick="dsAbrirConvite()" style="padding:10px 16px;border-radius:30px;border:1px solid rgba(155,48,255,.5);background:rgba(155,48,255,.15);font-size:12px;font-weight:700;color:#c084fc;letter-spacing:1px;cursor:pointer;white-space:nowrap;">🤜 DESAFIAR</button>
   </div>
-  <!-- Preview cards -->
-  <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;">
+
+  <!-- Grupo ativo (aparece se o usuário está num grupo) -->
+  <div id="dsGrupoAtivo" style="display:none;padding:0 18px 4px;">
+    <div style="border-radius:16px;background:linear-gradient(135deg,rgba(155,48,255,.15),rgba(41,95,232,.1));border:1px solid rgba(155,48,255,.35);padding:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(155,48,255,.8);text-transform:uppercase;">Seu grupo</div>
+          <div id="dsGrupoNome" style="font-size:16px;font-weight:700;color:#fff;margin-top:2px;">—</div>
+        </div>
+        <button onclick="dsCompartilharGrupo()" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(155,48,255,.4);background:rgba(155,48,255,.2);font-size:11px;font-weight:700;color:#c084fc;cursor:pointer;">📤 Convidar</button>
+      </div>
+      <div id="dsGrupoRanking" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
+  <!-- Cards de desafios -->
+  <div id="dsLista" style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;">
     <!-- Desafio 21 dias -->
     <div style="border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#1a0a2e,#2a0a1a);border:1px solid rgba(255,255,255,.08);padding:20px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#833ab4,#fd1d1d);display:flex;align-items:center;justify-content:center;font-size:22px;">🔥</div>
-        <div>
+        <div style="flex:1;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;letter-spacing:1px;">DESAFIO 21 DIAS</div>
           <div style="font-size:11px;color:rgba(255,255,255,.4);">Pedalar 21 dias consecutivos</div>
         </div>
-        <div style="margin-left:auto;background:rgba(255,255,255,.07);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;">EM BREVE</div>
+        <div style="background:rgba(131,58,180,.25);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;color:#c084fc;letter-spacing:1px;">ATIVO</div>
       </div>
-      <div style="background:rgba(0,0,0,.3);border-radius:8px;height:6px;overflow:hidden;"><div style="width:0%;height:100%;background:linear-gradient(90deg,#833ab4,#fd1d1d);"></div></div>
+      <div style="background:rgba(0,0,0,.3);border-radius:8px;height:6px;overflow:hidden;"><div id="ds21prog" style="width:0%;height:100%;background:linear-gradient(90deg,#833ab4,#fd1d1d);transition:width .6s;"></div></div>
       <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:rgba(255,255,255,.3);">
-        <span>0 / 21 dias</span><span>Selo + 500 pts</span>
+        <span id="ds21days">0 / 21 dias</span><span>🏅 Selo + 500 pts</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button onclick="dsVerRanking('21dias','🔥 21 Dias')" style="flex:1;padding:10px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:12px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer;">🏆 Ranking Geral</button>
+        <button onclick="dsDesafiarNeste('21dias','Desafio 21 Dias')" style="flex:1;padding:10px;border-radius:12px;background:rgba(131,58,180,.2);border:1px solid rgba(131,58,180,.4);font-size:12px;font-weight:700;color:#c084fc;cursor:pointer;">🤜 Desafiar amigos</button>
       </div>
     </div>
+
     <!-- Ranking mensal -->
     <div style="border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#0a1a2e,#0a2a1a);border:1px solid rgba(255,255,255,.08);padding:20px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#d7c414,#ea860c);display:flex;align-items:center;justify-content:center;font-size:22px;">🏆</div>
-        <div>
+        <div style="flex:1;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;letter-spacing:1px;">RANKING MENSAL</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.4);">Top ciclistas do mês</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);">Top ciclistas do mês · <span id="dsRankMes">—</span></div>
         </div>
-        <div style="margin-left:auto;background:rgba(255,255,255,.07);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;">EM BREVE</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="display:flex;align-items:center;gap:10px;opacity:.3;"><div style="width:24px;text-align:center;font-size:12px;font-weight:900;color:#d7c414;">1</div><div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);"></div><div style="flex:1;font-size:13px;color:#fff;">— — —</div><div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);">— pts</div></div>
-        <div style="display:flex;align-items:center;gap:10px;opacity:.3;"><div style="width:24px;text-align:center;font-size:12px;font-weight:900;color:rgba(255,255,255,.5);">2</div><div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);"></div><div style="flex:1;font-size:13px;color:#fff;">— — —</div><div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);">— pts</div></div>
-        <div style="display:flex;align-items:center;gap:10px;opacity:.3;"><div style="width:24px;text-align:center;font-size:12px;font-weight:900;color:rgba(255,255,255,.35);">3</div><div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);"></div><div style="flex:1;font-size:13px;color:#fff;">— — —</div><div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);">— pts</div></div>
+      <div id="dsRankingGeral" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="text-align:center;padding:12px;color:rgba(255,255,255,.2);font-size:12px;">Carregando ranking...</div>
       </div>
+      <button onclick="dsVerRanking('mensal','🏆 Mensal')" style="width:100%;margin-top:12px;padding:10px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:12px;font-weight:700;color:rgba(255,255,255,.4);cursor:pointer;">Ver ranking completo</button>
     </div>
-    <!-- Desafio FTP -->
+
+    <!-- Quebra FTP -->
     <div style="border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#0a1020,#1a0a20);border:1px solid rgba(255,255,255,.08);padding:20px;">
       <div style="display:flex;align-items:center;gap:12px;">
         <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#295fe8,#9b30ff);display:flex;align-items:center;justify-content:center;font-size:22px;">⚡</div>
-        <div>
+        <div style="flex:1;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;letter-spacing:1px;">QUEBRA FTP</div>
           <div style="font-size:11px;color:rgba(255,255,255,.4);">Melhore seu FTP em 30 dias</div>
         </div>
-        <div style="margin-left:auto;background:rgba(255,255,255,.07);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;">EM BREVE</div>
+        <div style="background:rgba(255,255,255,.07);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;">EM BREVE</div>
       </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:12px;line-height:1.6;">Complete o Ramp Test a cada 4 semanas e acompanhe sua evolução no ranking de FTP.</div>
     </div>
   </div>
-  <div style="padding:0 18px 10px;">
-    <button onclick="showToast('🏆 Você será avisado quando os Desafios forem lançados!')" style="width:100%;padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#833ab4,#ea860c);font-size:15px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">NOTIFICAR-ME NO LANÇAMENTO</button>
+
+  <!-- Modal Ranking (geral ou de grupo) -->
+  <div id="dsModalRanking" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;flex-direction:column;">
+    <div style="display:flex;align-items:center;padding:20px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07);">
+      <button onclick="document.getElementById('dsModalRanking').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:22px;cursor:pointer;margin-right:12px;">✕</button>
+      <div id="dsModalRankTitulo" style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:#fff;">RANKING</div>
+    </div>
+    <div id="dsModalRankLista" style="overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:8px;flex:1;"></div>
+  </div>
+
+  <!-- Modal Convidar / Criar grupo -->
+  <div id="dsModalConvite" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:flex-end;justify-content:center;">
+    <div style="background:#131020;border-radius:24px 24px 0 0;padding:28px 24px 32px;width:100%;max-width:480px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;margin-bottom:4px;">🤜 DESAFIAR AMIGOS</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;">Crie um grupo privado dentro do desafio — ranking exclusivo entre vocês + ranking geral.</div>
+      <!-- Tab: Criar / Entrar -->
+      <div style="display:flex;gap:6px;background:rgba(255,255,255,.05);border-radius:12px;padding:4px;margin-bottom:18px;">
+        <button id="dsCriarTab" onclick="dsAbaConvite('criar')" style="flex:1;padding:10px;border-radius:9px;background:rgba(155,48,255,.25);border:none;color:#c084fc;font-size:13px;font-weight:700;cursor:pointer;">Criar grupo</button>
+        <button id="dsEntrarTab" onclick="dsAbaConvite('entrar')" style="flex:1;padding:10px;border-radius:9px;background:transparent;border:none;color:rgba(255,255,255,.35);font-size:13px;font-weight:700;cursor:pointer;">Tenho um código</button>
+      </div>
+      <!-- Criar -->
+      <div id="dsPainelCriar">
+        <input id="dsGrupoNomeInput" placeholder="Nome do seu grupo (ex: Turma da 7h)" maxlength="40"
+          style="width:100%;padding:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:10px;">
+        <div id="dsDesafioSelect" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:2px;">DESAFIO</div>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="radio" name="dsDesafioRad" value="21dias" checked style="accent-color:#9b30ff;"> <span style="font-size:14px;color:#fff;">🔥 21 Dias</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="radio" name="dsDesafioRad" value="mensal"> <span style="font-size:14px;color:#fff;">🏆 Ranking Mensal</span></label>
+        </div>
+        <button onclick="dsCriarGrupo()" style="width:100%;padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#9b30ff,#295fe8);font-size:15px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">CRIAR E CONVIDAR</button>
+      </div>
+      <!-- Entrar com código -->
+      <div id="dsPainelEntrar" style="display:none;">
+        <input id="dsCodigoInput" placeholder="Cole o código aqui — ex: TURMA-A7F2" maxlength="20"
+          style="width:100%;padding:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;outline:none;box-sizing:border-box;margin-bottom:16px;">
+        <button onclick="dsEntrarGrupo()" style="width:100%;padding:15px;border-radius:30px;border:none;background:linear-gradient(135deg,#9b30ff,#295fe8);font-size:15px;font-weight:900;letter-spacing:2px;color:#fff;cursor:pointer;">ENTRAR NO GRUPO</button>
+      </div>
+      <button onclick="document.getElementById('dsModalConvite').style.display='none'" style="width:100%;margin-top:10px;padding:12px;border-radius:30px;background:transparent;border:none;font-size:13px;color:rgba(255,255,255,.25);cursor:pointer;">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -1632,17 +1775,21 @@ input[type=file]{display:none}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
     Loja
   </div>
-  <div class="nav-center" id="navRide" style="flex:0 0 72px;display:flex;flex-direction:column;align-items:center;gap:3px;">
-    <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#ea860c,#d62d2d);display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 4px 20px rgba(234,134,12,.45);cursor:pointer;" onclick="goTab('sHome','navRide')">
+  <div class="nav-center" id="navRide" style="flex:0 0 72px;display:flex;flex-direction:column;align-items:center;gap:3px;" onclick="navCenterClick()">
+    <div id="navCenterBtn" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#ea860c,#d62d2d);display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 4px 20px rgba(234,134,12,.45);cursor:pointer;">
       <svg width="28" height="34" viewBox="0 0 44 56" fill="none">
         <defs><filter id="nbf"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
         <path d="M30 4 L10 30 L20 30 L14 52 L34 26 L24 26Z" fill="#fff" filter="url(#nbf)"/>
       </svg>
     </div>
-    <div style="font-size:8px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:2px;">Ride</div>
+    <div id="navCenterLabel" style="font-size:8px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:2px;">Ride</div>
   </div>
-  <div class="nav-tab" id="navAgenda" onclick="goTab('sAgenda','navAgenda');loadAgenda()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+  <div class="nav-tab" id="navDesafios" onclick="goTab('sDesafios','navDesafios');loadDesafios()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg>
+    Desafios
+  </div>
+  <div class="nav-tab" id="navAgenda" style="display:none;" onclick="goTab('sAgenda','navAgenda')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
     Agenda
   </div>
   <div class="nav-tab" id="navProfile" onclick="goTab('sProfile','navProfile')">
@@ -3992,7 +4139,7 @@ function spLogin(){
       prToken=res.d.token; prUser=res.d.user;
       localStorage.setItem('pr_token',prToken);
       updateProfileUI();
-      go('sHome');
+      rotearPorRole(prUser);
       _toast('\u2713 Bem-vindo, '+(prUser.name||'')+'!','#5db13d');
     })
     .catch(function(){
@@ -4257,15 +4404,121 @@ function lvlPct(pts){
   return Math.round((pts-lo)/(hi-lo)*100);
 }
 
+// Rota pós-login baseada no role
+function rotearPorRole(user) {
+  if (user && user.role === 'professor') {
+    _phInited = false; // reset para phInit rodar
+    phCheckRole();
+  } else {
+    goTab('sActivity', 'navActivity');
+  }
+  navCenterAtualizar();
+}
+
+// Botão central do nav
+function navCenterClick() {
+  if (!prToken) {
+    go('sSplash'); // convidado → tela de login
+  } else if (prUser && prUser.role === 'professor') {
+    go('sProfHome'); phCarregarAgenda();
+  } else {
+    goTab('sHome', 'navRide');
+  }
+}
+function navCenterAtualizar() {
+  var lbl  = document.getElementById('navCenterLabel');
+  var btn  = document.getElementById('navCenterBtn');
+  var wrap = document.getElementById('navRide');
+  var tabDesafios = document.getElementById('navDesafios');
+  var tabAgenda   = document.getElementById('navAgenda');
+
+  // Reset btn ao estilo elevado padrão
+  if (btn) {
+    btn.style.width     = '60px';
+    btn.style.height    = '60px';
+    btn.style.marginTop = '-22px';
+    btn.style.boxShadow = '0 4px 20px rgba(234,134,12,.45)';
+    btn.style.background = 'linear-gradient(135deg,#ea860c,#d62d2d)';
+    btn.innerHTML = '<svg width="28" height="34" viewBox="0 0 44 56" fill="none"><defs><filter id="nbf"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M30 4 L10 30 L20 30 L14 52 L34 26 L24 26Z" fill="#fff" filter="url(#nbf)"/></svg>';
+  }
+
+  if (!prToken) {
+    // Convidado: botão central = "Entrar sem senha"
+    if (lbl) lbl.textContent = 'Sem Senha';
+    if (btn) { btn.style.background = 'rgba(255,255,255,.12)'; btn.style.boxShadow = 'none'; }
+    if (wrap) wrap.onclick = function(){ entrarSemLogin(); };
+    if (tabDesafios) tabDesafios.style.display = '';
+    if (tabAgenda)   tabAgenda.style.display   = 'none';
+
+  } else if (prUser && prUser.role === 'professor') {
+    // Professor: botão central roxo → sProfHome; 4ª aba = Agenda
+    if (lbl) lbl.textContent = 'Prof';
+    if (btn) { btn.style.background = 'linear-gradient(135deg,#9b30ff,#295fe8)'; btn.style.boxShadow = '0 4px 20px rgba(155,48,255,.5)'; }
+    if (wrap) wrap.onclick = function(){ go('sProfHome'); phCarregarAgenda(); };
+    if (tabDesafios) tabDesafios.style.display = 'none';
+    if (tabAgenda)   tabAgenda.style.display   = '';
+
+  } else {
+    // Aluno: botão central = Agenda (aba plana, sem elevação)
+    if (lbl) lbl.textContent = 'Agenda';
+    if (btn) {
+      btn.style.background = 'transparent';
+      btn.style.boxShadow  = 'none';
+      btn.style.marginTop  = '0';
+      btn.style.width      = '36px';
+      btn.style.height     = '36px';
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+    }
+    if (wrap) { wrap.style.marginTop = '0'; wrap.onclick = function(){ goTab('sAgenda','navRide'); }; }
+    if (tabDesafios) tabDesafios.style.display = '';
+    if (tabAgenda)   tabAgenda.style.display   = 'none';
+  }
+}
+
+// Entrar sem login → guest mode
+function entrarSemLogin() {
+  prToken = null; prUser = null;
+  goTab('sActivity', 'navActivity');
+  navCenterAtualizar();
+}
+
+// Esqueci senha (placeholder)
+function spEsqueci() {
+  showToast('📧 Envie um e-mail para suporte@prorider.com.br para redefinir sua senha.');
+}
+
+// Guard para ações que precisam de login
+function requireLogin(msg) {
+  if (prToken) return true;
+  // Mostra bottom sheet de login rápido
+  showToast('👤 ' + (msg || 'Crie sua conta para usar este recurso!'));
+  setTimeout(function(){ go('sSplash'); }, 1200);
+  return false;
+}
+
 // Inicializa auth ao carregar
 (function initAuth(){
-  if(!prToken) return;
+  if(!prToken) {
+    // Sem token: vai para splash (tela de entrada)
+    // A tela ativa já é sSplash por padrão no HTML
+    navCenterAtualizar();
+    return;
+  }
   fetch(SERVER_HTTP+'/user/me',{headers:{'Authorization':'Bearer '+prToken}})
     .then(function(r){ return r.json(); })
     .then(function(u){
-      if(u.id){ prUser=u; updateProfileUI(); }
-      else { prToken=null; localStorage.removeItem('pr_token'); }
-    }).catch(function(){});
+      if(u.id){
+        prUser=u;
+        updateProfileUI();
+        rotearPorRole(u);
+      } else {
+        prToken=null; localStorage.removeItem('pr_token');
+        navCenterAtualizar();
+      }
+    }).catch(function(){
+      // Offline: ainda mostrar a tela de entrada
+      navCenterAtualizar();
+    });
 })();
 
 function updateProfileUI(){
@@ -4343,7 +4596,7 @@ function lgSubmit(){
       updateProfileUI();
       // Limpa form
       ['lgEmail','lgPass','lgName'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-      go('sHome');
+      rotearPorRole(prUser);
       // Toast boas-vindas
       _toast('✓ Bem-vindo, '+(prUser.name||'')+'!','#5db13d');
     })
@@ -4739,6 +4992,31 @@ function pararCamera(){
 
 function processarQRCode(raw){
   var status = document.getElementById('qrStatus');
+  // ── Formato bike fixa: prorider://bike?n=7&lic=GYM-XYZ ──
+  var bikeMatch = raw.match(/prorider:\/\/bike\?(.+)/i);
+  if(bikeMatch){
+    var params = new URLSearchParams(bikeMatch[1]);
+    var bikeNum = parseInt(params.get('n'));
+    var licCod  = params.get('lic');
+    if(bikeNum && licCod){
+      if(status){ status.textContent = 'Conectando na Bike '+bikeNum+'...'; status.style.color='#ea860c'; }
+      entrarPorBike(bikeNum, licCod);
+      return;
+    }
+  }
+
+  // ── Formato porta: prorider://gym?lic=GYM-XYZ ──
+  var gymMatch = raw.match(/prorider:\/\/gym\?(.+)/i);
+  if(gymMatch){
+    var params2 = new URLSearchParams(gymMatch[1]);
+    var licCod2 = params2.get('lic');
+    if(licCod2){
+      if(status){ status.textContent = 'Verificando sala...'; status.style.color='#ea860c'; }
+      verStatusSala(licCod2);
+      return;
+    }
+  }
+
   // ── Formato novo: prorider://sessao?token=XXXX[&local=IP:PORTA] ──
   var sessaoMatch = raw.match(/prorider:\/\/sessao\?(.+)/i);
   if(sessaoMatch){
@@ -4765,7 +5043,173 @@ function processarQRCode(raw){
   connectQR(code);
 }
 
-// Entra em sessão ao vivo criada pelo ProRider Jim
+// ── Entra via QR fixo da bike (prorider://bike?n=7&lic=GYM-XYZ) ──
+async function entrarPorBike(bikeNum, lic){
+  var statusEl = document.getElementById('qrStatus');
+  var prToken = localStorage.getItem('pr_token');
+  if(!prToken){
+    if(statusEl){ statusEl.textContent='Faça login no app antes de escanear a bike.'; statusEl.style.color='#d62d2d'; }
+    return;
+  }
+  try{
+    var r = await fetch(SERVER_HTTP+'/sessao/entrar-bike',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+prToken},
+      body:JSON.stringify({lic, bike_num: bikeNum})
+    });
+    var d = await r.json();
+    if(r.status === 202){
+      // Sem sessão ativa — oferecer reservar próxima aula
+      verStatusSala(lic);
+      return;
+    }
+    if(!r.ok){
+      if(statusEl){ statusEl.textContent = d.error||'Erro ao conectar.'; statusEl.style.color='#d62d2d'; }
+      return;
+    }
+    if(statusEl){
+      var msg = d.bike_trocada ? 'Bike trocada para '+d.bike_num
+        : d.reconectado ? 'Reconectado na Bike '+d.bike_num
+        : d.upgrade_bt ? 'Bike '+d.bike_num+' identificada! (era anônima)'
+        : '🚲 Bike '+d.bike_num+' — '+d.nome_aula;
+      statusEl.textContent = msg;
+      statusEl.style.color='#5db13d';
+    }
+    // Salvar contexto de sessão
+    sessionStorage.setItem('pr_sessao_id', d.sessao_id);
+    sessionStorage.setItem('pr_bike_num', d.bike_num);
+  }catch(e){
+    if(statusEl){ statusEl.textContent='Erro de conexão.'; statusEl.style.color='#d62d2d'; }
+  }
+}
+
+// ── Ver status da sala via QR da porta (prorider://gym?lic=GYM-XYZ) ──
+async function verStatusSala(lic){
+  var statusEl = document.getElementById('qrStatus');
+  try{
+    var r = await fetch(SERVER_HTTP+'/sessao/status?lic='+encodeURIComponent(lic));
+    var d = await r.json();
+    if(!r.ok){ if(statusEl){statusEl.textContent=d.error||'Erro.';statusEl.style.color='#d62d2d';} return; }
+
+    var prToken = localStorage.getItem('pr_token');
+    var s = d.sessao_ativa;
+    var prox = d.proxima_aula;
+
+    if(s && s.vagas_livres > 0){
+      // Tem aula ativa com vagas — mostrar bikes disponíveis e entrar
+      _mostrarModalSala(d, prToken);
+    } else if(s && s.vagas_livres === 0){
+      // Sala cheia — oferecer reservar próxima
+      _mostrarModalSalaCheia(d, prToken);
+    } else if(prox){
+      // Sem aula ativa mas tem próxima
+      _mostrarModalProxima(d, prToken);
+    } else {
+      if(statusEl){ statusEl.textContent='Nenhuma aula ativa ou agendada no momento.'; statusEl.style.color='var(--muted)'; }
+    }
+  }catch(e){
+    if(statusEl){ statusEl.textContent='Erro de conexão.'; statusEl.style.color='#d62d2d'; }
+  }
+}
+
+function _mostrarModalSala(d, prToken){
+  var s = d.sessao_ativa;
+  var html = '<div style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px;">'
+    +'<div style="background:#13131a;border:1px solid rgba(93,177,61,.3);border-radius:20px;padding:28px;max-width:360px;width:100%;text-align:center;">'
+    +'<div style="font-size:32px;margin-bottom:8px;">🟢</div>'
+    +'<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;margin-bottom:4px;">AULA AO VIVO</div>'
+    +'<div style="font-size:14px;color:rgba(255,255,255,.6);margin-bottom:16px;">'+s.nome_aula+' · '+s.conectados+'/'+s.max_conexoes+' bikes</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px;">Bikes disponíveis:</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px;">'
+    +s.bikes_livres.slice(0,12).map(function(n){
+      return '<button onclick="_entrarNaBike('+n+',\''+s.token+'\')" style="padding:8px 14px;border-radius:8px;background:rgba(93,177,61,.12);border:1px solid rgba(93,177,61,.3);color:#5db13d;font-weight:700;font-size:13px;cursor:pointer;">🚲 '+n+'</button>';
+    }).join('')
+    +'</div>'
+    +'<button onclick="this.closest(\'div[style]\').remove()" style="padding:8px 20px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;">Fechar</button>'
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function _mostrarModalSalaCheia(d, prToken){
+  var s = d.sessao_ativa;
+  var prox = d.proxima_aula;
+  var html = '<div style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px;">'
+    +'<div style="background:#13131a;border:1px solid rgba(214,45,45,.3);border-radius:20px;padding:28px;max-width:360px;width:100%;text-align:center;">'
+    +'<div style="font-size:32px;margin-bottom:8px;">🔴</div>'
+    +'<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:2px;color:#d62d2d;margin-bottom:4px;">SALA CHEIA</div>'
+    +'<div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:16px;">'+s.nome_aula+' · '+s.max_conexoes+'/'+s.max_conexoes+' bikes ocupadas</div>'
+    +(prox ? '<div style="padding:14px;border-radius:12px;background:rgba(255,180,0,.06);border:1px solid rgba(255,180,0,.2);margin-bottom:16px;">'
+      +'<div style="font-size:11px;color:#ffb400;font-weight:700;letter-spacing:1px;margin-bottom:4px;">PRÓXIMA AULA</div>'
+      +'<div style="font-size:16px;font-weight:700;color:#fff;">'+prox.nome+'</div>'
+      +'<div style="font-size:12px;color:rgba(255,255,255,.5);">'+prox.hora+' · '+prox.vagas_total+' vagas</div>'
+      +'<button onclick="_reservarProxima(\''+d.academia.codigo+'\',null,this)" style="margin-top:10px;padding:10px 20px;border-radius:10px;background:rgba(255,180,0,.12);border:1px solid rgba(255,180,0,.3);color:#ffb400;font-weight:700;font-size:13px;cursor:pointer;">Reservar vaga →</button>'
+      +'</div>' : '')
+    +'<button onclick="this.closest(\'div[style]\').remove()" style="padding:8px 20px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;">Fechar</button>'
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function _mostrarModalProxima(d, prToken){
+  var prox = d.proxima_aula;
+  var segs = prox.segundos_ate_aula||0;
+  var min = Math.floor(segs/60);
+  var html = '<div style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px;">'
+    +'<div style="background:#13131a;border:1px solid rgba(255,180,0,.25);border-radius:20px;padding:28px;max-width:360px;width:100%;text-align:center;">'
+    +'<div style="font-size:32px;margin-bottom:8px;">⏳</div>'
+    +'<div style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;letter-spacing:2px;color:#fff;margin-bottom:4px;">PRÓXIMA AULA</div>'
+    +'<div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;">'+prox.nome+'</div>'
+    +'<div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:4px;">'+prox.hora+' · 👨‍🏫 '+(prox.professor_nome||'—')+'</div>'
+    +'<div style="font-size:12px;color:#ffb400;margin-bottom:16px;">Em aprox. '+min+' min · '+prox.vagas_total+' vagas</div>'
+    +'<button onclick="_reservarProxima(\''+d.academia.codigo+'\',null,this)" style="width:100%;padding:14px;border-radius:12px;background:rgba(255,180,0,.12);border:1px solid rgba(255,180,0,.3);color:#ffb400;font-weight:700;font-size:15px;cursor:pointer;margin-bottom:10px;">🎯 Reservar minha vaga</button>'
+    +'<button onclick="this.closest(\'div[style]\').remove()" style="padding:8px 20px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;">Agora não</button>'
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function _entrarNaBike(bikeNum, sessaoToken){
+  var prToken = localStorage.getItem('pr_token');
+  if(!prToken){ alert('Faça login primeiro.'); return; }
+  // Fechar modal
+  var modal = document.querySelector('div[style*="z-index:9000"]');
+  if(modal) modal.remove();
+  var statusEl = document.getElementById('qrStatus');
+  try{
+    var r = await fetch(SERVER_HTTP+'/sessao/entrar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+prToken},
+      body:JSON.stringify({token:sessaoToken, bike_preferida: bikeNum})
+    });
+    var d = await r.json();
+    if(!r.ok){ if(statusEl){statusEl.textContent=d.error||'Erro.';statusEl.style.color='#d62d2d';} return; }
+    if(statusEl){ statusEl.textContent='🚲 Bike '+d.bike_num+' — '+d.nome_aula; statusEl.style.color='#5db13d'; }
+    sessionStorage.setItem('pr_sessao_id', d.sessao_id);
+    sessionStorage.setItem('pr_bike_num', d.bike_num);
+  }catch(e){ if(statusEl){statusEl.textContent='Erro de conexão.';statusEl.style.color='#d62d2d';} }
+}
+
+async function _reservarProxima(lic, agendaId, btn){
+  var prToken = localStorage.getItem('pr_token');
+  if(!prToken){ alert('Faça login primeiro para reservar.'); return; }
+  if(btn){ btn.textContent='Reservando...'; btn.disabled=true; }
+  try{
+    var r = await fetch(SERVER_HTTP+'/sessao/reservar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+prToken},
+      body:JSON.stringify({lic, agenda_id: agendaId})
+    });
+    var d = await r.json();
+    var modal = document.querySelector('div[style*="z-index:9000"]');
+    if(modal) modal.remove();
+    if(r.ok){
+      var statusEl = document.getElementById('qrStatus');
+      if(statusEl){ statusEl.textContent='✅ Vaga reservada! Bike '+d.bike_num+' — '+d.nome_aula; statusEl.style.color='#5db13d'; }
+    } else {
+      alert(d.error||'Erro ao reservar.');
+    }
+  }catch(e){ alert('Erro de conexão.'); }
+}
+
+// Entra em sessão ao vivo criada pelo ProRider Gym
 // QR payload: prorider://sessao?token=XXXX[&local=192.168.1.10:3001]
 async function entrarSessaoAoVivo(token, localAddr){
   var statusEl = document.getElementById('qrStatus');
@@ -4867,6 +5311,305 @@ var SERVER_HTTP='https://prorider-server-production-5784.up.railway.app';
   }catch(e){}
 })();
 
+// ══════════════════════════════════════════════════════════════
+// PROFESSOR HOME
+// ══════════════════════════════════════════════════════════════
+
+function phInit() {
+  if (!prUser || prUser.role !== 'professor') return;
+
+  // Trocar nav: em vez do botão central ir p/ sHome, vai p/ sProfHome
+  var navRide = document.getElementById('navRide');
+  if (navRide) navRide.onclick = function(){ go('sProfHome'); phCarregarAgenda(); };
+
+  // Preencher nome e data
+  var el = document.getElementById('phNome');
+  if (el) el.textContent = (prUser.name || 'Professor').split(' ')[0].toUpperCase();
+  var ed = document.getElementById('phData');
+  if (ed) ed.textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+
+  // Ir direto para sProfHome ao fazer login
+  go('sProfHome');
+  phCarregarAgenda();
+}
+
+async function phCarregarAgenda() {
+  var list = document.getElementById('phAgendaList');
+  if (!list) return;
+  var hoje = new Date().toISOString().slice(0,10);
+  try {
+    var r = await fetch(SERVER_HTTP + '/agenda/grade/' + (prUser.license_id || ''), {
+      headers: { 'Authorization': 'Bearer ' + prToken }
+    });
+    var dados = await r.json();
+    var aulas = (dados.dias || []).filter(function(d){ return d.data === hoje; });
+    if (!aulas.length || !aulas[0].aulas || !aulas[0].aulas.length) {
+      list.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.2);font-size:13px;">Nenhuma aula hoje.</div>';
+      return;
+    }
+    var items = aulas[0].aulas;
+    list.innerHTML = items.map(function(a){
+      var agora = new Date(); var h=parseInt(a.hora); var horaFim=h+(a.duracao_min||60)/60;
+      var passada = horaFim < agora.getHours() + agora.getMinutes()/60;
+      var cor = passada ? 'rgba(255,255,255,.15)' : '#ea860c';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">'
+        +'<div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;color:'+cor+';letter-spacing:1px;width:42px;flex-shrink:0;">'+a.hora+'</div>'
+        +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:14px;font-weight:700;color:'+(passada?'rgba(255,255,255,.35)':'#fff')+';">'+a.nome+'</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;">'+a.duracao_min+'min · '+a.vagas_total+' vagas</div>'
+        +'</div>'
+        +(passada?'<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.2);letter-spacing:1px;">FIM</div>'
+          :'<div style="font-size:10px;font-weight:700;color:#5db13d;letter-spacing:1px;">HOJE</div>')
+        +'</div>';
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.2);font-size:13px;">Erro ao carregar agenda.</div>';
+  }
+}
+
+function phOpenFTP(tipo) {
+  showToast(tipo === 'ramp'
+    ? '⚡ Ramp Test — em breve neste app!'
+    : '🔥 Teste 20min — em breve neste app!');
+}
+
+function phAulaLivre() {
+  var m = document.getElementById('phModalLivre');
+  if (m) { m.style.display = 'flex'; }
+}
+
+async function phConfirmarLivre() {
+  var nome = (document.getElementById('phLivreNome')||{}).value || 'Aula Livre';
+  if (!prToken) { showToast('Faça login primeiro.'); return; }
+  try {
+    var r = await fetch(SERVER_HTTP + '/gestor/sessao', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + prToken },
+      body: JSON.stringify({ nome_aula: nome, max_conexoes: 30, modo: 'livre' })
+    });
+    var d = await r.json();
+    if (!r.ok) { showToast(d.error || 'Erro ao criar aula.'); return; }
+    document.getElementById('phModalLivre').style.display = 'none';
+    showToast('✅ Aula livre criada! Token: ' + (d.token || '—'));
+  } catch(e) {
+    showToast('Erro ao criar aula livre.');
+  }
+}
+
+// Detectar professor após login e redirecionar
+var _phInited = false;
+function phCheckRole() {
+  if (_phInited) return;
+  if (prUser && prUser.role === 'professor') {
+    _phInited = true;
+    phInit();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// DESAFIOS — grupos e ranking
+// ══════════════════════════════════════════════════════════════
+
+var _dsGrupoAtual = null; // { codigo, nome, desafio_id }
+var _dsDesafioCorrente = null;
+
+function loadDesafios() {
+  dsCarregarRanking();
+  dsCarregarGrupoAtual();
+  // Progresso 21 dias mock (substituir por dados reais futuramente)
+  var dias = Math.min(21, (prUser && prUser.aulas_mes) || 0);
+  var prog = document.getElementById('ds21prog');
+  var label = document.getElementById('ds21days');
+  if (prog) prog.style.width = Math.round(dias/21*100) + '%';
+  if (label) label.textContent = dias + ' / 21 dias';
+  // Mês atual
+  var rm = document.getElementById('dsRankMes');
+  if (rm) rm.textContent = new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+}
+
+async function dsCarregarRanking() {
+  var wrap = document.getElementById('dsRankingGeral');
+  if (!wrap) return;
+  try {
+    var r = await fetch(SERVER_HTTP + '/desafios/ranking/mensal', {
+      headers: prToken ? { 'Authorization': 'Bearer ' + prToken } : {}
+    });
+    if (!r.ok) throw new Error();
+    var d = await r.json();
+    wrap.innerHTML = (d.ranking || []).slice(0, 3).map(function(u, i){
+      var medals = ['🥇','🥈','🥉'];
+      var isMe = prUser && u.user_id === prUser.id;
+      return '<div style="display:flex;align-items:center;gap:10px;'+(isMe?'background:rgba(234,134,12,.08);border-radius:8px;padding:4px 6px;':'')+';">'
+        +'<div style="width:24px;text-align:center;font-size:15px;">'+(medals[i]||'')+'</div>'
+        +'<div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:rgba(255,255,255,.5);">'+(u.nome||'?')[0]+'</div>'
+        +'<div style="flex:1;font-size:13px;color:'+(isMe?'#fff':'rgba(255,255,255,.7)')+';">'+(u.nome||'—')+(isMe?' (você)':'')+'</div>'
+        +'<div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);">'+u.pontos+' pts</div>'
+        +'</div>';
+    }).join('');
+    if (!d.ranking || !d.ranking.length) wrap.innerHTML = '<div style="text-align:center;padding:10px;color:rgba(255,255,255,.2);font-size:12px;">Ainda sem dados este mês.</div>';
+  } catch(e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:10px;color:rgba(255,255,255,.2);font-size:12px;">Ranking em breve.</div>';
+  }
+}
+
+function dsCarregarGrupoAtual() {
+  var salvo = localStorage.getItem('pr_grupo');
+  if (!salvo) return;
+  try {
+    _dsGrupoAtual = JSON.parse(salvo);
+    dsRenderGrupo(_dsGrupoAtual);
+  } catch(e) {}
+}
+
+async function dsRenderGrupo(grupo) {
+  var wrap = document.getElementById('dsGrupoAtivo');
+  var nomeEl = document.getElementById('dsGrupoNome');
+  var rankEl = document.getElementById('dsGrupoRanking');
+  if (!wrap || !grupo) return;
+  wrap.style.display = 'block';
+  if (nomeEl) nomeEl.textContent = grupo.nome || grupo.codigo;
+  try {
+    var r = await fetch(SERVER_HTTP + '/desafios/grupos/' + grupo.codigo + '/ranking', {
+      headers: prToken ? { 'Authorization': 'Bearer ' + prToken } : {}
+    });
+    if (!r.ok) throw new Error();
+    var d = await r.json();
+    if (rankEl) rankEl.innerHTML = (d.ranking || []).map(function(u, i){
+      var isMe = prUser && u.user_id === prUser.id;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0;">'
+        +'<div style="width:18px;text-align:center;font-size:12px;font-weight:700;color:rgba(255,255,255,.3);">'+(i+1)+'</div>'
+        +'<div style="flex:1;font-size:13px;color:'+(isMe?'#fff':'rgba(255,255,255,.6)')+';">'+(u.nome||'—')+(isMe?' ✦':'')+'</div>'
+        +'<div style="font-size:12px;font-weight:700;color:rgba(155,48,255,.8);">'+u.pontos+' pts</div>'
+        +'</div>';
+    }).join('') || '<div style="font-size:12px;color:rgba(255,255,255,.25);">Ninguém pontuou ainda.</div>';
+  } catch(e) {
+    if (rankEl) rankEl.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,.2);">Ranking offline.</div>';
+  }
+}
+
+function dsAbrirConvite() {
+  if (!requireLogin('Crie sua conta para desafiar amigos!')) return;
+  var m = document.getElementById('dsModalConvite');
+  if (m) { m.style.display = 'flex'; dsAbaConvite('criar'); }
+}
+
+function dsDesafiarNeste(desafioId, nome) {
+  if (!requireLogin('Crie sua conta para desafiar amigos!')) return;
+  _dsDesafioCorrente = desafioId;
+  document.querySelectorAll('[name="dsDesafioRad"]').forEach(function(r){ r.checked = r.value === desafioId; });
+  dsAbrirConvite();
+}
+
+function dsAbaConvite(aba) {
+  var pCriar = document.getElementById('dsPainelCriar');
+  var pEntrar = document.getElementById('dsPainelEntrar');
+  var tCriar = document.getElementById('dsCriarTab');
+  var tEntrar = document.getElementById('dsEntrarTab');
+  if (aba === 'criar') {
+    if (pCriar) pCriar.style.display = 'block';
+    if (pEntrar) pEntrar.style.display = 'none';
+    if (tCriar) { tCriar.style.background = 'rgba(155,48,255,.25)'; tCriar.style.color = '#c084fc'; }
+    if (tEntrar) { tEntrar.style.background = 'transparent'; tEntrar.style.color = 'rgba(255,255,255,.35)'; }
+  } else {
+    if (pCriar) pCriar.style.display = 'none';
+    if (pEntrar) pEntrar.style.display = 'block';
+    if (tEntrar) { tEntrar.style.background = 'rgba(155,48,255,.25)'; tEntrar.style.color = '#c084fc'; }
+    if (tCriar) { tCriar.style.background = 'transparent'; tCriar.style.color = 'rgba(255,255,255,.35)'; }
+  }
+}
+
+async function dsCriarGrupo() {
+  if (!prToken) { showToast('Faça login para criar um grupo.'); return; }
+  var nome = (document.getElementById('dsGrupoNomeInput')||{}).value || '';
+  if (!nome.trim()) { showToast('Digite o nome do grupo.'); return; }
+  var desafioId = (_dsDesafioCorrente) || (document.querySelector('[name="dsDesafioRad"]:checked')||{}).value || '21dias';
+  try {
+    var r = await fetch(SERVER_HTTP + '/desafios/grupos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + prToken },
+      body: JSON.stringify({ nome: nome.trim(), desafio_id: desafioId })
+    });
+    var d = await r.json();
+    if (!r.ok) { showToast(d.error || 'Erro ao criar grupo.'); return; }
+    _dsGrupoAtual = { codigo: d.codigo, nome: nome.trim(), desafio_id: desafioId };
+    localStorage.setItem('pr_grupo', JSON.stringify(_dsGrupoAtual));
+    document.getElementById('dsModalConvite').style.display = 'none';
+    dsRenderGrupo(_dsGrupoAtual);
+    dsCompartilharGrupo();
+  } catch(e) { showToast('Erro de conexão.'); }
+}
+
+async function dsEntrarGrupo() {
+  if (!prToken) { showToast('Faça login para entrar num grupo.'); return; }
+  var codigo = ((document.getElementById('dsCodigoInput')||{}).value || '').trim().toUpperCase();
+  if (!codigo) { showToast('Cole o código do grupo.'); return; }
+  try {
+    var r = await fetch(SERVER_HTTP + '/desafios/grupos/' + codigo + '/entrar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + prToken },
+      body: JSON.stringify({})
+    });
+    var d = await r.json();
+    if (!r.ok) { showToast(d.error || 'Código inválido.'); return; }
+    _dsGrupoAtual = { codigo: codigo, nome: d.nome || codigo, desafio_id: d.desafio_id };
+    localStorage.setItem('pr_grupo', JSON.stringify(_dsGrupoAtual));
+    document.getElementById('dsModalConvite').style.display = 'none';
+    dsRenderGrupo(_dsGrupoAtual);
+    showToast('✅ Entrou no grupo ' + (_dsGrupoAtual.nome || codigo) + '!');
+  } catch(e) { showToast('Erro de conexão.'); }
+}
+
+function dsCompartilharGrupo() {
+  if (!_dsGrupoAtual) return;
+  var texto = '🚴 Estou no desafio ProRider! Entre no meu grupo com o código: ' + _dsGrupoAtual.codigo
+    + ' 👉 Baixe o app e usa esse código na aba Desafios!';
+  if (navigator.share) {
+    navigator.share({ title: 'ProRider — Desafio', text: texto }).catch(function(){});
+  } else {
+    navigator.clipboard.writeText(_dsGrupoAtual.codigo).then(function(){
+      showToast('📋 Código ' + _dsGrupoAtual.codigo + ' copiado!');
+    });
+  }
+}
+
+async function dsVerRanking(desafioId, titulo) {
+  var modal = document.getElementById('dsModalRanking');
+  var tit = document.getElementById('dsModalRankTitulo');
+  var lista = document.getElementById('dsModalRankLista');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  if (tit) tit.textContent = titulo;
+  if (lista) lista.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,.2);">Carregando...</div>';
+  try {
+    var url = desafioId === 'mensal'
+      ? SERVER_HTTP + '/desafios/ranking/mensal'
+      : SERVER_HTTP + '/desafios/ranking/' + desafioId;
+    var r = await fetch(url, { headers: prToken ? { 'Authorization': 'Bearer ' + prToken } : {} });
+    var d = await r.json();
+    var medals = ['🥇','🥈','🥉'];
+    lista.innerHTML = (d.ranking || []).map(function(u, i){
+      var isMe = prUser && u.user_id === prUser.id;
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:'+(isMe?'rgba(234,134,12,.1)':'rgba(255,255,255,.03)')+';border:1px solid rgba(255,255,255,'+(isMe?'.12':'.05')+');">'
+        +'<div style="width:28px;text-align:center;font-size:16px;">'+(medals[i]||'<span style="font-size:12px;font-weight:900;color:rgba(255,255,255,.3);">'+(i+1)+'</span>')+'</div>'
+        +'<div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:rgba(255,255,255,.4);">'+(u.nome||'?')[0]+'</div>'
+        +'<div style="flex:1;">'
+        +'<div style="font-size:14px;font-weight:700;color:'+(isMe?'#fff':'rgba(255,255,255,.7)')+';">'+(u.nome||'—')+(isMe?' <span style="color:#ea860c;font-size:11px;">você</span>':'')+'</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.25);margin-top:1px;">'+(u.aulas||0)+' aulas este mês</div>'
+        +'</div>'
+        +'<div style="font-size:15px;font-weight:700;color:rgba(255,255,255,.5);">'+u.pontos+' <span style="font-size:10px;color:rgba(255,255,255,.25);">pts</span></div>'
+        +'</div>';
+    }).join('') || '<div style="text-align:center;padding:40px;color:rgba(255,255,255,.2);">Sem dados ainda.</div>';
+  } catch(e) {
+    if (lista) lista.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,.2);">Ranking em breve.</div>';
+  }
+}
+
+// Hook no updateProfileUI para detectar professor
+var _origUpdateProfileUI = updateProfileUI;
+updateProfileUI = function() {
+  _origUpdateProfileUI();
+  phCheckRole();
+};
 
 </script>
 </body>
