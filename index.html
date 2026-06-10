@@ -4434,7 +4434,7 @@ function lvlPct(pts){
 
 // Rota pós-login baseada no role
 function rotearPorRole(user) {
-  if (user && user.role === 'professor') {
+  if (user && (user.role||'').toLowerCase() === 'professor') {
     _phInited = false;
     phCheckRole();
   } else {
@@ -4447,7 +4447,7 @@ function rotearPorRole(user) {
 function navCenterClick() {
   if (!prToken) {
     go('sSplash'); // convidado → tela de login
-  } else if (prUser && prUser.role === 'professor') {
+  } else if (prUser && (prUser.role||'').toLowerCase() === 'professor') {
     go('sProfHome'); phCarregarAgenda();
   } else {
     goTab('sHome', 'navRide');
@@ -4482,7 +4482,7 @@ function navCenterAtualizar() {
     if (profBtns)  profBtns.style.display  = 'none';
     if (agendaBtn) agendaBtn.style.display = '';
 
-  } else if (prUser && prUser.role === 'professor') {
+  } else if (prUser && (prUser.role||'').toLowerCase() === 'professor') {
     // Professor: botão roxo → sProfHome; 4ª aba = Desafios; Build+Agenda no home
     if (lbl) lbl.textContent = 'Prof';
     if (btn) { btn.style.background = 'linear-gradient(135deg,#9b30ff,#295fe8)'; btn.style.boxShadow = '0 4px 20px rgba(155,48,255,.5)'; }
@@ -5428,7 +5428,7 @@ async function phConfirmarLivre() {
 var _phInited = false;
 function phCheckRole() {
   if (_phInited) return;
-  if (prUser && prUser.role === 'professor') {
+  if (prUser && (prUser.role||'').toLowerCase() === 'professor') {
     _phInited = true;
     phInit();
   }
