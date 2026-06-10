@@ -4407,10 +4407,10 @@ function lvlPct(pts){
 // Rota pós-login baseada no role
 function rotearPorRole(user) {
   if (user && user.role === 'professor') {
-    _phInited = false; // reset para phInit rodar
+    _phInited = false;
     phCheckRole();
   } else {
-    goTab('sActivity', 'navActivity');
+    goTab('sHome', 'navRide');
   }
   navCenterAtualizar();
 }
@@ -4432,20 +4432,19 @@ function navCenterAtualizar() {
   var tabDesafios = document.getElementById('navDesafios');
   var tabAgenda   = document.getElementById('navAgenda');
 
-  // Reset btn ao estilo elevado padrão
+  // Restaura tamanho/posição elevado padrão
   if (btn) {
     btn.style.width     = '60px';
     btn.style.height    = '60px';
     btn.style.marginTop = '-22px';
-    btn.style.boxShadow = '0 4px 20px rgba(234,134,12,.45)';
-    btn.style.background = 'linear-gradient(135deg,#ea860c,#d62d2d)';
-    btn.innerHTML = '<svg width="28" height="34" viewBox="0 0 44 56" fill="none"><defs><filter id="nbf"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M30 4 L10 30 L20 30 L14 52 L34 26 L24 26Z" fill="#fff" filter="url(#nbf)"/></svg>';
+    btn.innerHTML = '<svg width="28" height="34" viewBox="0 0 44 56" fill="none"><defs><filter id="nbf2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M30 4 L10 30 L20 30 L14 52 L34 26 L24 26Z" fill="#fff" filter="url(#nbf2)"/></svg>';
   }
+  if (wrap) wrap.style.marginTop = '';
 
   if (!prToken) {
-    // Convidado: botão central = "Entrar sem senha"
-    if (lbl) lbl.textContent = 'Sem Senha';
-    if (btn) { btn.style.background = 'rgba(255,255,255,.12)'; btn.style.boxShadow = 'none'; }
+    // Convidado: botão central = "Entrar sem senha" (abre sHome como guest)
+    if (lbl) lbl.textContent = 'Entrar';
+    if (btn) { btn.style.background = 'linear-gradient(135deg,#ea860c,#d62d2d)'; btn.style.boxShadow = '0 4px 20px rgba(234,134,12,.45)'; }
     if (wrap) wrap.onclick = function(){ entrarSemLogin(); };
     if (tabDesafios) tabDesafios.style.display = '';
     if (tabAgenda)   tabAgenda.style.display   = 'none';
@@ -4459,26 +4458,19 @@ function navCenterAtualizar() {
     if (tabAgenda)   tabAgenda.style.display   = '';
 
   } else {
-    // Aluno: botão central = Agenda (aba plana, sem elevação)
-    if (lbl) lbl.textContent = 'Agenda';
-    if (btn) {
-      btn.style.background = 'transparent';
-      btn.style.boxShadow  = 'none';
-      btn.style.marginTop  = '0';
-      btn.style.width      = '36px';
-      btn.style.height     = '36px';
-      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-    }
-    if (wrap) { wrap.style.marginTop = '0'; wrap.onclick = function(){ goTab('sAgenda','navRide'); }; }
-    if (tabDesafios) tabDesafios.style.display = '';
-    if (tabAgenda)   tabAgenda.style.display   = 'none';
+    // Aluno: botão central laranja normal → sHome; 4ª aba = Agenda
+    if (lbl) lbl.textContent = 'Início';
+    if (btn) { btn.style.background = 'linear-gradient(135deg,#ea860c,#d62d2d)'; btn.style.boxShadow = '0 4px 20px rgba(234,134,12,.45)'; }
+    if (wrap) wrap.onclick = function(){ goTab('sHome','navRide'); };
+    if (tabDesafios) tabDesafios.style.display = 'none';
+    if (tabAgenda)   tabAgenda.style.display   = '';
   }
 }
 
 // Entrar sem login → guest mode
 function entrarSemLogin() {
   prToken = null; prUser = null;
-  goTab('sActivity', 'navActivity');
+  goTab('sHome', 'navRide');
   navCenterAtualizar();
 }
 
