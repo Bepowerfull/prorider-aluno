@@ -380,6 +380,12 @@ input[type=file]{display:none}
      HOME
 ══════════════════════════════════ -->
 <div class="screen" id="sHome" style="padding-bottom:66px;background:linear-gradient(160deg,#0a0812 0%,#110808 60%,#080a14 100%);">
+  <!-- Badge nome professor (oculto para aluno/guest) -->
+  <div id="homeProfBadge" style="display:none;padding:14px 18px 0;display:none;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:4px;color:rgba(155,48,255,.6);text-transform:uppercase;">Professor</div>
+    <div id="homeProfNome" style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;line-height:1;margin-top:1px;">—</div>
+  </div>
+
   <div style="padding:28px 20px 22px;display:flex;flex-direction:column;align-items:center;position:relative;">
     <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;"></div>
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(234,134,12,.12) 0%,transparent 70%);pointer-events:none;animation:spGlow 3s ease-in-out infinite alternate;"></div>
@@ -4465,7 +4471,7 @@ function navCenterClick() {
   if (!prToken) {
     go('sSplash'); // convidado → tela de login
   } else if (prUser && (prUser.role||'').toLowerCase() === 'professor') {
-    go('sProfHome'); phCarregarAgenda();
+    goTab('sHome','navRide');
   } else {
     goTab('sHome', 'navRide');
   }
@@ -4488,9 +4494,10 @@ function navCenterAtualizar() {
 
   var profBtns  = document.getElementById('homeProfButtons');
   var agendaBtn = document.getElementById('homeAgendaBtn');
+  var profBadge = document.getElementById('homeProfBadge');
+  var profNome  = document.getElementById('homeProfNome');
 
   if (!prToken) {
-    // Convidado: botão laranja → entrarSemLogin → sHome; 4ª aba = Desafios; só Agenda no home
     if (lbl) lbl.textContent = 'Entrar';
     if (btn) { btn.style.background = 'linear-gradient(135deg,#ea860c,#d62d2d)'; btn.style.boxShadow = '0 4px 20px rgba(234,134,12,.45)'; }
     if (wrap) wrap.onclick = function(){ go('sSplash'); };
@@ -4498,19 +4505,20 @@ function navCenterAtualizar() {
     if (tabAgenda)   tabAgenda.style.display   = 'none';
     if (profBtns)  profBtns.style.display  = 'none';
     if (agendaBtn) agendaBtn.style.display = '';
+    if (profBadge) profBadge.style.display = 'none';
 
   } else if (prUser && (prUser.role||'').toLowerCase() === 'professor') {
-    // Professor: botão roxo → sProfHome; 4ª aba = Desafios; Build+Agenda no home
     if (lbl) lbl.textContent = 'Prof';
     if (btn) { btn.style.background = 'linear-gradient(135deg,#9b30ff,#295fe8)'; btn.style.boxShadow = '0 4px 20px rgba(155,48,255,.5)'; }
-    if (wrap) wrap.onclick = function(){ go('sProfHome'); phCarregarAgenda(); };
+    if (wrap) wrap.onclick = function(){ goTab('sHome','navRide'); };
     if (tabDesafios) tabDesafios.style.display = '';
     if (tabAgenda)   tabAgenda.style.display   = 'none';
     if (profBtns)  profBtns.style.display  = '';
     if (agendaBtn) agendaBtn.style.display = 'none';
+    if (profBadge) profBadge.style.display = 'block';
+    if (profNome && prUser) profNome.textContent = (prUser.name||'Professor').split(' ')[0].toUpperCase();
 
   } else {
-    // Aluno: botão laranja → sHome; 4ª aba = Agenda; só Agenda no home
     if (lbl) lbl.textContent = 'Início';
     if (btn) { btn.style.background = 'linear-gradient(135deg,#ea860c,#d62d2d)'; btn.style.boxShadow = '0 4px 20px rgba(234,134,12,.45)'; }
     if (wrap) wrap.onclick = function(){ goTab('sHome','navRide'); };
@@ -4518,6 +4526,7 @@ function navCenterAtualizar() {
     if (tabAgenda)   tabAgenda.style.display   = '';
     if (profBtns)  profBtns.style.display  = 'none';
     if (agendaBtn) agendaBtn.style.display = '';
+    if (profBadge) profBadge.style.display = 'none';
   }
 }
 
@@ -5362,20 +5371,7 @@ var SERVER_HTTP='https://prorider-server-production-5784.up.railway.app';
 
 function phInit() {
   if (!prUser || (prUser.role||'').toLowerCase() !== 'professor') return;
-
-  // Trocar nav: em vez do botão central ir p/ sHome, vai p/ sProfHome
-  var navRide = document.getElementById('navRide');
-  if (navRide) navRide.onclick = function(){ go('sProfHome'); phCarregarAgenda(); };
-
-  // Preencher nome e data
-  var el = document.getElementById('phNome');
-  if (el) el.textContent = (prUser.name || 'Professor').split(' ')[0].toUpperCase();
-  var ed = document.getElementById('phData');
-  if (ed) ed.textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
-
-  // Ir direto para sProfHome ao fazer login
-  go('sProfHome');
-  phCarregarAgenda();
+  goTab('sHome', 'navRide');
 }
 
 async function phCarregarAgenda() {
