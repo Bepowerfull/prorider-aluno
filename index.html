@@ -4227,8 +4227,10 @@ function scanDevBT(type){
 
   var btOptions;
   if(type==='hr'){
+    // acceptAllDevices mostra todos os BLE em alcance — necessário para sensores
+    // que não anunciam o serviço HR no advertisement (iGS Sport, sensores genéricos)
     btOptions={
-      filters:[{services:[BTUUID.HEART_RATE]}],
+      acceptAllDevices:true,
       optionalServices:[BTUUID.HEART_RATE]
     };
   } else {
