@@ -583,7 +583,7 @@ input[type=file]{display:none}
     <div>
       <div style="font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:5px;">Bluetooth BLE</div>
       <div style="font-size:19px;font-weight:700;color:rgba(255,255,255,.5);" id="connAulaName">Conectar dispositivos</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.18);margin-top:3px;">Keiser · Stages · Wahoo · Tacx · Elite · Polar · Garmin</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.18);margin-top:3px;">Keiser · Stages · Wahoo · Tacx · iGS Sport · Polar · Garmin</div>
     </div>
     <svg width="42" height="52" viewBox="0 0 44 56" fill="none">
       <defs><filter id="cg"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="cG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe033"/><stop offset="50%" stop-color="#ea860c"/><stop offset="100%" stop-color="#d62d2d"/></linearGradient></defs>
@@ -594,30 +594,22 @@ input[type=file]{display:none}
     <div class="conn-sec-lbl">Bike / Power Meter</div>
     <div class="dev-item" id="devBike">
       <div class="dev-icon">🚴</div>
-      <div class="dev-info"><div class="dev-name">Indoor Bike</div><div class="dev-sub">Keiser M3i · Stages · Schwinn IC8 · ANT+ BLE</div><div class="dev-status st-idle" id="stBike">Not connected</div></div>
+      <div class="dev-info"><div class="dev-name">Indoor Bike</div><div class="dev-sub">Keiser · Stages · Schwinn · Wahoo · iGS Sport · FTMS</div><div class="dev-status st-idle" id="stBike">Not connected</div></div>
       <button class="dev-btn db-s" id="btnBike" onclick="scanDev('bike')">Search</button>
     </div>
     <div class="found-list" id="fndBike">
-      <div class="found-item" onclick="connDev('bike','Keiser M3i','#0042')"><div><div class="fi-name">Keiser M3i #0042</div><div class="fi-sub">Power · Keiser BLE · -68dBm</div></div><div>📶</div></div>
-      <div class="found-item" onclick="connDev('bike','Stages SB20','#0118')"><div><div class="fi-name">Stages SB20 #0118</div><div class="fi-sub">Cycling Power · BLE · -72dBm</div></div><div>📶</div></div>
-      <div class="found-item" onclick="connDev('bike','Schwinn IC8','#0205')"><div><div class="fi-name">Schwinn IC8 #0205</div><div class="fi-sub">FTMS · BLE · -80dBm</div></div><div>📡</div></div>
-      <div class="found-item" onclick="connDev('bike','Wahoo KICKR','#A3B1')"><div><div class="fi-name">Wahoo KICKR #A3B1</div><div class="fi-sub">FTMS · BLE · -74dBm</div></div><div>📶</div></div>
-      <div class="found-item" onclick="connDev('bike','Tacx Neo 2T','#C201')"><div><div class="fi-name">Tacx Neo 2T #C201</div><div class="fi-sub">FTMS · BLE · -70dBm</div></div><div>📶</div></div>
-      <div class="found-item" onclick="connDev('bike','Elite Suito','#5F08')"><div><div class="fi-name">Elite Suito #5F08</div><div class="fi-sub">FTMS · BLE · -75dBm</div></div><div>📡</div></div>
+      <div style="padding:12px 14px;font-size:12px;color:rgba(255,255,255,.3);text-align:center;line-height:1.6;">Bluetooth requer Chrome no Android.<br>No iPhone, usa a app nativa.</div>
     </div>
   </div>
   <div class="conn-sec" style="margin-top:4px;">
     <div class="conn-sec-lbl">Heart Rate Monitor</div>
     <div class="dev-item" id="devHR">
       <div class="dev-icon">❤️</div>
-      <div class="dev-info"><div class="dev-name">Heart Rate Monitor</div><div class="dev-sub">Polar H10 · Garmin HRM · Wahoo TICKR</div><div class="dev-status st-idle" id="stHR">Not connected</div></div>
+      <div class="dev-info"><div class="dev-name">Heart Rate Monitor</div><div class="dev-sub">Polar · Garmin HRM · Wahoo TICKR · iGS Sport · BLE HR</div><div class="dev-status st-idle" id="stHR">Not connected</div></div>
       <button class="dev-btn db-s" id="btnHR" onclick="scanDev('hr')">Search</button>
     </div>
     <div class="found-list" id="fndHR">
-      <div class="found-item" onclick="connDev('hr','Polar H10','#A3F2')"><div><div class="fi-name">Polar H10 #A3F2</div><div class="fi-sub">Heart Rate · BLE · -65dBm</div></div><div>📶</div></div>
-      <div class="found-item" onclick="connDev('hr','Polar H9','#B2D1')"><div><div class="fi-name">Polar H9 #B2D1</div><div class="fi-sub">Heart Rate · BLE · -68dBm</div></div><div>📶</div></div>
-      <div class="found-item" onclick="connDev('hr','Garmin HRM-Pro','#881B')"><div><div class="fi-name">Garmin HRM-Pro #881B</div><div class="fi-sub">Heart Rate · BLE · -71dBm</div></div><div>📶</div></div>
-      <div class="found-item" onclick="connDev('hr','Wahoo TICKR','#F3A2')"><div><div class="fi-name">Wahoo TICKR #F3A2</div><div class="fi-sub">Heart Rate · BLE · -73dBm</div></div><div>📶</div></div>
+      <div style="padding:12px 14px;font-size:12px;color:rgba(255,255,255,.3);text-align:center;line-height:1.6;">Bluetooth requer Chrome no Android.<br>No iPhone, usa a app nativa.</div>
     </div>
   </div>
   <div class="start-btns">
@@ -3689,21 +3681,12 @@ function scanDev(type){
     scanDevBT(type);
     return;
   }
-  // Modo demo (sem Bluetooth / iPhone / arquivo local)
-  var fEl=document.getElementById(type==='bike'?'fndBike':'fndHR');
-  var dEl=document.getElementById(type==='bike'?'devBike':'devHR');
-  var btn=document.getElementById(type==='bike'?'btnBike':'btnHR');
+  // Sem Bluetooth — mostrar aviso
   var st=document.getElementById(type==='bike'?'stBike':'stHR');
-  dEl.classList.add('scanning'); btn.textContent='Searching...'; btn.disabled=true;
-  st.className='dev-status st-search'; st.textContent='Searching...';
-  fEl.style.display='none';
-  clearTimeout(scanT[type]);
-  scanT[type]=setTimeout(function(){
-    dEl.classList.remove('scanning');
-    fEl.style.display='block';
-    btn.textContent='Refresh'; btn.disabled=false;
-    st.textContent='Select a device';
-  },2000);
+  st.className='dev-status st-idle';
+  st.textContent='Requer Chrome no Android';
+  var fEl=document.getElementById(type==='bike'?'fndBike':'fndHR');
+  fEl.style.display='block';
 }
 function connDev(type,name,id){
   var dEl=document.getElementById(type==='bike'?'devBike':'devHR');
@@ -4274,7 +4257,8 @@ function scanDevBT(type){
       } else if(name.indexOf('wahoo')!==-1 || name.indexOf('kickr')!==-1 ||
                 name.indexOf('tacx')!==-1 || name.indexOf('elite')!==-1 ||
                 name.indexOf('suito')!==-1 || name.indexOf('neo')!==-1 ||
-                name.indexOf('schwinn')!==-1){
+                name.indexOf('schwinn')!==-1 || name.indexOf('igs')!==-1 ||
+                name.indexOf('ic ')!==-1){
         return btConnectFTMS(server, device);
       } else {
         // tentar Cycling Power primeiro (Stages), depois FTMS
