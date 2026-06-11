@@ -4247,7 +4247,7 @@ function scanDevBT(type){
 
   navigator.bluetooth.requestDevice(btOptions)
   .then(function(device){
-    st.textContent='Connecting to '+device.name+'...';
+    st.textContent='Connecting to '+(device.name||'device')+'...';
     return device.gatt.connect().then(function(server){
       if(type==='hr'){
         return btConnectHR(server, device);
@@ -4271,12 +4271,19 @@ function scanDevBT(type){
     });
   })
   .catch(function(err){
-    if(err.name!=='NotFoundError') alert('Bluetooth error: '+err.message);
     dEl.classList.remove('scanning');
     btn.textContent='Search';
     btn.disabled=false;
-    st.className='dev-status st-idle';
-    st.textContent='Not connected';
+    // mostrar sempre o erro no ecrã, nunca silenciosamente
+    var msg = err.name === 'NotFoundError'     ? 'Cancelado / nenhum dispositivo selecionado'
+            : err.name === 'NotAllowedError'   ? 'Permissão negada — ative Bluetooth e Localização'
+            : err.name === 'SecurityError'     ? 'Bloqueado: requer HTTPS ou localhost'
+            : err.name === 'InvalidStateError' ? 'Bluetooth está desligado'
+            : (err.name + ': ' + err.message);
+    st.className='dev-status st-bloqueado';
+    st.textContent=msg;
+    // guardar no console para diagnóstico
+    console.error('[BT '+type+'] '+err.name+': '+err.message);
   });
 }
 
