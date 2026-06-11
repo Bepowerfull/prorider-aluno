@@ -4431,6 +4431,8 @@ function saveAndGoHistory(){
 // ════════════════════════════════════════════════════════════
 var prToken = localStorage.getItem('pr_token') || null;
 var prUser  = null;
+// ?prof=1 na URL força role=professor localmente para teste
+var _devProfMode = new URLSearchParams(window.location.search).get('prof') === '1';
 
 // Nível: thresholds e label
 var LVL_THRESHOLDS = [0,500,2000,5000,10000,99999];
@@ -4448,6 +4450,7 @@ function lvlPct(pts){
 
 // Rota pós-login baseada no role
 function rotearPorRole(user) {
+  if (_devProfMode && user) user.role = 'professor';
   if (user && (user.role||'').toLowerCase() === 'professor') {
     _phInited = false;
     phCheckRole();
@@ -5358,7 +5361,7 @@ var SERVER_HTTP='https://prorider-server-production-5784.up.railway.app';
 // ══════════════════════════════════════════════════════════════
 
 function phInit() {
-  if (!prUser || prUser.role !== 'professor') return;
+  if (!prUser || (prUser.role||'').toLowerCase() !== 'professor') return;
 
   // Trocar nav: em vez do botão central ir p/ sHome, vai p/ sProfHome
   var navRide = document.getElementById('navRide');
