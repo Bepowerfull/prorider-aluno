@@ -4234,9 +4234,13 @@ function scanDevBT(type){
       optionalServices:[BTUUID.HEART_RATE]
     };
   } else {
+    // Keiser M3i NÃO anuncia o UUID de serviço no advertisement — usa namePrefix
     btOptions={
       filters:[
-        {services:[BTUUID.KEISER]},
+        {namePrefix:'M3'},
+        {namePrefix:'Keiser'},
+        {namePrefix:'KEISER'},
+        {namePrefix:'M3i'},
         {services:[BTUUID.CYCLING_POWER]},
         {services:[BTUUID.FTMS]},
         {services:[BTUUID.CSC]}
