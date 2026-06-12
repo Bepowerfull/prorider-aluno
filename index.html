@@ -4384,8 +4384,21 @@ function btConnectHR(server, device){
           var flags=d.getUint8(0);
           // bit 0: formato \u2014 0=uint8, 1=uint16
           var hr = (flags & 0x01) ? d.getUint16(1, true) : d.getUint8(1);
-          document.getElementById('bigHR').textContent=hr;
-          document.getElementById('p2AHr').textContent=hr;
+          // bits 1-2: contacto com pele (1=suportado, 2=detetado)
+          var contactSupported = (flags & 0x02) !== 0;
+          var contactDetected  = (flags & 0x04) !== 0;
+          var hrEl  = document.getElementById('bigHR');
+          var hrEl2 = document.getElementById('p2AHr');
+          if(contactSupported && !contactDetected){
+            // sensor no peito mas sem contacto \u2014 mostrar aviso
+            if(hrEl)  hrEl.style.color  = '#ea860c';
+            if(hrEl2) hrEl2.style.color = '#ea860c';
+          } else {
+            if(hrEl)  hrEl.style.color  = '';
+            if(hrEl2) hrEl2.style.color = '';
+          }
+          if(hrEl)  hrEl.textContent  = hr;
+          if(hrEl2) hrEl2.textContent = hr;
         });
         connDev('hr', device.name, '');
       });
