@@ -1843,6 +1843,7 @@ input[type=file]{display:none}
 
 // ---- QR SCAN ----
 var wsConn=null;
+var wsAlunoPing=null;
 var SERVER_URL='wss://prorider-server-production-5784.up.railway.app';
 // Gráfico da aula recebido do professor
 var aulaGrafico=[], aulaBlocoIdx=0, aulaGraficoNome='';
@@ -2023,7 +2024,8 @@ function connectQR(code){
       if(statusEl){statusEl.textContent='Sem conexao. Verifique se esta na mesma rede.';statusEl.style.color='#d62d2d';}
     };
     // Keepalive ping a cada 25 segundos (iOS Safari para JS quando tela apaga)
-    var wsAlunoPing=setInterval(function(){
+    clearInterval(wsAlunoPing);
+    wsAlunoPing=setInterval(function(){
       if(wsConn&&wsConn.readyState===1){
         wsConn.send(JSON.stringify({tipo:'ping'}));
       } else {
@@ -3963,7 +3965,23 @@ function togglePause(){
 }
 function prevB(){ if(cBloco>0){ cBloco--; segS=0; updUpNext(); updGraph(); scrollGraph(); } }
 function nextB(){ if(cBloco<cAula.blocos.length-1){ cBloco++; segS=0; updUpNext(); updGraph(); scrollGraph(); } }
-function quitW(){ clearInterval(lInt); closeDrawer(); if(audio){audio.pause();audio.src='';} showResults(); }
+function quitW(){
+  // 1. Parar timer da aula
+  clearInterval(lInt); lInt=null;
+  // 2. Parar ping WebSocket e fechar conexão limpa
+  clearInterval(wsAlunoPing); wsAlunoPing=null;
+  if(wsConn){ try{ wsConn.onclose=null; wsConn.close(); }catch(e){} wsConn=null; }
+  // 3. Parar BLE
+  try{ if(typeof BleNative!=='undefined'){ BleNative.stopBikeScan(); BleNative.stopHRScan(); } }catch(e){}
+  try{ if(typeof stopBikeScan==='function') stopBikeScan(); }catch(e){}
+  // 4. Parar áudio
+  if(audio){ try{ audio.pause(); audio.src=''; }catch(e){} }
+  // 5. Resetar estado
+  isPaused=false; cBloco=0; segS=0; dGear=0;
+  // 6. Fechar drawer e mostrar resultados
+  closeDrawer();
+  showResults();
+}
 function showResults(){
   clearInterval(lInt);
   if(isFtpTest&&ftpTestWatts.length>0){ showFtpResult(); return; }
