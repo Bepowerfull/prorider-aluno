@@ -2341,8 +2341,14 @@ function connectQR(code){
       if(data.tipo==='erro'){
         var _msgErr=data.msg||'Não foi possível entrar na aula. Tente novamente.';
         if(statusEl){statusEl.textContent=_msgErr;statusEl.style.color='#d62d2d';}
-        // Mostra o erro de forma VISÍVEL mesmo fora da tela de QR (antes só atualizava um campo oculto → parecia travado)
         if(typeof showToast==='function') showToast('⚠️ '+_msgErr);
+        // Sala não encontrada: a aula encerrou — apaga o código salvo e remove
+        // a faixa "VOLTAR PRA ÚLTIMA AULA" para não ficar em loop de erro.
+        if(_msgErr.indexOf('nao encontrada')!==-1||_msgErr.indexOf('não encontrada')!==-1){
+          try{ localStorage.removeItem('pr_last_sala'); }catch(e){}
+          lastCode=null; _bikeSelNum=0;
+          var _fxErr=document.getElementById('prVoltarAula'); if(_fxErr) _fxErr.remove();
+        }
         // Não deixa preso: volta para a seleção de bike para tentar de novo
         var _sbErr=document.getElementById('sBikeSel');
         var _atual=document.querySelector('.screen.active');
