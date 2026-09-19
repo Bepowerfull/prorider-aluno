@@ -2346,15 +2346,7 @@ function connectQR(code){
         // velho e precisa sair — senao a faixa fica apontando para uma sala
         // morta, e o aluno tenta voltar para ela indefinidamente.
         if(/n[aã]o encontrada|inexistente|encerrada/i.test(String(_msgErr))){
-          try{ localStorage.removeItem('pr_last_sala'); }catch(e){}
-          try{ lastCode=null; }catch(e){}
-          try{
-            var _fx=document.getElementById('prVoltarAula');
-            if(_fx) _fx.remove();
-            if(window._prVoltarVigia){ clearInterval(window._prVoltarVigia); window._prVoltarVigia=null; }
-          }catch(e){}
-          try{ if(typeof _reconStop==='function') _reconStop(); }catch(e){}
-          console.warn('[ProRider] a sala nao existe mais — esquecendo o codigo guardado e removendo a faixa de voltar.');
+          _prEsquecerSala('sala nao existe mais');
         }
         if(statusEl){statusEl.textContent=_msgErr;statusEl.style.color='#d62d2d';}
         // Mostra o erro de forma VISÍVEL mesmo fora da tela de QR (antes só atualizava um campo oculto → parecia travado)
@@ -5068,7 +5060,24 @@ function _reconManualRetry(){ _reconStop(); _reconStartFlow(); }
 
 // Encerramento robusto da aula no app — chamado quando o ginásio manda fim_aula/sala_encerrada.
 // Cobre os DOIS caminhos de conexão (QR e sessão) e nunca deixa a tela congelada.
+// Esquece a sala guardada e tira a faixa de voltar. Chamado quando a aula
+// acaba de verdade — por encerramento do professor ou por sala inexistente.
+// Sem isto, o aparelho continuava guardando o codigo de uma sala morta e a
+// faixa ficava apontando para ela.
+function _prEsquecerSala(motivo){
+  try{ localStorage.removeItem('pr_last_sala'); }catch(e){}
+  try{ lastCode=null; }catch(e){}
+  try{
+    var f=document.getElementById('prVoltarAula');
+    if(f) f.remove();
+    if(window._prVoltarVigia){ clearInterval(window._prVoltarVigia); window._prVoltarVigia=null; }
+  }catch(e){}
+  try{ if(typeof _reconStop==='function') _reconStop(); }catch(e){}
+  console.warn('[ProRider] sala esquecida ('+(motivo||'encerrada')+') — faixa de voltar removida.');
+}
+
 function _encerrarAulaApp(){
+  _prEsquecerSala('professor encerrou');
   var sl=document.getElementById('sLive');
   var emAula=(typeof lInt!=='undefined' && lInt) || (sl && sl.classList.contains('active'));
   if(!emAula) return;
@@ -7090,7 +7099,7 @@ updateProfileUI = function() {
          + ' fill="none" stroke="'+col(fm)+'" stroke-width="30" stroke-linecap="'+cap+'"/>';
     }
     g.innerHTML=out;
-    try{ console.log('%c[ProRider Aluno] BUILD 18/09a — caloria por watt (kJ/eficiencia) + basal Mifflin-St Jeor no cadastro + historico gravado no aparelho + FTP na gaveta + card 1080x1920 reposicionado + 6 protocolos de FTP + TSS + teste de 3 min + fator do teste de 5 min corrigido (era 1,05) + explicacao de FTP em cada teste + gaveta esconde pela propria altura + importacao de treino do TrainingPeaks (grade 2x2 na tela inicial + construtor) com tela de conferencia (botoes acima da navegacao) + corrigido: aula aberta por objeto agora e a que roda + botao Revisar o treino na gaveta + FTP e peso persistem no aparelho + gauge reequilibrado + textos do Brasil + codigo de sala normalizado (QR do navegador deixava a sala inexistente) + faixa de voltar corrigida + reconexao nao trava mais + sala inexistente limpa o codigo guardado e a faixa de voltar','color:#ea860c;font-weight:700;'); }catch(e){}
+    try{ console.log('%c[ProRider Aluno] BUILD 18/09b — caloria por watt (kJ/eficiencia) + basal Mifflin-St Jeor no cadastro + historico gravado no aparelho + FTP na gaveta + card 1080x1920 reposicionado + 6 protocolos de FTP + TSS + teste de 3 min + fator do teste de 5 min corrigido (era 1,05) + explicacao de FTP em cada teste + gaveta esconde pela propria altura + importacao de treino do TrainingPeaks (grade 2x2 na tela inicial + construtor) com tela de conferencia (botoes acima da navegacao) + corrigido: aula aberta por objeto agora e a que roda + botao Revisar o treino na gaveta + FTP e peso persistem no aparelho + gauge reequilibrado + textos do Brasil + codigo de sala normalizado (QR do navegador deixava a sala inexistente) + faixa de voltar corrigida + reconexao nao trava mais + sala encerrada ou inexistente limpa o codigo guardado e a faixa de voltar','color:#ea860c;font-weight:700;'); }catch(e){}
   }
   if(document.readyState!=='loading') buildGaugeArc();
   else document.addEventListener('DOMContentLoaded', buildGaugeArc);
